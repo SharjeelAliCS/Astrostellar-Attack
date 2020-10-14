@@ -8,7 +8,8 @@
 #include <GL/glfw3.h>
 
 #include "resource.h"
-
+#include <iostream>     // std::cout
+#include <sstream>  
 // Default extensions for different shader source files
 #define VERTEX_PROGRAM_EXTENSION "_vp.glsl"
 #define FRAGMENT_PROGRAM_EXTENSION "_fp.glsl"
@@ -35,6 +36,7 @@ namespace game {
             void CreateTorus(std::string object_name, float loop_radius = 0.6, float circle_radius = 0.2, int num_loop_samples = 90, int num_circle_samples = 30);
             // Create the geometry for a sphere
             void CreateSphere(std::string object_name, float radius = 0.6, int num_samples_theta = 90, int num_samples_phi = 45);
+			void CreateMesh(std::string object_name, std::string filename);
 
         private:
             // List storing all resources
@@ -45,6 +47,7 @@ namespace game {
             void LoadMaterial(const std::string name, const char *prefix);
             // Load a text file into memory (could be source code)
             std::string LoadTextFile(const char *filename);
+			std::vector<std::string> LoadTextArray(const char *filename);
 
     }; // class ResourceManager
 

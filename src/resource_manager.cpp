@@ -146,6 +146,169 @@ std::string ResourceManager::LoadTextFile(const char *filename){
     return content;
 }
 
+std::vector<std::string> ResourceManager::LoadTextArray(const char *filename) {
+
+	// Open file
+	std::ifstream f;
+	f.open(filename);
+	if (f.fail()) {
+		throw(std::ios_base::failure(std::string("Error opening file ") + std::string(filename)));
+	}
+
+	// Read file
+	std::vector<std::string> content;
+	std::string line;
+	while (std::getline(f, line)) {
+
+		content.push_back(line);
+	}
+
+	// Close file
+	f.close();
+
+	return content;
+}
+
+void ResourceManager::CreateMesh(std::string object_name, std::string filename) {
+	std::vector<std::string> content = LoadTextArray(filename.c_str());
+	int vertex_str_num = 0;
+	int face_str_num = 0;
+
+	for (int i = 0; i < content.size(); i++) {
+		std::string type = content[i].substr(0, 2);
+		if (type =="v ") {
+			vertex_str_num += 1;
+		}
+		else if (type == "f ") {
+			face_str_num += 1;
+		}
+	}
+
+	const GLuint vertex_num = vertex_str_num;
+	const GLuint face_num = face_str_num;
+
+	// Number of attributes for vertices and faces
+	const int vertex_att = 11;
+	const int face_att = 3;
+
+	// Data buffers for the torus
+	GLfloat *vertex = NULL;
+	GLuint *face = NULL;
+
+	// Allocate memory for buffers
+	try {
+		vertex = new GLfloat[vertex_num * vertex_att]; // 11 attributes per vertex: 3D position (3), 3D normal (3), RGB color (3), 2D texture coordinates (2)
+		face = new GLuint[face_num * face_att]; // 3 indices per face
+	}
+	catch (std::exception &e) {
+		throw e;
+	}
+
+
+
+	std::vector<glm::vec3> v;
+	int pos_index = 0;
+	int normal_index = 3;
+	int tex_index = 6;
+	int face_index = 0;
+
+	for (int i = 0; i < content.size(); i++) {
+		std::string type = content[i].substr(0, 2);
+		//std::cout << type << std::endl;
+		if (type == "v ") {
+			std::stringstream ss(content[i].substr(2, (content[i].size())));
+
+			glm::vec3 pos(0);
+			ss >> pos.x;
+			ss >> pos.y;
+			ss >> pos.z;
+			v.push_back(pos);
+
+			std::cout << "position = " << pos_index << std::endl;
+			pos_index += vertex_att;
+			for (int j = 0; j < 3; j++) {
+				vertex[pos_index + j] = pos[j];
+			}
+			
+		}
+		else if(type == "vn") {
+			std::string a = content[i].substr(3, (content[i].size()));
+
+			std::stringstream ss(a);
+
+			glm::vec3 norm(0);
+			ss >> norm.x;
+			ss >> norm.y;
+			ss >> norm.z;
+
+			std::cout << "normal = "<< normal_index << std::endl;
+			normal_index += vertex_att;
+
+			for (int j = 0; j < 3; j++) {
+				vertex[normal_index + j] = norm[j];
+			}
+
+		}
+		else if (type == "vt") {
+			std::string a = content[i].substr(3, (content[i].size()));
+
+			std::stringstream ss(a);
+
+			glm::vec2 tex(0);
+			ss >> tex.x;
+			ss >> tex.y;
+
+			std::cout << "texture = " << tex_index << std::endl;
+			tex_index += vertex_att;
+
+			for (int j = 0; j < 2; j++) {
+				//vertex[tex_index + j] = tex[j];
+			}
+
+		}
+		else if (type == "f ") {
+			std::string a = content[i].substr(3, (content[i].size()));
+
+			std::stringstream ss(a);
+
+			glm::vec2 tex(0);
+			ss >> tex.x;
+			ss >> tex.y;
+
+			std::cout << "texture = " << tex_index << std::endl;
+			tex_index += vertex_att;
+
+			for (int j = 0; j < 2; j++) {
+				//vertex[tex_index + j] = tex[j];
+			}
+
+		}
+	}
+
+	glm::vec3 vertex_color(0.4,0.6,0.0); 
+	for (int i = 9; i < vertex_num; i+=vertex_att) {
+		for (int j = 0; j < 3; j++) {
+			//vertex[pos_index + j] = pos[j];
+		}
+	}
+
+	GLuint vbo, ebo;
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, vertex_num * vertex_att * sizeof(GLfloat), vertex, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, face_num * face_att * sizeof(GLuint), face, GL_STATIC_DRAW);
+
+	// Free data buffers
+	delete[] vertex;
+	delete[] face;
+
+	// Create resource
+	AddResource(Mesh, object_name, vbo, ebo, face_num * face_att);
+
+}
 
 void ResourceManager::CreateTorus(std::string object_name, float loop_radius, float circle_radius, int num_loop_samples, int num_circle_samples){
 

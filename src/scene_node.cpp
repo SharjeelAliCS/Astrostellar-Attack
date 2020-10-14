@@ -9,11 +9,15 @@
 
 namespace game {
 
-SceneNode::SceneNode(const std::string name, const Resource *geometry, const Resource *material){
+SceneNode::SceneNode(void) {
+
+}	
+
+SceneNode::SceneNode(const std::string name, const Resource *geometry, const Resource *material, Transformation* model){
 
     // Set name of scene node
     name_ = name;
-
+	model_ = model;
     // Set geometry
     if (geometry->GetType() == PointSet){
         mode_ = GL_POINTS;
@@ -49,58 +53,119 @@ const std::string SceneNode::GetName(void) const {
 }
 
 
+glm::vec3 SceneNode::GetForward(void) const {
+
+	return orientation_.GetForward();
+}
+
+
+glm::vec3 SceneNode::GetSide(void) const {
+
+	return orientation_.GetSide();
+}
+
+
+glm::vec3 SceneNode::GetUp(void) const {
+	return orientation_.GetUp();
+}
+
+
+void SceneNode::Pitch(float angle) {
+
+	orientation_.Pitch(angle);
+}
+
+void SceneNode::Yaw(float angle) {
+
+	orientation_.Yaw(angle);
+}
+
+void SceneNode::Roll(float angle) {
+
+	orientation_.Roll(angle);
+}
+
+glm::vec3 SceneNode::GetOrgPos(void) const {
+
+	return org_pos_;
+}
+
 glm::vec3 SceneNode::GetPosition(void) const {
 
-    return position_;
+	return position_;
 }
 
 
 glm::quat SceneNode::GetOrientation(void) const {
 
-    return orientation_;
+	return orientation_.GetOrientation();
 }
 
 
 glm::vec3 SceneNode::GetScale(void) const {
 
-    return scale_;
+	return scale_;
+}
+
+bool SceneNode::Exists(void) const {
+	return exists_;
 }
 
 
-void SceneNode::SetPosition(glm::vec3 position){
+void SceneNode::SetOrgPos(glm::vec3 position) {
 
-    position_ = position;
+	org_pos_ = position;
 }
 
 
-void SceneNode::SetOrientation(glm::quat orientation){
+void SceneNode::SetPosition(glm::vec3 position) {
 
-    orientation_ = orientation;
+	position_ = position;
+}
+
+void SceneNode::SetOrientation(float angle, glm::vec3 normal) {
+	orientation_.SetOrientation(glm::angleAxis(angle*glm::pi<float>() / 180.0f, normal));
+}
+
+void SceneNode::SetOrientation(glm::quat orientation) {
+
+	orientation_.SetOrientation(orientation);
 }
 
 
-void SceneNode::SetScale(glm::vec3 scale){
+void SceneNode::SetScale(glm::vec3 scale) {
 
-    scale_ = scale;
+	scale_ = scale;
+}
+
+void SceneNode::SetMovementSpeed(float s) {
+	movement_speed = s;
+}
+
+void SceneNode::SetName(std::string name) {
+	name_ = name;
+}
+void SceneNode::Translate(glm::vec3 trans) {
+
+	position_ += trans;
 }
 
 
-void SceneNode::Translate(glm::vec3 trans){
+void SceneNode::Rotate(glm::quat rot) {
 
-    position_ += trans;
+	orientation_.Rotate(rot);
 }
 
 
-void SceneNode::Rotate(glm::quat rot){
+void SceneNode::Scale(glm::vec3 scale) {
 
-    orientation_ *= rot;
-    orientation_ = glm::normalize(orientation_);
+	scale_ *= scale;
 }
 
+void SceneNode::RotateOverTime(float rotation_speed, glm::vec3 rotation_normal) {
 
-void SceneNode::Scale(glm::vec3 scale){
-
-    scale_ *= scale;
+	rotation_normal_ = rotation_normal;
+	rotation_speed_ = rotation_speed;
 }
 
 
@@ -133,6 +198,15 @@ GLuint SceneNode::GetMaterial(void) const {
     return material_;
 }
 
+bool SceneNode::Hit(glm::vec3 pos, float range) {
+	float dis = glm::distance(pos, position_);
+	//std::cout << dis << std::endl;
+	if (dis <= range) {
+
+		exists_ = false;
+	}
+	return !exists_;
+}
 
 void SceneNode::Draw(Camera *camera){
 
@@ -158,7 +232,7 @@ void SceneNode::Draw(Camera *camera){
 }
 
 
-void SceneNode::Update(void){
+void SceneNode::Update(double deltaTime){
 
     // Do nothing for this generic type of scene node
 }
@@ -184,18 +258,20 @@ void SceneNode::SetupShader(GLuint program){
     glEnableVertexAttribArray(tex_att);
 
     // World transformation
-    glm::mat4 scaling = glm::scale(glm::mat4(1.0), scale_);
-    glm::mat4 rotation = glm::mat4_cast(orientation_);
-    glm::mat4 translation = glm::translate(glm::mat4(1.0), position_);
-    glm::mat4 transf = translation * rotation * scaling;
-
-    GLint world_mat = glGetUniformLocation(program, "world_mat");
-    glUniformMatrix4fv(world_mat, 1, GL_FALSE, glm::value_ptr(transf));
+	ApplyTransformation(program);
 
     // Timer
     GLint timer_var = glGetUniformLocation(program, "timer");
     double current_time = glfwGetTime();
     glUniform1f(timer_var, (float) current_time);
+}
+
+void SceneNode::ApplyTransformation(GLuint program) {
+	model_->Translate(position_, true);
+	model_->Rotate(orientation_.GetOrientation());
+	model_->Scale(scale_);
+	GLint world_mat = glGetUniformLocation(program, "world_mat");
+	glUniformMatrix4fv(world_mat, 1, GL_FALSE, glm::value_ptr(model_->Apply(true)));
 }
 
 } // namespace game;

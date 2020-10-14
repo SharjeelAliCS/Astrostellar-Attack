@@ -19,7 +19,7 @@
 int main(void){
     game::Game app; // Game application 
 
-    try {
+    //try {
         // Initialize game
         app.Init();
         // Setup the main resources and scene in the game
@@ -27,10 +27,10 @@ int main(void){
         app.SetupScene();
         // Run game
         app.MainLoop();
-    }
+   /* }
     catch (std::exception &e){
         PrintException(e);
-    }
+    }*/
 
     return 0;
 }

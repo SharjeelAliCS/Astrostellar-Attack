@@ -11,7 +11,10 @@
 namespace game {
 
 SceneGraph::SceneGraph(void){
-
+	background_color_ = glm::vec3(0.0, 0.0, 0.0);
+}
+SceneGraph::SceneGraph(Transformation* model){
+	model_ = model;
     background_color_ = glm::vec3(0.0, 0.0, 0.0);
 }
 
@@ -35,7 +38,7 @@ glm::vec3 SceneGraph::GetBackgroundColor(void) const {
 SceneNode *SceneGraph::CreateNode(std::string node_name, Resource *geometry, Resource *material){
 
     // Create scene node with the specified resources
-    SceneNode *scn = new SceneNode(node_name, geometry, material);
+    SceneNode *scn = new SceneNode(node_name, geometry, material, model_);
 
     // Add node to the scene
     node_.push_back(scn);
@@ -90,10 +93,10 @@ void SceneGraph::Draw(Camera *camera){
 }
 
 
-void SceneGraph::Update(void){
+void SceneGraph::Update(double deltaTime){
 
     for (int i = 0; i < node_.size(); i++){
-        node_[i]->Update();
+        node_[i]->Update(deltaTime);
     }
 }
 

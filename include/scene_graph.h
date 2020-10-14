@@ -10,6 +10,7 @@
 #include "scene_node.h"
 #include "resource.h"
 #include "camera.h"
+#include "transformation.h"
 
 namespace game {
 
@@ -22,10 +23,12 @@ namespace game {
 
             // Scene nodes to render
             std::vector<SceneNode *> node_;
+			Transformation* model_;
 
         public:
             // Constructor and destructor
-            SceneGraph(void);
+			SceneGraph(void);
+            SceneGraph(Transformation* model);
             ~SceneGraph();
 
             // Background color
@@ -46,7 +49,7 @@ namespace game {
             void Draw(Camera *camera);
 
             // Update entire scene
-            void Update(void);
+            void Update(double deltaTime);
 
     }; // class SceneGraph
 

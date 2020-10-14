@@ -11,7 +11,7 @@
 #include "resource_manager.h"
 #include "camera.h"
 #include "asteroid.h"
-
+#include "transformation.h"
 namespace game {
 
     // Exception type for the game
@@ -47,7 +47,7 @@ namespace game {
 
             // Scene graph containing all nodes to render
             SceneGraph scene_;
-
+			Transformation model_;
             // Resources available to the game
             ResourceManager resman_;
 
@@ -62,6 +62,15 @@ namespace game {
             void InitView(void);
             void InitEventHandlers(void);
  
+			int window_width;
+			int window_height;
+			float timeOfLastMove;
+			//New user input function more multiple inputs
+			void GetUserInput(void);
+
+			//Camera input for mouse (See .cpp file for more info)
+			void GetMouseCameraInput();
+
             // Methods to handle events
             static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
             static void ResizeCallback(GLFWwindow* window, int width, int height);
