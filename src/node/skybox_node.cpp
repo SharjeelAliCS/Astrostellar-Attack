@@ -39,7 +39,7 @@ namespace game {
 		camera->SetupShader(material_);
 
 		// Set world matrix and other shader input variables
-		SetupShader(material_);
+		SetupShader(material_,camera);
 
 		// Draw geometry
 		glDisable(GL_DEPTH_TEST);

@@ -94,7 +94,9 @@ void SceneNode::SetOrientation(glm::quat orientation) {
 
 	orientation_->SetOrientation(orientation);
 }
-
+void SceneNode::SetOrgPos(glm::vec3 pos) {
+	org_pos_ = pos;
+}
 
 void SceneNode::SetJoint(glm::vec3 joint) {
 	joint_ = joint;
@@ -170,7 +172,7 @@ void SceneNode::Draw(Camera *camera){
     camera->SetupShader(material_);
 
     // Set world matrix and other shader input variables
-    SetupShader(material_);
+    SetupShader(material_,camera);
 
     // Draw geometry
     if (mode_ == GL_POINTS){
@@ -190,7 +192,7 @@ void SceneNode::Update(float deltaTime){
     // Do nothing for this generic type of scene node
 }
 
-glm::mat4 SceneNode::CalculateChildTransform() {
+glm::mat4 SceneNode::CalculateFinalTransformation(Camera* camera) {
 	// World transformation
 	glm::mat4 Orientation = glm::mat4_cast(orientation_->GetOrientation());
 	glm::mat4 translation = glm::translate(glm::mat4(1.0), position_);
@@ -206,7 +208,7 @@ glm::mat4 SceneNode::CalculateChildTransform() {
 
 	return transf;
 }
-void SceneNode::SetupShader(GLuint program){
+void SceneNode::SetupShader(GLuint program, Camera* camera){
 
 	
     // Set attributes for shaders
@@ -228,7 +230,7 @@ void SceneNode::SetupShader(GLuint program){
 
     // World transformation
     glm::mat4 scaling = glm::scale(glm::mat4(1.0), scale_);
-	 glm::mat4 transf = CalculateChildTransform() * scaling;
+	 glm::mat4 transf = CalculateFinalTransformation(camera) * scaling;
 
     GLint world_mat = glGetUniformLocation(program, "world_mat");
     glUniformMatrix4fv(world_mat, 1, GL_FALSE, glm::value_ptr(transf));

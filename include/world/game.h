@@ -78,12 +78,17 @@ namespace game {
             static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
             static void ResizeCallback(GLFWwindow* window, int width, int height);
 
+			//code taken from here: https://www.glfw.org/docs/3.3/input_guide.html#scrolling
+			static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
             // Asteroid field
             // Create instance of one asteroid
 
             Enemy *CreateEnemyInstance(std::string entity_name, std::string object_name, std::string material_name);
             // Create entire random asteroid field
             void CreateEnemies(int num_enemies = 1500);
+
+			// Create entire random asteroid field
+			void CreateHUD(void);
 
             // Create an instance of an object stored in the resource manager
             SceneNode *CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type,std::string texture_name = std::string(""));

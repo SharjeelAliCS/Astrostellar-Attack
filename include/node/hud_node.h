@@ -26,6 +26,8 @@ namespace game {
 		void Draw(Camera *camera);
 		void Update(float deltaTime);
 
+		glm::mat4 CalculateFinalTransformation(Camera* camera);
+
 	}; // class GameObj
 
 } // namespace game

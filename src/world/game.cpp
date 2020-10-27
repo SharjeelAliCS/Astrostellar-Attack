@@ -106,7 +106,7 @@ void Game::InitEventHandlers(void){
     // Set event callbacks
     glfwSetKeyCallback(window_, KeyCallback);
     glfwSetFramebufferSizeCallback(window_, ResizeCallback);
-
+	glfwSetScrollCallback(window_, scroll_callback);
     // Set pointer to game object, so that callbacks can access it
     glfwSetWindowUserPointer(window_, (void *) this);
 }
@@ -119,7 +119,7 @@ void Game::SetupResources(void){
 	resman_.CreateWall("FlatSurface");
 	resman_.CreateCylinder("SimpleCylinderMesh", 2.0, 0.4, 30, 30);
 	resman_.CreateSphere("SimpleSphereMesh");
-	resman_.CreateCube("SimpleCubeMesh",3,3,3);
+	resman_.CreateCube("c",3,3,3);
     // Load shader for texture mapping
 	std::string filename = std::string(MATERIAL_DIRECTORY) + std::string("/textured_material");
 	resman_.LoadResource(Material, "TextureShader", filename.c_str());
@@ -147,6 +147,10 @@ void Game::SetupResources(void){
 	resman_.LoadResource(Texture, "skyboxTexture", filename.c_str());
 	resman_.LoadResource(Mesh, "skybox", "meshes/cube.obj");
 
+	//hud
+	filename = assets_dir + std::string("/rocky.png");
+	resman_.LoadResource(Texture, "hudTexture", filename.c_str());
+
 }
 
 
@@ -170,6 +174,8 @@ void Game::SetupScene(void){
 	//create skybox
 	SceneNode* skybox = CreateInstance("skybox", "skybox", "TextureShader", SKYBOX, "skyboxTexture");
 	skybox->SetScale(glm::vec3(0.25));
+
+	CreateHUD();
 }
 
 
@@ -284,6 +290,7 @@ void Game::GetUserInput(void) {
 			camera_.Translate(side * side_factor);
 			player->Translate(side*side_factor);
 		}
+
 	}
 
 
@@ -315,12 +322,11 @@ void Game::GetMouseCameraInput() {
 		//camera_.Pitch(-speed_y);
 		
 		glm::vec3 diff = player->GetPosition();
-
-		diff -= camera_position_g.z * camera_.GetForward();
-		diff -= camera_position_g.y * camera_.GetUp();
+		glm::vec3 zoom = camera_.GetZoomPos();
+		diff -= zoom.z * camera_.GetForward();
+		diff -= zoom.y * camera_.GetUp();
 		camera_.SetPosition(diff);
 
-		
 		player->GetOrientationObj()->Yaw(-speed_x);
 		player->GetOrientationObj()->Pitch(-speed_y);
 	
@@ -347,7 +353,18 @@ void Game::ResizeCallback(GLFWwindow* window, int width, int height) {
 	game->window_width = width;
 	game->window_height = height;
 }
+//https://www.glfw.org/docs/3.3/input_guide.html#scrolling
+void Game::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+	void* ptr = glfwGetWindowUserPointer(window);
+	Game *game = (Game *)ptr;
+	float max_zoom = 3;
+	float min_zoom = 30;
+	float curr_zoom = game->camera_.GetZoom()+yoffset;
+	if (curr_zoom<min_zoom && curr_zoom > max_zoom) {
+		game->camera_.Zoom(yoffset);
+	}
 
+}
 Game::~Game(){
     
     glfwTerminate();
@@ -398,6 +415,13 @@ void Game::CreateEnemies(int num_enemies){
     }
 }
 
+void Game::CreateHUD(void) {
+	
+	SceneNode* node;
+	node  = CreateInstance("test", "FlatSurface", "TextureShader",HUD, "hudTexture");
+	node->SetScale(glm::vec3(0.05));
+	node->SetPosition(glm::vec3(0.2,0.2, 0));
+}
 
 SceneNode *Game::CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type, std::string texture_name){
 
