@@ -1,61 +1,110 @@
 cmake_minimum_required(VERSION 2.6)
 
 # Name of project
-project(COMP3501_A3)
+set(PROJ_NAME COMP3501_Project)
+project(${PROJ_NAME} C CXX)
 
-include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/assets)
 include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/include/node)
+include_directories(${PROJECT_SOURCE_DIR}/src/node)
+include_directories(${PROJECT_SOURCE_DIR}/include/node/entity)
+include_directories(${PROJECT_SOURCE_DIR}/src/node/entity)
+include_directories(${PROJECT_SOURCE_DIR}/include/world)
+include_directories(${PROJECT_SOURCE_DIR}/src/world)
+include_directories(${PROJECT_SOURCE_DIR}/include/setup)
+include_directories(${PROJECT_SOURCE_DIR}/src/setup)
+include_directories(${PROJECT_SOURCE_DIR}/include/attribute)
+include_directories(${PROJECT_SOURCE_DIR}/src/attribute)
 include_directories(${PROJECT_SOURCE_DIR}/resource)
+#Used the following resource to do this:
+#https://stackoverflow.com/questions/33808087/cmake-how-to-create-visual-studio-filters
+
+# Specify project files: header files and source files
 # Specify project source files
+set(HDRS
+    ${PROJECT_SOURCE_DIR}/include/attribute/orientation.h
+
+    ${PROJECT_SOURCE_DIR}/include/node/entity/enemy_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/entity/entity_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/entity/player_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/entity/projectile_node.h
+
+    ${PROJECT_SOURCE_DIR}/include/node/hud_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/scene_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/skybox_node.h
+
+    ${PROJECT_SOURCE_DIR}/include/setup/model_loader.h
+    ${PROJECT_SOURCE_DIR}/include/setup/path_config.h
+    ${PROJECT_SOURCE_DIR}/include/setup/resource.h
+    ${PROJECT_SOURCE_DIR}/include/setup/resource_manager.h
+
+    ${PROJECT_SOURCE_DIR}/include/world/camera.h
+    ${PROJECT_SOURCE_DIR}/include/world/game.h
+    ${PROJECT_SOURCE_DIR}/include/world/scene_graph.h
+)
 set(SRCS
-    
-    ${PROJECT_SOURCE_DIR}/include/camera.h
-    ${PROJECT_SOURCE_DIR}/include/game.h 
-    ${PROJECT_SOURCE_DIR}/include/gameobj.h
-    ${PROJECT_SOURCE_DIR}/include/transformation.h
-    ${PROJECT_SOURCE_DIR}/include/projectileobj.h
-    ${PROJECT_SOURCE_DIR}/include/playerobj.h
-    ${PROJECT_SOURCE_DIR}/include/enemyobj.h
-    ${PROJECT_SOURCE_DIR}/include/rotation.h
-    ${PROJECT_SOURCE_DIR}/include/geometry.h
-    ${PROJECT_SOURCE_DIR}/include/asteroid.h
-    ${PROJECT_SOURCE_DIR}/include/resource.h
-    ${PROJECT_SOURCE_DIR}/include/resource_manager.h
-    ${PROJECT_SOURCE_DIR}/include/scene_graph.h
-    ${PROJECT_SOURCE_DIR}/include/scene_node.h
-    
+    #SOURCE FILES
+    ${PROJECT_SOURCE_DIR}/src/attribute/orientation.cpp
 
-    ${PROJECT_SOURCE_DIR}/src/camera.cpp
-    ${PROJECT_SOURCE_DIR}/src/game.cpp
-    ${PROJECT_SOURCE_DIR}/src/gameobj.cpp
-    ${PROJECT_SOURCE_DIR}/src/transformation.cpp
-    ${PROJECT_SOURCE_DIR}/src/projectileobj.cpp
-    ${PROJECT_SOURCE_DIR}/src/playerobj.cpp
-    ${PROJECT_SOURCE_DIR}/src/enemyobj.cpp
-    ${PROJECT_SOURCE_DIR}/src/rotation.cpp
-    ${PROJECT_SOURCE_DIR}/src/geometry.cpp
-    ${PROJECT_SOURCE_DIR}/src/asteroid.cpp
-    ${PROJECT_SOURCE_DIR}/src/resource.cpp
-    ${PROJECT_SOURCE_DIR}/src/resource_manager.cpp
-    ${PROJECT_SOURCE_DIR}/src/scene_graph.cpp
-    ${PROJECT_SOURCE_DIR}/src/scene_node.cpp
-    
+    ${PROJECT_SOURCE_DIR}/src/node/entity/enemy_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/node/entity/entity_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/node/entity/player_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/node/entity/projectile_node.cpp
+
+    ${PROJECT_SOURCE_DIR}/src/node/hud_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/node/scene_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/node/skybox_node.cpp
+
+    ${PROJECT_SOURCE_DIR}/src/setup/resource.cpp
+    ${PROJECT_SOURCE_DIR}/src/setup/resource_manager.cpp
+
+    ${PROJECT_SOURCE_DIR}/src/world/camera.cpp
+    ${PROJECT_SOURCE_DIR}/src/world/game.cpp
+    ${PROJECT_SOURCE_DIR}/src/world/scene_graph.cpp
+
     ${PROJECT_SOURCE_DIR}/src/main.cpp
-
 )
 
+set(RCRS
+    ${PROJECT_SOURCE_DIR}/resource/material_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/material_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/procedural_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/procedural_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/textured_material_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/textured_material_vp.glsl
+)
+#https://stackoverflow.com/questions/31422680/how-to-set-visual-studio-filters-for-nested-sub-directory-using-cmake
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${HDRS})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SRCS})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${RCRS})
+##source_group("Header Files\\node" ${HEADER_FILES_NODE})
+#source_group("Header Files\\world" ${HEADER_FILES_WORLD})
+#source_group("Header Files\\setup" ${HEADER_FILES_SETUP})
+#source_group("Header Files\\attribute" ${HEADER_FILES_ATTRIBUTE})
+
+#source_group("Source Files\\node" ${SOURCE_FILES_NODE})
+#source_group("Source Files\\world" ${SOURCE_FILES_WORLD})
+#source_group("Source Files\\setup" ${SOURCE_FILES_SETUP})
+#source_group("Source Files\\attribute" ${SOURCE_FILES_ATTRIBUTE})
+
+set(ASSETS
+   ${PROJECT_SOURCE_DIR}/assets
+)
+
+file(COPY ASSETS DESTINATION ${CMAKE_BINARY_DIR})
+
 # Add executable based on the source files
-add_executable(A3 ${SRCS})
+add_executable(${PROJ_NAME} ${HDRS} ${SRCS} ${RCRS})
 
 # Require OpenGL library
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
-target_link_libraries(A3 ${OPENGL_gl_LIBRARY})
+target_link_libraries(${PROJ_NAME} ${OPENGL_gl_LIBRARY})
 
 # Other libraries needed
 set(LIBRARY_PATH C:/Libraries)
 include_directories(${LIBRARY_PATH}/include)
-
 if(NOT WIN32)
     find_library(GLEW_LIBRARY GLEW)
     find_library(GLFW_LIBRARY glfw)
@@ -65,9 +114,10 @@ elseif(WIN32)
     find_library(GLFW_LIBRARY glfw3 HINTS ${LIBRARY_PATH}/lib)
     find_library(SOIL_LIBRARY SOIL HINTS ${LIBRARY_PATH}/lib)
 endif(NOT WIN32)
-target_link_libraries(A3 ${GLEW_LIBRARY})
-target_link_libraries(A3 ${GLFW_LIBRARY})
-target_link_libraries(A3 ${SOIL_LIBRARY})
+target_link_libraries(${PROJ_NAME} ${GLEW_LIBRARY})
+target_link_libraries(${PROJ_NAME} ${GLFW_LIBRARY})
+target_link_libraries(${PROJ_NAME} ${SOIL_LIBRARY})
+
 
 # The rules here are specific to Windows Systems
 if(WIN32)
@@ -75,5 +125,5 @@ if(WIN32)
     set(CMAKE_SUPPRESS_REGENERATION TRUE)
 
     # This will use the proper libraries in debug mode in Visual Studio
-    set_target_properties(A3 PROPERTIES DEBUG_POSTFIX _d)
+    set_target_properties(${PROJ_NAME} PROPERTIES DEBUG_POSTFIX _d)
 endif(WIN32)
