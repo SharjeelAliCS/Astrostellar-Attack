@@ -36,6 +36,7 @@ namespace game {
 
 		// Set node attributes
 		void SetPosition(glm::vec3 position, bool newOrgPos = false);
+		void SetOrgPos(glm::vec3 pos);
 		void SetOrientation(glm::quat orientation);
 		void SetOrientation(float angle, glm::vec3 normal);
 		void SetScale(glm::vec3 scale);
@@ -101,9 +102,9 @@ namespace game {
 		bool exists_;
 
 		// Set matrices that transform the node in a shader program
-		void SetupShader(GLuint program);
+		void SetupShader(GLuint program, Camera* camera);
 
-		glm::mat4 CalculateChildTransform();
+		virtual  glm::mat4 CalculateFinalTransformation(Camera* camera);
 
 	}; // class SceneNode
 

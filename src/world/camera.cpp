@@ -27,9 +27,17 @@ namespace game {
 
 
 	glm::vec3 Camera::GetPosition(void) const {
-
 		return position_;
 	}
+
+	glm::vec3 Camera::GetZoomPos(void) const {
+		return zoom_pos_;
+	}
+	float Camera::GetZoom(void) const {
+		return zoom_;
+	}
+
+
 
 
 	glm::quat Camera::GetOrientation(void) const {
@@ -97,6 +105,8 @@ namespace game {
 
 
 	void Camera::SetView(glm::vec3 position, glm::vec3 look_at, glm::vec3 up) {
+		zoom_pos_ = position;
+		zoom_ = glm::length(position);
 		orientation_->SetView(position, look_at, up);
 
 	}
@@ -139,6 +149,16 @@ namespace game {
 		view_matrix_ = glm::lookAt(position_, position_ - current_forward, current_up);
 
 
+	}
+
+	void Camera::SetZoom(float z) {
+		zoom_ = z;
+
+	}
+
+	void Camera::Zoom(float z) {
+		zoom_ += z;
+		zoom_pos_ = glm::normalize(zoom_pos_)*zoom_;
 	}
 
 } // namespace game

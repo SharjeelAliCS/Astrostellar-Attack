@@ -18,8 +18,9 @@ namespace game {
  
             // Get global camera attributes
             glm::vec3 GetPosition(void) const;
+			glm::vec3 GetZoomPos(void) const;
+			float GetZoom(void) const;
             glm::quat GetOrientation(void) const;
-
             // Set global camera attributes
             void SetPosition(glm::vec3 position);
             void SetOrientation(glm::quat orientation);
@@ -48,9 +49,14 @@ namespace game {
             // Set all camera-related variables in shader program
             void SetupShader(GLuint program);
 
+			void SetZoom(float z);
+			void Zoom(float z);
+
         private:
 
             glm::vec3 position_; // Position of camera
+			glm::vec3 zoom_pos_;
+			float zoom_;
             Orientation* orientation_; // Orientation of camera
             glm::vec3 forward_; // Initial forward vector
             glm::vec3 side_; // Initial side vector

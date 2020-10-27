@@ -138,6 +138,7 @@ void SceneGraph::Draw(Camera *camera){
     // Draw all scene nodes
 
 	if (skybox_ != NULL)skybox_->Draw(camera);
+	
 	if(player_!=NULL)player_->Draw(camera);
 
     for (int i = 0; i < node_.size(); i++){
