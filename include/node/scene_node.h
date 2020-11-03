@@ -41,7 +41,7 @@ namespace game {
 		void SetOrientation(float angle, glm::vec3 normal);
 		void SetScale(glm::vec3 scale);
 		void SetJoint(glm::vec3 joint);
-
+		void SetDraw(bool d);
 		
 		// Perform transformations on node
 		void Translate(glm::vec3 trans);
@@ -52,7 +52,7 @@ namespace game {
 		// Draw the node according to scene parameters in 'camera'
 		// variable
 		void Draw(Camera *camera);
-
+		
 		// Update the node
 		void Update(float deltaTime);
 
@@ -100,7 +100,7 @@ namespace game {
 		glm::vec3 Orientation_normal_;
 
 		bool exists_;
-
+		bool draw_;
 		// Set matrices that transform the node in a shader program
 		void SetupShader(GLuint program, Camera* camera);
 

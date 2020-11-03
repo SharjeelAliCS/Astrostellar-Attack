@@ -23,10 +23,11 @@ namespace game {
 		// Destructor
 		~HUDNode();
 
-		void Draw(Camera *camera);
 		void Update(float deltaTime);
 
 		glm::mat4 CalculateFinalTransformation(Camera* camera);
+
+	private:
 
 	}; // class GameObj
 

@@ -12,8 +12,6 @@ namespace game {
 
 // Main window settings
 const std::string window_title_g = "Demo";
-const unsigned int window_width_g = 800;
-const unsigned int window_height_g = 600;
 const bool window_full_screen_g = false;
 
 // Viewport and camera settings
@@ -21,7 +19,8 @@ float camera_near_clip_distance_g = 0.01;
 float camera_far_clip_distance_g = 1000.0;
 float camera_fov_g = 40.0; // Field-of-view of camera
 const glm::vec3 viewport_background_color_g(0.0, 0.0, 0.0);
-glm::vec3 camera_position_g(0, -1.5, 10);
+glm::vec3 camera_position_1st_g(0, 0, 1);
+glm::vec3 camera_position_3rd_g(0, -1.5, 10);
 glm::vec3 camera_look_at_g(-0.0, -0, 0);
 glm::vec3 camera_up_g(0.0, 1.0, 0.0);
 
@@ -37,6 +36,10 @@ Game::Game(void){
 
 void Game::Init(void){
 
+	aspect_ratio_ = 1080.0 / 1920.0;
+	window_width = 800;
+	window_height = window_width * aspect_ratio_;
+
     // Run all initialization steps
     InitWindow();
     InitView();
@@ -45,8 +48,8 @@ void Game::Init(void){
     // Set variables
     animating_ = true;
 	timeOfLastMove = 0.0;
-	window_width = window_width_g;
-	window_height = window_height_g;
+	first_person_ = true;
+
 }
 
        
@@ -59,9 +62,9 @@ void Game::InitWindow(void){
 
     // Create a window and its OpenGL context
     if (window_full_screen_g){
-        window_ = glfwCreateWindow(window_width_g, window_height_g, window_title_g.c_str(), glfwGetPrimaryMonitor(), NULL);
+        window_ = glfwCreateWindow(window_width, window_height, window_title_g.c_str(), glfwGetPrimaryMonitor(), NULL);
     } else {
-        window_ = glfwCreateWindow(window_width_g, window_height_g, window_title_g.c_str(), NULL, NULL);
+        window_ = glfwCreateWindow(window_width, window_height, window_title_g.c_str(), NULL, NULL);
     }
     if (!window_){
         glfwTerminate();
@@ -95,14 +98,17 @@ void Game::InitView(void){
 
     // Set up camera
     // Set current view
-    camera_.SetView(camera_position_g, camera_look_at_g, camera_up_g);
+    camera_.SetView(camera_position_1st_g, camera_look_at_g, camera_up_g);
     // Set projection
     camera_.SetProjection(camera_fov_g, camera_near_clip_distance_g, camera_far_clip_distance_g, width, height);
+
 }
 
 
 void Game::InitEventHandlers(void){
+	float aspect_ratio = 1080.0 / 1920.0;
 
+	glfwSetWindowAspectRatio(window_, 1920,1080);
     // Set event callbacks
     glfwSetKeyCallback(window_, KeyCallback);
     glfwSetFramebufferSizeCallback(window_, ResizeCallback);
@@ -119,37 +125,44 @@ void Game::SetupResources(void){
 	resman_.CreateWall("FlatSurface");
 	resman_.CreateCylinder("SimpleCylinderMesh", 2.0, 0.4, 30, 30);
 	resman_.CreateSphere("SimpleSphereMesh");
+	resman_.CreateTorus("SimpleTorusMesh");
 	resman_.CreateCube("c",3,3,3);
     // Load shader for texture mapping
-	std::string filename = std::string(MATERIAL_DIRECTORY) + std::string("/textured_material");
+	std::string filename;
+	filename = std::string(MATERIAL_DIRECTORY) + std::string("/textured_material");
 	resman_.LoadResource(Material, "TextureShader", filename.c_str());
 
-	std::string assets_dir = std::string(MATERIAL_DIRECTORY) + "/"+std::string(ASSET_DIRECTORY);
 	// shader for corona effect
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/procedural");
 	resman_.LoadResource(Material, "Procedural", filename.c_str());
 
+	//object shader
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/procedural");
 	resman_.LoadResource(Material, "ObjectMaterial", filename.c_str());
 
+	//screen (hud) shader
+	filename = std::string(MATERIAL_DIRECTORY) + std::string("/screen");
+	resman_.LoadResource(Material, "ScreenMaterial", filename.c_str());
+
+	std::string assets_dir = std::string(ASSET_DIRECTORY);
+
     // Load texture to be used on the object
-	filename = assets_dir + std::string("/Pumpkin_Color.png");
+	filename = assets_dir + std::string("/graphics/Pumpkin_Color.png");
 	resman_.LoadResource(Texture, "RockyTexture", filename.c_str());
 	resman_.LoadResource(Mesh, "pumpkin", "meshes/Pumkin.obj");
 
 	//player
-	filename = assets_dir + std::string("/player.png");
+	filename = assets_dir + std::string("/graphics/player.png");
 	resman_.LoadResource(Texture, "shipTexture", filename.c_str());
 	resman_.LoadResource(Mesh, "ship", "meshes/player.obj");
-
 	//skybox
-	filename = assets_dir + std::string("/skybox.png");
+	filename = assets_dir + std::string("/graphics/skybox/skybox_v2.png");
 	resman_.LoadResource(Texture, "skyboxTexture", filename.c_str());
 	resman_.LoadResource(Mesh, "skybox", "meshes/cube.obj");
 
 	//hud
-	filename = assets_dir + std::string("/rocky.png");
-	resman_.LoadResource(Texture, "hudTexture", filename.c_str());
+	filename = assets_dir + std::string("/graphics/hud/hud.png");
+	resman_.LoadResource(Texture, "cockpitTexture", filename.c_str());
 
 }
 
@@ -169,19 +182,24 @@ void Game::SetupScene(void){
 	
 	//skybox->SetOrientation(180, glm::vec3(1, 0, 0));
 	//create enemies
-	CreateEnemies(1000);
+	CreateEnemies(500);
 	//ame::SceneNode *wall = CreateInstance("Canvas", "FlatSurface", "Procedural", "RockyTexture"); // must supply a texture, even if not used
 	//create skybox
 	SceneNode* skybox = CreateInstance("skybox", "skybox", "TextureShader", SKYBOX, "skyboxTexture");
 	skybox->SetScale(glm::vec3(0.25));
 
 	CreateHUD();
+
+	scene_.GetHUD("cockpit")->SetDraw(true);
+	scene_.GetPlayer()->SetDraw(false);
+	camera_.SetZoom(0);
 }
 
 
 void Game::MainLoop(void){
 
     // Loop while the user did not close the window
+	float player_speed = 0.5;
     while (!glfwWindowShouldClose(window_)){
 
 		static double last_time = glfwGetTime();
@@ -191,16 +209,20 @@ void Game::MainLoop(void){
 		double deltaTime = current_time - last_time;
 		last_time = current_time;
 		// Animate the scene
-		GetUserInput();
+		GetUserInput(deltaTime);
 		if (animating_) {
 			static double last_time = 0;
 			double current_time = glfwGetTime();
 			if ((current_time - last_update) > 0.05) {
 				scene_.Update(deltaTime);
 
+				glm::vec3 foward = camera_.GetForward();
+				camera_.Translate(foward * player_speed);
+				scene_.GetPlayer()->Translate(foward * player_speed);
 				// Animate the scene
 
 				last_time = current_time;
+				//std::cout << "enemy is " << hit << std::endl;
 			}
 
 		}
@@ -216,7 +238,7 @@ void Game::MainLoop(void){
     }
 }
 
-void Game::GetUserInput(void) {
+void Game::GetUserInput(float deltaTime) {
 
 	//quit game
 	if (glfwGetKey(window_, GLFW_KEY_Q) == GLFW_PRESS) {
@@ -238,9 +260,8 @@ void Game::GetUserInput(void) {
 
 		Player* player = scene_.GetPlayer();
 		//Get the factors used for movement
-		float side_factor = 0.3;
 		float foward_factor = 1;
-		float const_foward = 0.2;
+		float side_factor = foward_factor*0.33;
 		//glm::vec3 pos = player->GetPosition();
 		glm::vec3 foward = camera_.GetForward();
 
@@ -345,23 +366,48 @@ void Game::KeyCallback(GLFWwindow* window, int key, int scancode, int action, in
 
 void Game::ResizeCallback(GLFWwindow* window, int width, int height) {
 
-	// Set up viewport and camera projection based on new window size
-	glViewport(0, 0, width, height);
 	void* ptr = glfwGetWindowUserPointer(window);
 	Game *game = (Game *)ptr;
+
+	// Set up viewport and camera projection based on new window size
+	glViewport(0, 0, width, height);
 	game->camera_.SetProjection(camera_fov_g, camera_near_clip_distance_g, camera_far_clip_distance_g, width, height);
 	game->window_width = width;
 	game->window_height = height;
+
+
+
+
 }
 //https://www.glfw.org/docs/3.3/input_guide.html#scrolling
 void Game::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	void* ptr = glfwGetWindowUserPointer(window);
 	Game *game = (Game *)ptr;
-	float max_zoom = 3;
+	yoffset *= -1;
+	float max_zoom = 0.01;
 	float min_zoom = 30;
 	float curr_zoom = game->camera_.GetZoom()+yoffset;
-	if (curr_zoom<min_zoom && curr_zoom > max_zoom) {
+
+
+	if (curr_zoom < 5) {
+		if (yoffset > 0) {
+			game->first_person_ = false;
+			game->scene_.GetHUD("cockpit")->SetDraw(false);
+			game->scene_.GetPlayer()->SetDraw(true);
+			game->camera_.Zoom(5 + yoffset);
+			game->camera_.SetView(camera_position_3rd_g, camera_look_at_g, camera_up_g);
+		}
+		else {
+			game->first_person_ = true;
+			game->scene_.GetHUD("cockpit")->SetDraw(true);
+			game->scene_.GetPlayer()->SetDraw(false);
+			game->camera_.SetZoom(0);
+			game->camera_.SetView(camera_position_1st_g, camera_look_at_g, camera_up_g);
+		}
+	}
+	else if (curr_zoom<min_zoom && curr_zoom > max_zoom) {
 		game->camera_.Zoom(yoffset);
+
 	}
 
 }
@@ -418,9 +464,9 @@ void Game::CreateEnemies(int num_enemies){
 void Game::CreateHUD(void) {
 	
 	SceneNode* node;
-	node  = CreateInstance("test", "FlatSurface", "TextureShader",HUD, "hudTexture");
-	node->SetScale(glm::vec3(0.05));
-	node->SetPosition(glm::vec3(0.2,0.2, 0));
+	node  = CreateInstance("cockpit", "FlatSurface", "ScreenMaterial",HUD, "cockpitTexture");
+	node->SetOrientation(180, glm::vec3(1,0,0));
+	node->SetScale(glm::vec3(1.9,1,1));
 }
 
 SceneNode *Game::CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type, std::string texture_name){

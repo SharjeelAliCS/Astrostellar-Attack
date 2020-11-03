@@ -38,7 +38,9 @@ namespace game {
 	}
 
 
-
+	float Camera::GetAspectRatio(void) const {
+		return aspect_ratio_;
+	}
 
 	glm::quat Camera::GetOrientation(void) const {
 
@@ -118,6 +120,7 @@ namespace game {
 		float top = tan((fov / 2.0)*(glm::pi<float>() / 180.0))*near;
 		float right = top * w / h;
 		projection_matrix_ = glm::frustum(-right, right, -top, top, near, far);
+		aspect_ratio_ = h / w;
 	}
 
 

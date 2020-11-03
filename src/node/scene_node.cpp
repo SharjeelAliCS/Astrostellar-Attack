@@ -105,7 +105,9 @@ void SceneNode::SetJoint(glm::vec3 joint) {
 void SceneNode::SetScale(glm::vec3 scale){
     scale_ = scale;
 }
-
+void SceneNode::SetDraw(bool d) {
+	draw_ = d;
+}
 void SceneNode::Translate(glm::vec3 trans){
     position_ += trans;
 }
@@ -161,9 +163,12 @@ GLuint SceneNode::GetMaterial(void) const {
 }
 
 void SceneNode::Draw(Camera *camera){
+	if (!draw_)return;
     // Select proper material (shader program)
     glUseProgram(material_);
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // Set geometry to draw
     glBindBuffer(GL_ARRAY_BUFFER, array_buffer_);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_array_buffer_);

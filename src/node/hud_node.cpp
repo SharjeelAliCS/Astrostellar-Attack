@@ -35,58 +35,12 @@ namespace game {
 	HUDNode::~HUDNode() {
 	}
 
-
-	void HUDNode::Draw(Camera *camera) {
-		// Select proper material (shader program)
-		glUseProgram(material_);
-		glDisable(GL_DEPTH_TEST);  
-		// Set geometry to draw
-		glBindBuffer(GL_ARRAY_BUFFER, array_buffer_);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_array_buffer_);
-
-		// Set globals for camera
-		camera->SetupShader(material_);
-
-		// Set world matrix and other shader input variables
-		SetupShader(material_,camera);
-
-		// Draw geometry
-		if (mode_ == GL_POINTS) {
-			glDrawArrays(mode_, 0, size_);
-		}
-		else {
-			glDrawElements(mode_, size_, GL_UNSIGNED_INT, 0);
-		}
-
-		for (std::vector<SceneNode*>::iterator it = children_.begin(); it != children_.end(); ++it) {
-			(*it)->Draw(camera);
-		}
-		glEnable(GL_DEPTH_TEST);
-	}
 	
 	glm::mat4 HUDNode::CalculateFinalTransformation(Camera* camera) {
-
-		float zoom = camera->GetZoom();
-		// World transformation
-		glm::mat4 cameraOrientation = glm::mat4_cast(camera->GetOrientation());
-		glm::mat4 cameraTranslation = glm::translate(glm::mat4(1.0), camera->GetPosition());
-		glm::mat4 cameraZoom = glm::translate(glm::mat4(1.0), camera->GetZoomPos());
-		glm::mat4 cameraScale = glm::scale(glm::mat4(1.0f), glm::vec3(zoom));
-		glm::mat4 cameraTransf = cameraTranslation * cameraOrientation*cameraZoom*cameraScale;
-
-		glm::mat4 Orientation = glm::mat4_cast(orientation_->GetOrientation());
-		glm::mat4 translation = glm::translate(glm::mat4(1.0), position_);
-		glm::mat4 trans_joint = glm::translate(glm::mat4(1.0), joint_);
-		glm::mat4 trans_joint_inv = glm::translate(glm::mat4(1.0), -joint_);
-
-		glm::mat4 orbit = trans_joint_inv * Orientation * trans_joint;
-		glm::mat4 transf = cameraTransf* translation*orbit;
-
-		for (std::vector<SceneNode*>::iterator it = children_.begin(); it != children_.end(); ++it) {
-			(*it)->SetParentTransform(transf);
-		}
-
-		return transf;
+		float aspectRatio = camera->GetAspectRatio();
+		glm::mat4 aspectRatioMat = glm::scale(glm::mat4(1.0f), glm::vec3(aspectRatio,1,1));
+		return SceneNode::CalculateFinalTransformation(camera)*aspectRatioMat;
+		
 	}
 
 	void HUDNode::Update(float deltaTime) {
