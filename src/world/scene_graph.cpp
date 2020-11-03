@@ -98,12 +98,14 @@ Player *SceneGraph::GetPlayer() const {
 }
 
 void SceneGraph::AddEnemy(Enemy *node) {
-	node_.push_back(node);
+	enemy_.push_back(node);
 }
 
 Enemy *SceneGraph::GetEnemy(std::string node_name) const {
+
 	// Find node with the specified name
 	for (int i = 0; i < enemy_.size(); i++) {
+
 		if (enemy_[i]->GetName() == node_name) {
 			return enemy_[i];
 		}

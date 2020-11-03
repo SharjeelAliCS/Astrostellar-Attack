@@ -21,6 +21,7 @@ namespace game {
 			glm::vec3 GetZoomPos(void) const;
 			float GetZoom(void) const;
             glm::quat GetOrientation(void) const;
+			float GetAspectRatio(void) const;
             // Set global camera attributes
             void SetPosition(glm::vec3 position);
             void SetOrientation(glm::quat orientation);
@@ -53,7 +54,7 @@ namespace game {
 			void Zoom(float z);
 
         private:
-
+			float aspect_ratio_;
             glm::vec3 position_; // Position of camera
 			glm::vec3 zoom_pos_;
 			float zoom_;

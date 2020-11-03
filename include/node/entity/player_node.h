@@ -32,7 +32,6 @@ namespace game {
 
 		//The collision function detects all collisions with the enemies. 
 		bool Collision(std::vector<Enemy*>* enemies);
-
 		//Fires a single missile. 
 		void Fire();
 
@@ -43,7 +42,6 @@ namespace game {
 
 
 	private:
-
 		//store all the missiles in here. 
 		std::vector<Projectile*> missiles;
 

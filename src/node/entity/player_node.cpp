@@ -49,7 +49,7 @@ namespace game {
 		for (std::vector<Projectile*>::iterator it = missiles.begin(); it != missiles.end(); ++it) {
 			(*it)->Draw(camera);
 		}
-		
+		if (!draw_)return;
 		SceneNode::Draw(camera);
 
 	}

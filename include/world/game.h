@@ -65,11 +65,13 @@ namespace game {
             void InitView(void);
             void InitEventHandlers(void);
  
+			bool first_person_;
+			float aspect_ratio_;
 			int window_width;
 			int window_height;
 			float timeOfLastMove;
 			//New user input function more multiple inputs
-			void GetUserInput(void);
+			void GetUserInput(float deltaTime);
 
 			//Camera input for mouse (See .cpp file for more info)
 			void GetMouseCameraInput();
