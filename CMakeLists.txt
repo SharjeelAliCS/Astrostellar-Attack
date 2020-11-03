@@ -9,13 +9,25 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/include/node)
 include_directories(${PROJECT_SOURCE_DIR}/src/node)
 include_directories(${PROJECT_SOURCE_DIR}/include/node/entity)
+include_directories(${PROJECT_SOURCE_DIR}/include/node/screen)
+include_directories(${PROJECT_SOURCE_DIR}/include/node/entity/enemy)
+include_directories(${PROJECT_SOURCE_DIR}/include/node/entity/obstacle)
+include_directories(${PROJECT_SOURCE_DIR}/include/node/entity/player)
+
 include_directories(${PROJECT_SOURCE_DIR}/src/node/entity)
+include_directories(${PROJECT_SOURCE_DIR}/src/node/screen)
+include_directories(${PROJECT_SOURCE_DIR}/src/node/entity/enemy)
+include_directories(${PROJECT_SOURCE_DIR}/src/node/entity/obstacle)
+include_directories(${PROJECT_SOURCE_DIR}/src/node/entity/player)
 include_directories(${PROJECT_SOURCE_DIR}/include/world)
 include_directories(${PROJECT_SOURCE_DIR}/src/world)
 include_directories(${PROJECT_SOURCE_DIR}/include/setup)
 include_directories(${PROJECT_SOURCE_DIR}/src/setup)
 include_directories(${PROJECT_SOURCE_DIR}/include/attribute)
 include_directories(${PROJECT_SOURCE_DIR}/src/attribute)
+include_directories(${PROJECT_SOURCE_DIR}/include/menu)
+include_directories(${PROJECT_SOURCE_DIR}/src/menu)
+
 include_directories(${PROJECT_SOURCE_DIR}/resource)
 #Used the following resource to do this:
 #https://stackoverflow.com/questions/33808087/cmake-how-to-create-visual-studio-filters
@@ -24,13 +36,26 @@ include_directories(${PROJECT_SOURCE_DIR}/resource)
 # Specify project source files
 set(HDRS
     ${PROJECT_SOURCE_DIR}/include/attribute/orientation.h
+    ${PROJECT_SOURCE_DIR}/include/attribute/sound.h
 
-    ${PROJECT_SOURCE_DIR}/include/node/entity/enemy_node.h
     ${PROJECT_SOURCE_DIR}/include/node/entity/entity_node.h
-    ${PROJECT_SOURCE_DIR}/include/node/entity/player_node.h
+
+    ${PROJECT_SOURCE_DIR}/include/node/entity/enemy/enemy_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/entity/enemy/boss_node.h
+
+    ${PROJECT_SOURCE_DIR}/include/node/entity/obstacle/obstacle_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/entity/obstacle/comet_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/entity/obstacle/asteroid_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/entity/obstacle/satellite_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/entity/obstacle/sun_node.h
+
+    ${PROJECT_SOURCE_DIR}/include/node/entity/player/player_node.h
+
     ${PROJECT_SOURCE_DIR}/include/node/entity/projectile_node.h
 
-    ${PROJECT_SOURCE_DIR}/include/node/hud_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/screen/hud_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/screen/text_node.h
+
     ${PROJECT_SOURCE_DIR}/include/node/scene_node.h
     ${PROJECT_SOURCE_DIR}/include/node/skybox_node.h
 
@@ -42,17 +67,32 @@ set(HDRS
     ${PROJECT_SOURCE_DIR}/include/world/camera.h
     ${PROJECT_SOURCE_DIR}/include/world/game.h
     ${PROJECT_SOURCE_DIR}/include/world/scene_graph.h
+
+    ${PROJECT_SOURCE_DIR}/include/menu/menu.h
 )
 set(SRCS
     #SOURCE FILES
     ${PROJECT_SOURCE_DIR}/src/attribute/orientation.cpp
+    ${PROJECT_SOURCE_DIR}/src/attribute/sound.cpp
 
-    ${PROJECT_SOURCE_DIR}/src/node/entity/enemy_node.cpp
     ${PROJECT_SOURCE_DIR}/src/node/entity/entity_node.cpp
-    ${PROJECT_SOURCE_DIR}/src/node/entity/player_node.cpp
+
+    ${PROJECT_SOURCE_DIR}/src/node/entity/enemy/enemy_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/node/entity/enemy/boss_node.cpp
+
+    ${PROJECT_SOURCE_DIR}/src/node/entity/obstacle/obstacle_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/node/entity/obstacle/comet_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/node/entity/obstacle/asteroid_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/node/entity/obstacle/satellite_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/node/entity/obstacle/sun_node.cpp
+
+    ${PROJECT_SOURCE_DIR}/src/node/entity/player/player_node.cpp
+
     ${PROJECT_SOURCE_DIR}/src/node/entity/projectile_node.cpp
 
-    ${PROJECT_SOURCE_DIR}/src/node/hud_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/node/screen/hud_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/node/screen/text_node.cpp
+
     ${PROJECT_SOURCE_DIR}/src/node/scene_node.cpp
     ${PROJECT_SOURCE_DIR}/src/node/skybox_node.cpp
 
@@ -62,6 +102,8 @@ set(SRCS
     ${PROJECT_SOURCE_DIR}/src/world/camera.cpp
     ${PROJECT_SOURCE_DIR}/src/world/game.cpp
     ${PROJECT_SOURCE_DIR}/src/world/scene_graph.cpp
+
+    ${PROJECT_SOURCE_DIR}/src/menu/menu.cpp
 
     ${PROJECT_SOURCE_DIR}/src/main.cpp
 )
