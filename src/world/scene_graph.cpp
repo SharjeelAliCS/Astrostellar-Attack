@@ -15,6 +15,13 @@ SceneGraph::SceneGraph(void){
     background_color_ = glm::vec3(0.0, 0.0, 0.0);
 	player_ = NULL;
 	skybox_ = NULL;
+
+	for (int i = HUD_MENU; i != NONE+1; i++){
+		std::vector<ScreenNode*> temp;
+		screen_.insert({static_cast<ScreenType>(i), temp });
+	}
+	active_menu_ = HUD_MENU;
+
 }
 
 
@@ -52,8 +59,8 @@ SceneNode *SceneGraph::CreateNode(std::string node_name, Resource *geometry, Res
 		scn = en;
 		break; }
 	case HUD: {
-		HUDNode* hud = new HUDNode(node_name, geometry, material, texture);
-		hud_.push_back(hud);
+		ScreenNode* hud = new ScreenNode(node_name, geometry, material, texture);
+		screen_.at(NONE).push_back(hud);
 		scn = hud;
 		break; }
 	case NODE: {
@@ -114,17 +121,21 @@ Enemy *SceneGraph::GetEnemy(std::string node_name) const {
 
 }
 
-void SceneGraph::AddHUD(HUDNode *node) {
-	node_.push_back(node);
+void SceneGraph::AddScreen(ScreenNode *node, ScreenType type) {
+	screen_.at(type).push_back(node);
 }
 
-HUDNode *SceneGraph::GetHUD(std::string node_name) const {
+ScreenNode *SceneGraph::GetScreen(std::string node_name) const {
 	// Find node with the specified name
-	for (int i = 0; i < hud_.size(); i++) {
-		if (hud_[i]->GetName() == node_name) {
-			return hud_[i];
+	for (auto it = screen_.begin(); it != screen_.end(); it++){
+		for (int i = 0; i < it->second.size(); i++) {
+			if (it->second[i]->GetName() == node_name) {
+				return it->second[i];
+			}
 		}
 	}
+
+	
 	return NULL;
 
 }
@@ -149,9 +160,23 @@ void SceneGraph::Draw(Camera *camera){
 	for (int i = 0; i < enemy_.size(); i++) {
 		enemy_[i]->Draw(camera);
 	}
-	for (int i = 0; i < hud_.size(); i++) {
-		hud_[i]->Draw(camera);
+
+	
+	if (active_menu_ == HUD_MENU || active_menu_ == PAUSE_MENU) {
+		for (int i = 0; i < screen_.at(NONE).size(); i++) {
+			screen_.at(NONE)[i]->Draw(camera);
+		}
 	}
+	if (active_menu_ == PAUSE_MENU) {
+		for (int i = 0; i < screen_.at(HUD_MENU).size(); i++) {
+			screen_.at(HUD_MENU)[i]->Draw(camera);
+		}
+	}
+	for (int i = 0; i < screen_.at(active_menu_).size(); i++) {
+		screen_.at(active_menu_)[i]->Draw(camera);
+	}
+
+	
 }
 
 
@@ -166,9 +191,28 @@ void SceneGraph::Update(float deltaTime){
 	for (int i = 0; i < enemy_.size(); i++) {
 		enemy_[i]->Update(deltaTime);
 	}
-	for (int i = 0; i < hud_.size(); i++) {
-		hud_[i]->Update(deltaTime);
+	for (int i = 0; i < screen_.at(NONE).size(); i++) {
+		screen_.at(NONE)[i]->Update(deltaTime);
 	}
+
+	for (int i = 0; i < screen_.at(active_menu_).size(); i++) {
+		screen_.at(active_menu_)[i]->Update(deltaTime);
+	}
+	if (active_menu_ == PAUSE_MENU) {
+		for (int i = 0; i < screen_.at(HUD_MENU).size(); i++) {
+			screen_.at(HUD_MENU)[i]->Update(deltaTime);
+		}
+	}
+	if (active_menu_ == HUD_MENU || active_menu_ == PAUSE_MENU) {
+		for (int i = 0; i < screen_.at(NONE).size(); i++) {
+			screen_.at(NONE)[i]->Update(deltaTime);
+		}
+	}
+
+}
+
+void SceneGraph::SetCurrentScreen(ScreenType t) {
+	active_menu_ = t;
 }
 
 } // namespace game

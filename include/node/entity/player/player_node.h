@@ -23,6 +23,8 @@ namespace game {
 		// Destructor
 		~Player();
 
+		void SetShields(float h);
+		float GetShields(void) const;
 		//This lag behind function is essentially claculating the orientation with an input pitch and yaw,
 		//but does not save it. This is used for custom settings for the camera lagging behind the player object. 
 		glm::quat RotLagBehind(float pitch, float yaw);
@@ -44,7 +46,7 @@ namespace game {
 	private:
 		//store all the missiles in here. 
 		std::vector<Projectile*> missiles;
-
+		float shields_;
 	}; // class GameObj
 
 } // namespace game

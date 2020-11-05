@@ -72,6 +72,14 @@ namespace game {
 
 		return hit;
 	}
+
+	void Entity::SetHealth(float h) {
+		health_ = h;
+	}
+	float Entity::GetHealth(void) const {
+		return health_;
+	}
+
 	void Entity::RotateOverTime(float rotation_speed, glm::vec3 rotation_normal) {
 		rotation_normal_ = rotation_normal;
 		rotation_speed_ = rotation_speed;

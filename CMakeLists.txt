@@ -25,7 +25,6 @@ include_directories(${PROJECT_SOURCE_DIR}/include/setup)
 include_directories(${PROJECT_SOURCE_DIR}/src/setup)
 include_directories(${PROJECT_SOURCE_DIR}/include/attribute)
 include_directories(${PROJECT_SOURCE_DIR}/src/attribute)
-include_directories(${PROJECT_SOURCE_DIR}/include/menu)
 include_directories(${PROJECT_SOURCE_DIR}/src/menu)
 
 include_directories(${PROJECT_SOURCE_DIR}/resource)
@@ -53,7 +52,7 @@ set(HDRS
 
     ${PROJECT_SOURCE_DIR}/include/node/entity/projectile_node.h
 
-    ${PROJECT_SOURCE_DIR}/include/node/screen/hud_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/screen/screen_node.h
     ${PROJECT_SOURCE_DIR}/include/node/screen/text_node.h
 
     ${PROJECT_SOURCE_DIR}/include/node/scene_node.h
@@ -67,8 +66,7 @@ set(HDRS
     ${PROJECT_SOURCE_DIR}/include/world/camera.h
     ${PROJECT_SOURCE_DIR}/include/world/game.h
     ${PROJECT_SOURCE_DIR}/include/world/scene_graph.h
-
-    ${PROJECT_SOURCE_DIR}/include/menu/menu.h
+    ${PROJECT_SOURCE_DIR}/include/world/scene_menu.h
 )
 set(SRCS
     #SOURCE FILES
@@ -90,7 +88,7 @@ set(SRCS
 
     ${PROJECT_SOURCE_DIR}/src/node/entity/projectile_node.cpp
 
-    ${PROJECT_SOURCE_DIR}/src/node/screen/hud_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/node/screen/screen_node.cpp
     ${PROJECT_SOURCE_DIR}/src/node/screen/text_node.cpp
 
     ${PROJECT_SOURCE_DIR}/src/node/scene_node.cpp
@@ -102,8 +100,7 @@ set(SRCS
     ${PROJECT_SOURCE_DIR}/src/world/camera.cpp
     ${PROJECT_SOURCE_DIR}/src/world/game.cpp
     ${PROJECT_SOURCE_DIR}/src/world/scene_graph.cpp
-
-    ${PROJECT_SOURCE_DIR}/src/menu/menu.cpp
+    ${PROJECT_SOURCE_DIR}/src/world/scene_menu.cpp
 
     ${PROJECT_SOURCE_DIR}/src/main.cpp
 )
@@ -117,6 +114,8 @@ set(RCRS
     ${PROJECT_SOURCE_DIR}/resource/textured_material_vp.glsl
     ${PROJECT_SOURCE_DIR}/resource/screen_fp.glsl
     ${PROJECT_SOURCE_DIR}/resource/screen_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/overlay_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/overlay_vp.glsl
 )
 #https://stackoverflow.com/questions/31422680/how-to-set-visual-studio-filters-for-nested-sub-directory-using-cmake
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${HDRS})

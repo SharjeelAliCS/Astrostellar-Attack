@@ -168,7 +168,7 @@ void SceneNode::Draw(Camera *camera){
     glUseProgram(material_);
 
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     // Set geometry to draw
     glBindBuffer(GL_ARRAY_BUFFER, array_buffer_);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_array_buffer_);
@@ -189,6 +189,7 @@ void SceneNode::Draw(Camera *camera){
 	for (std::vector<SceneNode*>::iterator it = children_.begin(); it != children_.end(); ++it) {
 		(*it)->Draw(camera);
 	}
+	glDisable(GL_BLEND);
 }
 
 

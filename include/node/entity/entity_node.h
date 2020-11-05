@@ -26,11 +26,11 @@ namespace game {
 		void SetMovementSpeed(float s);
 		bool Exists(void) const;
 
-
-
+		void SetHealth(float h);
+		float GetHealth(void) const;
 
 	private:
-
+		float health_;
 	}; // class GameObj
 
 } // namespace game

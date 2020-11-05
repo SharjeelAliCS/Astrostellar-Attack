@@ -16,9 +16,11 @@ void main()
     // Retrieve texture value
 	vec4 pixel = texture(texture_map, uv_interp);
 	gl_FragColor = pixel;
-	if(uv_interp.x > progress_size){
-		gl_FragColor.a = 0;
-	}
+	gl_FragColor.r = 0;
+	gl_FragColor.g = 0;
+	gl_FragColor.b = 0;
+	gl_FragColor.a = 0.5;
+
 	
     // Use texture in determining fragment colour
     

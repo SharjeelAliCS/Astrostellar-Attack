@@ -144,6 +144,10 @@ void Game::SetupResources(void){
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/screen");
 	resman_.LoadResource(Material, "ScreenMaterial", filename.c_str());
 
+	//overlay dark (hud) shader
+	filename = std::string(MATERIAL_DIRECTORY) + std::string("/overlay");
+
+	resman_.LoadResource(Material, "OverlayMaterial", filename.c_str());
 	std::string assets_dir = std::string(ASSET_DIRECTORY);
 
     // Load texture to be used on the object
@@ -160,10 +164,25 @@ void Game::SetupResources(void){
 	resman_.LoadResource(Texture, "skyboxTexture", filename.c_str());
 	resman_.LoadResource(Mesh, "skybox", "meshes/cube.obj");
 
-	//hud
+	//Screens-----------------------------------
+
+	//ship interior
 	filename = assets_dir + std::string("/graphics/hud/hud.png");
 	resman_.LoadResource(Texture, "cockpitTexture", filename.c_str());
 
+	//health
+	filename = assets_dir + std::string("/graphics/hud/health_bar.png");
+	resman_.LoadResource(Texture, "healthBarTexture", filename.c_str());
+
+	filename = assets_dir + std::string("/graphics/hud/health_box.png");
+	resman_.LoadResource(Texture, "healthBoxTexture", filename.c_str());
+
+	//shields
+	filename = assets_dir + std::string("/graphics/hud/shield_bar.png");
+	resman_.LoadResource(Texture, "shieldBarTexture", filename.c_str());
+
+	filename = assets_dir + std::string("/graphics/hud/shield_box.png");
+	resman_.LoadResource(Texture, "shieldBoxTexture", filename.c_str());
 }
 
 
@@ -190,7 +209,7 @@ void Game::SetupScene(void){
 
 	CreateHUD();
 
-	scene_.GetHUD("cockpit")->SetDraw(true);
+	scene_.GetScreen("cockpit")->SetDraw(true);
 	scene_.GetPlayer()->SetDraw(false);
 	camera_.SetZoom(0);
 }
@@ -200,6 +219,7 @@ void Game::MainLoop(void){
 
     // Loop while the user did not close the window
 	float player_speed = 0.5;
+	float t = 0;
     while (!glfwWindowShouldClose(window_)){
 
 		static double last_time = glfwGetTime();
@@ -218,11 +238,17 @@ void Game::MainLoop(void){
 
 				glm::vec3 foward = camera_.GetForward();
 				camera_.Translate(foward * player_speed);
-				scene_.GetPlayer()->Translate(foward * player_speed);
+				Player* player = scene_.GetPlayer();
+				player->Translate(foward * player_speed);
 				// Animate the scene
+				player->SetHealth(sin(t) / 2 + 0.5);
+				player->SetShields(sin(t) / 2 + 0.5);
+
+				scene_.GetScreen("healthBar")->SetProgress(player->GetHealth());
+				scene_.GetScreen("shieldBar")->SetProgress(player->GetShields());
 
 				last_time = current_time;
-				//std::cout << "enemy is " << hit << std::endl;
+				t += 0.01;
 			}
 
 		}
@@ -249,7 +275,14 @@ void Game::GetUserInput(float deltaTime) {
 	if (timeOfLastMove + 0.5 < glfwGetTime()) {
 
 		if (glfwGetKey(window_, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-			animating_ = !animating_;
+			if (animating_) {
+				animating_ = false;
+				scene_.SetCurrentScreen(PAUSE_MENU);
+			}
+			else {
+				scene_.SetCurrentScreen(HUD_MENU);
+				animating_ = true;
+			}
 
 			timeOfLastMove = glfwGetTime();
 		}
@@ -260,7 +293,7 @@ void Game::GetUserInput(float deltaTime) {
 
 		Player* player = scene_.GetPlayer();
 		//Get the factors used for movement
-		float foward_factor = 1;
+		float foward_factor = 2;
 		float side_factor = foward_factor*0.33;
 		//glm::vec3 pos = player->GetPosition();
 		glm::vec3 foward = camera_.GetForward();
@@ -278,14 +311,15 @@ void Game::GetUserInput(float deltaTime) {
 		}
 
 		//move the player forward as well as the camera
-		if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS) {
+		if (glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+		//if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS) {
 			//glm::vec3 pos = player->GetPosition();
 			glm::vec3 foward = camera_.GetForward();
 
 			camera_.Translate(foward * foward_factor);
 			player->Translate(foward * foward_factor);
 		}
-
+		/*
 		//move the player back as well as the camera
 		if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS) {
 
@@ -310,7 +344,7 @@ void Game::GetUserInput(float deltaTime) {
 
 			camera_.Translate(side * side_factor);
 			player->Translate(side*side_factor);
-		}
+		}*/
 
 	}
 
@@ -388,18 +422,17 @@ void Game::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	float min_zoom = 30;
 	float curr_zoom = game->camera_.GetZoom()+yoffset;
 
-
 	if (curr_zoom < 5) {
 		if (yoffset > 0) {
 			game->first_person_ = false;
-			game->scene_.GetHUD("cockpit")->SetDraw(false);
+			game->scene_.GetScreen("cockpit")->SetDraw(false);
 			game->scene_.GetPlayer()->SetDraw(true);
 			game->camera_.Zoom(5 + yoffset);
 			game->camera_.SetView(camera_position_3rd_g, camera_look_at_g, camera_up_g);
 		}
 		else {
 			game->first_person_ = true;
-			game->scene_.GetHUD("cockpit")->SetDraw(true);
+			game->scene_.GetScreen("cockpit")->SetDraw(true);
 			game->scene_.GetPlayer()->SetDraw(false);
 			game->camera_.SetZoom(0);
 			game->camera_.SetView(camera_position_1st_g, camera_look_at_g, camera_up_g);
@@ -462,13 +495,64 @@ void Game::CreateEnemies(int num_enemies){
 }
 
 void Game::CreateHUD(void) {
-	
-	SceneNode* node;
-	node  = CreateInstance("cockpit", "FlatSurface", "ScreenMaterial",HUD, "cockpitTexture");
+	ScreenNode* node;
+	node  = CreateScreenInstance("cockpit", "FlatSurface", "ScreenMaterial",NONE, "cockpitTexture");
 	node->SetOrientation(180, glm::vec3(1,0,0));
 	node->SetScale(glm::vec3(1.9,1,1));
+
+	//shield
+	node = CreateScreenInstance("shieldBox", "FlatSurface", "ScreenMaterial", HUD_MENU, "shieldBoxTexture");
+	node->SetOrientation(180, glm::vec3(1, 0, 0));
+	node->SetScale(glm::vec3(0.85, 0.05,1));//multiply by 17
+	node->SetPosition(glm::vec3(0,0.92,0));
+
+	node = CreateScreenInstance("shieldBar", "FlatSurface", "ScreenMaterial", HUD_MENU, "shieldBarTexture");
+	node->SetOrientation(180, glm::vec3(1, 0, 0));
+	node->SetScale(glm::vec3(0.843, 0.04, 1));//multiply by 21
+	node->SetPosition(glm::vec3(0, 0.92, 0));
+	
+	//health
+	node = CreateScreenInstance("healthBox", "FlatSurface", "ScreenMaterial", HUD_MENU, "healthBoxTexture");
+	node->SetOrientation(180, glm::vec3(1, 0, 0));
+	node->SetScale(glm::vec3(0.41, 0.03416, 1));//multiply by 12
+	node->SetPosition(glm::vec3(0, 0.86, 0));
+
+	node = CreateScreenInstance("healthBar", "FlatSurface", "ScreenMaterial", HUD_MENU, "healthBarTexture");
+	node->SetOrientation(180, glm::vec3(1, 0, 0));
+	node->SetScale(glm::vec3(0.40, 0.02257, 1));//multiply by 17.72
+	node->SetPosition(glm::vec3(0, 0.86, 0));
+
+	//PAUSE MENU
+	node = CreateScreenInstance("pauseBackground", "FlatSurface", "OverlayMaterial", PAUSE_MENU, "healthBarTexture");
+	node->SetOrientation(180, glm::vec3(1, 0, 0));
+	node->SetScale(glm::vec3(2));//multiply by 17.72
 }
 
+ScreenNode *Game::CreateScreenInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name) {
+
+	Resource *geom = resman_.GetResource(object_name);
+	if (!geom) {
+		throw(GameException(std::string("Could not find resource \"") + object_name + std::string("\"")));
+	}
+
+	Resource *mat = resman_.GetResource(material_name);
+	if (!mat) {
+		throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
+	}
+
+	Resource *tex = NULL;
+	if (texture_name != "") {
+		tex = resman_.GetResource(texture_name);
+		if (!tex) {
+			throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
+		}
+	}
+
+	ScreenNode *scn = new ScreenNode(entity_name, geom, mat, tex);
+	scene_.AddScreen(scn, type);
+	return scn;
+
+}
 SceneNode *Game::CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type, std::string texture_name){
 
     Resource *geom = resman_.GetResource(object_name);
