@@ -16,6 +16,7 @@
 #include "skybox_node.h"
 #include "resource.h"
 #include "camera.h"
+#include "radar_node.h"
 namespace game {
 
 
@@ -64,6 +65,9 @@ namespace game {
 			// Find a scene node with a specific name
 			Player *GetPlayer() const;
 
+			void AddRadar(RadarNode *node);
+			// Find a scene node with a specific name
+
 			void AddEnemy(Enemy *node);
 			// Find a scene node with a specific name
 			Enemy *GetEnemy(std::string node_name) const;
@@ -87,10 +91,15 @@ namespace game {
 			// Scene nodes to render
 			Player* player_;
 			SkyBox* skybox_;
+			RadarNode* radar_;
 			std::vector<SceneNode*> node_;
 			std::vector<Enemy *> enemy_;
 			std::map <ScreenType, std::vector<ScreenNode *>> screen_;
 			ScreenType active_menu_;
+
+			void UpdateRadar();
+			void UpdateRadarNode(glm::vec2 pos, SceneNode* node, std::vector<glm::vec2>& e);
+			float radar_distance_;
 
     }; // class SceneGraph
 

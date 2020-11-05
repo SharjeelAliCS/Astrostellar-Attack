@@ -46,6 +46,7 @@ namespace game {
 		// Perform transformations on node
 		void Translate(glm::vec3 trans);
 		void Rotate(glm::quat rot);
+		void Rotate(float angle, glm::vec3 normal);
 		void Scale(glm::vec3 scale);
 
 		

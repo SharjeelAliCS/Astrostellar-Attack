@@ -22,6 +22,8 @@ SceneGraph::SceneGraph(void){
 	}
 	active_menu_ = HUD_MENU;
 
+	radar_distance_ = 100;
+
 }
 
 
@@ -99,6 +101,9 @@ SkyBox *SceneGraph::GetSkyBox() const {
 void SceneGraph::AddPlayer(Player *node) {
 	player_ = node;
 }
+void SceneGraph::AddRadar(RadarNode *node) {
+	radar_ = node;
+}
 
 Player *SceneGraph::GetPlayer() const {
 	return player_;
@@ -161,11 +166,11 @@ void SceneGraph::Draw(Camera *camera){
 		enemy_[i]->Draw(camera);
 	}
 
-	
 	if (active_menu_ == HUD_MENU || active_menu_ == PAUSE_MENU) {
 		for (int i = 0; i < screen_.at(NONE).size(); i++) {
 			screen_.at(NONE)[i]->Draw(camera);
 		}
+		radar_->Draw(camera);
 	}
 	if (active_menu_ == PAUSE_MENU) {
 		for (int i = 0; i < screen_.at(HUD_MENU).size(); i++) {
@@ -204,9 +209,49 @@ void SceneGraph::Update(float deltaTime){
 		}
 	}
 	if (active_menu_ == HUD_MENU || active_menu_ == PAUSE_MENU) {
+		radar_->Update(deltaTime);
 		for (int i = 0; i < screen_.at(NONE).size(); i++) {
 			screen_.at(NONE)[i]->Update(deltaTime);
 		}
+	}
+	UpdateRadar();
+}
+
+void SceneGraph::UpdateRadar() {
+	glm::vec3 pos_3d = player_->GetPosition();
+	glm::vec2 pos_player(pos_3d.x, pos_3d.z);
+
+	std::vector<glm::vec2> entities;
+	for (int i = 0; i < node_.size(); i++) {
+		UpdateRadarNode(pos_player, node_[i], entities);
+	}
+	for (int i = 0; i < enemy_.size(); i++) {
+		UpdateRadarNode(pos_player, enemy_[i], entities);
+	}
+	radar_->SetEntityPositions(entities);
+
+}
+
+void SceneGraph::UpdateRadarNode(glm::vec2 pos, SceneNode* node, std::vector<glm::vec2>& e){
+	glm::vec3 pos_3d = node->GetPosition();
+	glm::vec2 pos_2d(pos_3d.x, pos_3d.z);
+
+	if (glm::distance(pos_2d, pos) <= radar_distance_) {
+		glm::vec2 radar_pos = pos_2d-pos;
+		radar_pos = radar_pos/radar_distance_;
+		radar_pos /= 2;
+		radar_pos.y *= -1;
+		//radar_pos.x *= -1;
+		radar_pos.x += 0.5;
+		radar_pos.y += 0.5;
+
+		float x = radar_pos.x;
+		radar_pos.x = radar_pos.y;
+		radar_pos.y = x;
+		//radar_pos.x = radar_pos.x* cos(45) -radar_pos.y * sin(45);
+
+		//radar_pos.y = radar_pos.x *sin(45) + radar_pos.y * cos(45);
+		e.push_back(radar_pos);
 	}
 
 }
