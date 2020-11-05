@@ -81,6 +81,8 @@ void Game::InitWindow(void){
     if (err != GLEW_OK){
         throw(GameException(std::string("Could not initialize the GLEW library: ")+std::string((const char *) glewGetErrorString(err))));
     }
+
+	glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 }
 
 
@@ -101,7 +103,6 @@ void Game::InitView(void){
     camera_.SetView(camera_position_1st_g, camera_look_at_g, camera_up_g);
     // Set projection
     camera_.SetProjection(camera_fov_g, camera_near_clip_distance_g, camera_far_clip_distance_g, width, height);
-
 }
 
 
@@ -192,6 +193,10 @@ void Game::SetupResources(void){
 	//radar
 	filename = assets_dir + std::string("/graphics/hud/radar.png");
 	resman_.LoadResource(Texture, "radarTexture", filename.c_str());
+
+	//crosshairs
+	filename = assets_dir + std::string("/graphics/hud/crosshair_default.png");
+	resman_.LoadResource(Texture, "crosshairDefaultTexture", filename.c_str());
 }
 
 
@@ -211,7 +216,7 @@ void Game::SetupScene(void){
 	
 	//skybox->SetOrientation(180, glm::vec3(1, 0, 0));
 	//create enemies
-	CreateEnemies(30);
+	CreateEnemies(500);
 	//ame::SceneNode *wall = CreateInstance("Canvas", "FlatSurface", "Procedural", "RockyTexture"); // must supply a texture, even if not used
 	//create skybox
 	SceneNode* skybox = CreateInstance("skybox", "skybox", "TextureShader", SKYBOX, "skyboxTexture");
@@ -288,10 +293,12 @@ void Game::GetUserInput(float deltaTime) {
 			if (animating_) {
 				animating_ = false;
 				scene_.SetCurrentScreen(PAUSE_MENU);
+				glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 			}
 			else {
 				scene_.SetCurrentScreen(HUD_MENU);
 				animating_ = true;
+				glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 			}
 
 			timeOfLastMove = glfwGetTime();
@@ -383,9 +390,7 @@ void Game::GetMouseCameraInput() {
 		speed_y /= 3000;
 		glfwSetCursorPos(window_, window_width / 2, window_height / 2);
 
-		//camera_.Yaw(-speed_x);
-		//camera_.Pitch(-speed_y);
-		
+
 		glm::vec3 diff = player->GetPosition();
 		glm::vec3 zoom = camera_.GetZoomPos();
 		diff -= zoom.z * camera_.GetForward();
@@ -396,6 +401,9 @@ void Game::GetMouseCameraInput() {
 		player->GetOrientationObj()->Pitch(-speed_y);
 	
 		camera_.SetOrientation(player->RotLagBehind(speed_y / 2, speed_x / 2));
+
+		ScreenNode* screen = scene_.GetScreen("cockpit");
+		screen->SetPosition(glm::vec3(speed_x,-0.1+speed_y, 0));
 	}
 
 }
@@ -508,7 +516,7 @@ void Game::CreateHUD(void) {
 	ScreenNode* node;
 	node  = CreateScreenInstance("cockpit", "FlatSurface", "ScreenMaterial",NONE, "cockpitTexture");
 	node->SetOrientation(180, glm::vec3(1,0,0));
-	node->SetScale(glm::vec3(1.9,1,1));
+	node->SetScale(glm::vec3(2,1.2,1));
 
 	//shield
 	node = CreateScreenInstance("shieldBox", "FlatSurface", "ScreenMaterial", HUD_MENU, "shieldBoxTexture");
@@ -532,6 +540,11 @@ void Game::CreateHUD(void) {
 	node->SetScale(glm::vec3(0.40, 0.02257, 1));//multiply by 17.72
 	node->SetPosition(glm::vec3(0, 0.86, 0));
 	
+	//crosshair
+	node = CreateScreenInstance("crosshair", "FlatSurface", "ScreenMaterial", HUD_MENU, "crosshairDefaultTexture");
+	node->SetOrientation(180, glm::vec3(1, 0, 0));
+	node->SetScale(glm::vec3(0.1));
+
 	//radar
 	node = CreateScreenInstance("radar", "FlatSurface", "RadarMaterial", HUD_MENU, "radarTexture");
 
@@ -543,7 +556,8 @@ void Game::CreateHUD(void) {
 	//PAUSE MENU
 	node = CreateScreenInstance("pauseBackground", "FlatSurface", "OverlayMaterial", PAUSE_MENU, "healthBarTexture");
 	node->SetOrientation(180, glm::vec3(1, 0, 0));
-	node->SetScale(glm::vec3(2));//multiply by 17.72
+	node->SetScale(glm::vec3(2));//multiply by 17.72crosshairDefaultTexture
+
 }
 
 ScreenNode *Game::CreateScreenInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name) {

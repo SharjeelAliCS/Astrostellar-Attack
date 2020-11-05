@@ -98,7 +98,7 @@ namespace game {
 			ScreenType active_menu_;
 
 			void UpdateRadar();
-			void UpdateRadarNode(glm::vec2 pos, SceneNode* node, std::vector<glm::vec2>& e);
+			void UpdateRadarNode(glm::vec3 direction, glm::vec2 pos, SceneNode* node, std::vector<glm::vec2>& e);
 			float radar_distance_;
 
     }; // class SceneGraph
