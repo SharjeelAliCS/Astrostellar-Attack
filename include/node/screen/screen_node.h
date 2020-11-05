@@ -24,14 +24,16 @@ namespace game {
 		~ScreenNode();
 		void SetProgress(float p);
 
-		void Draw(Camera *camera);
-		void Update(float deltaTime);
-		void SetupShader(GLuint program, Camera* camera);
+		virtual void Draw(Camera *camera);
+		virtual void Update(float deltaTime);
+		virtual void SetupShader(GLuint program, Camera* camera);
+		void Rotate(float angle);
 
 		glm::mat4 CalculateFinalTransformation(Camera* camera);
 
-	private:
+	protected:
 		float progress_size_;
+		float rotation_;
 	}; // class GameObj
 
 } // namespace game

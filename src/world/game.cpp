@@ -146,9 +146,14 @@ void Game::SetupResources(void){
 
 	//overlay dark (hud) shader
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/overlay");
-
 	resman_.LoadResource(Material, "OverlayMaterial", filename.c_str());
+
+	//radar (hud) shader
+	filename = std::string(MATERIAL_DIRECTORY) + std::string("/radar");
+
+	resman_.LoadResource(Material, "RadarMaterial", filename.c_str());
 	std::string assets_dir = std::string(ASSET_DIRECTORY);
+
 
     // Load texture to be used on the object
 	filename = assets_dir + std::string("/graphics/Pumpkin_Color.png");
@@ -183,7 +188,12 @@ void Game::SetupResources(void){
 
 	filename = assets_dir + std::string("/graphics/hud/shield_box.png");
 	resman_.LoadResource(Texture, "shieldBoxTexture", filename.c_str());
+
+	//radar
+	filename = assets_dir + std::string("/graphics/hud/radar.png");
+	resman_.LoadResource(Texture, "radarTexture", filename.c_str());
 }
+
 
 
 void Game::SetupScene(void){
@@ -201,7 +211,7 @@ void Game::SetupScene(void){
 	
 	//skybox->SetOrientation(180, glm::vec3(1, 0, 0));
 	//create enemies
-	CreateEnemies(500);
+	CreateEnemies(30);
 	//ame::SceneNode *wall = CreateInstance("Canvas", "FlatSurface", "Procedural", "RockyTexture"); // must supply a texture, even if not used
 	//create skybox
 	SceneNode* skybox = CreateInstance("skybox", "skybox", "TextureShader", SKYBOX, "skyboxTexture");
@@ -521,6 +531,14 @@ void Game::CreateHUD(void) {
 	node->SetOrientation(180, glm::vec3(1, 0, 0));
 	node->SetScale(glm::vec3(0.40, 0.02257, 1));//multiply by 17.72
 	node->SetPosition(glm::vec3(0, 0.86, 0));
+	
+	//radar
+	node = CreateScreenInstance("radar", "FlatSurface", "RadarMaterial", HUD_MENU, "radarTexture");
+
+	node->SetOrientation(180, glm::vec3(1, 0, 0));
+	node->Rotate(30);
+	node->SetScale(glm::vec3(0.3));
+	node->SetPosition(glm::vec3(-0.75, -0.6, 0));
 
 	//PAUSE MENU
 	node = CreateScreenInstance("pauseBackground", "FlatSurface", "OverlayMaterial", PAUSE_MENU, "healthBarTexture");
@@ -547,10 +565,17 @@ ScreenNode *Game::CreateScreenInstance(std::string entity_name, std::string obje
 			throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
 		}
 	}
-
-	ScreenNode *scn = new ScreenNode(entity_name, geom, mat, tex);
-	scene_.AddScreen(scn, type);
-	return scn;
+	;
+	if (entity_name == "radar") {
+		RadarNode* scn = new RadarNode(entity_name, geom, mat, tex);
+		scene_.AddRadar(scn);
+		return scn;
+	}
+	else {
+		ScreenNode *scn = new ScreenNode(entity_name, geom, mat, tex);
+		scene_.AddScreen(scn, type);
+		return scn;
+	}
 
 }
 SceneNode *Game::CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type, std::string texture_name){

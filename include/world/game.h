@@ -15,6 +15,7 @@
 #include "projectile_node.h"
 #include "screen_node.h"
 #include "skybox_node.h"
+#include "radar_node.h"
 namespace game {
 
     // Exception type for the game

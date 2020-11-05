@@ -14,7 +14,7 @@
 #include <iostream>
 #include <time.h>
 
-#include "screen_node.h"
+#include "radar_node.h"
 
  /* TODO:
 
@@ -25,35 +25,28 @@
 namespace game {
 
 
-	ScreenNode::ScreenNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture) : SceneNode(name, geometry, material, texture) {
-		int a = 5;
-		org_pos_ = position_;
-		progress_size_ = 1.0;
-		rotation_ = 0;
+	RadarNode::RadarNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture) : ScreenNode(name, geometry, material, texture) {
 	}
 
 
 
-	ScreenNode::~ScreenNode() {
+	RadarNode::~RadarNode() {
 	}
 
-	
-	void ScreenNode::SetProgress(float p) {
-		progress_size_ = p;
-	}
-	glm::mat4 ScreenNode::CalculateFinalTransformation(Camera* camera) {
+	glm::mat4 RadarNode::CalculateFinalTransformation(Camera* camera) {
 		glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), rotation_*glm::pi<float>(), glm::vec3(0.0f, 0.0f, 1.0f));
 		float aspectRatio = camera->GetAspectRatio();
-		glm::mat4 aspectRatioMat = glm::scale(glm::mat4(1.0f), glm::vec3(aspectRatio,1,1));
-		return SceneNode::CalculateFinalTransformation(camera)*rotation*aspectRatioMat;
-		
+		glm::mat4 aspectRatioMat = glm::scale(glm::mat4(1.0f), glm::vec3(aspectRatio, 1, 1));
+		return rotation*SceneNode::CalculateFinalTransformation(camera)*aspectRatioMat;
+
 	}
 
-	void ScreenNode::Update(float deltaTime) {
+	void RadarNode::Update(float deltaTime) {
 		SceneNode::Update(deltaTime);
 	}
 
-	void ScreenNode::Draw(Camera *camera) {
+	void RadarNode::Draw(Camera *camera) {
+
 		if (!draw_)return;
 		// Select proper material (shader program)
 		glUseProgram(material_);
@@ -87,18 +80,23 @@ namespace game {
 		glDisable(GL_BLEND);
 		glDepthMask(true);
 	}
-	void ScreenNode::SetupShader(GLuint program, Camera* camera) {
+	void RadarNode::SetupShader(GLuint program, Camera* camera) {
+		
+		GLint sizeUniform = glGetUniformLocation(program, "arr_size");
+		glUniform1i(sizeUniform, entity_pos_.size());
 
 
-		GLint progress_uniform = glGetUniformLocation(program, "progress_size");
-		glUniform1f(progress_uniform, progress_size_);
+		if (entity_pos_.size() > 0) {
+
+			//std::cout << entity_pos_[0].x << "," << entity_pos_[0].y << std::endl;
+			GLint arr_dots = glGetUniformLocation(program, "dots");
+			glUniform2fv(arr_dots, entity_pos_.size(), reinterpret_cast<GLfloat *>(entity_pos_.data()));
+		} 
 		SceneNode::SetupShader(program, camera);
 	}
-
-	void ScreenNode::Rotate(float angle) {
-		rotation_ += angle;
+	void RadarNode::SetEntityPositions(std::vector<glm::vec2>& e) {
+		entity_pos_ = e;
 	}
-
 
 
 }

@@ -116,7 +116,9 @@ void SceneNode::Translate(glm::vec3 trans){
 void SceneNode::Rotate(glm::quat rot){
 	orientation_->Rotate(rot);
 }
-
+void SceneNode::Rotate(float angle, glm::vec3 normal) {
+	orientation_->Rotate(glm::angleAxis(angle*glm::pi<float>() / 180.0f, normal));
+}
 
 void SceneNode::Scale(glm::vec3 scale){
     scale_ *= scale;
