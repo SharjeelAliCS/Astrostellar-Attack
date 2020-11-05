@@ -6,12 +6,13 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <map>
 
 #include "scene_node.h"
 #include "enemy_node.h"
 #include "player_node.h"
 #include "projectile_node.h"
-#include "hud_node.h"
+#include "screen_node.h"
 #include "skybox_node.h"
 #include "resource.h"
 #include "camera.h"
@@ -25,6 +26,16 @@ namespace game {
 		NODE,
 		SKYBOX
 	};
+
+	enum ScreenType {
+		HUD_MENU,
+		MAIN_MENU,
+		PAUSE_MENU,
+		CREDITS_MENU,
+		SHOP_MENU,
+		NONE
+	};
+
     // Class that manages all the objects in a scene
     class SceneGraph {
 
@@ -57,11 +68,12 @@ namespace game {
 			// Find a scene node with a specific name
 			Enemy *GetEnemy(std::string node_name) const;
 
-			void AddHUD(HUDNode *node);
+			void AddScreen(ScreenNode *node,ScreenType type);
 			// Find a scene node with a specific name
-			HUDNode *GetHUD(std::string node_name) const;
+			ScreenNode *GetScreen(std::string node_name) const;
             // Get node const iterator
 
+			void SetCurrentScreen(ScreenType t);
             // Draw the entire scene
             void Draw(Camera *camera);
 
@@ -77,8 +89,8 @@ namespace game {
 			SkyBox* skybox_;
 			std::vector<SceneNode*> node_;
 			std::vector<Enemy *> enemy_;
-			std::vector<HUDNode *> hud_;
-
+			std::map <ScreenType, std::vector<ScreenNode *>> screen_;
+			ScreenType active_menu_;
 
     }; // class SceneGraph
 

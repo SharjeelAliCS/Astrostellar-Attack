@@ -13,7 +13,7 @@
 #include "enemy_node.h"
 #include "player_node.h"
 #include "projectile_node.h"
-#include "hud_node.h"
+#include "screen_node.h"
 #include "skybox_node.h"
 namespace game {
 
@@ -91,6 +91,9 @@ namespace game {
 
 			// Create entire random asteroid field
 			void CreateHUD(void);
+
+			// Create an instance of an object stored in the resource manager
+			ScreenNode *CreateScreenInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name = std::string(""));
 
             // Create an instance of an object stored in the resource manager
             SceneNode *CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type,std::string texture_name = std::string(""));

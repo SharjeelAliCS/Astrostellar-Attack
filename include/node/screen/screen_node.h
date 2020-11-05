@@ -7,28 +7,31 @@
  *
  */
 
-#ifndef HUD_OBJ_H_
-#define HUD_OBJ_H_
+#ifndef SCREEN_NODE_H_
+#define SCREEN_NODE_H_
 #include "scene_node.h"
 
 namespace game {
 
 	// Class for a single game object 
-	class HUDNode : public SceneNode {
+	class ScreenNode : public SceneNode {
 
 	public:
 		// Create game object
-		HUDNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture = NULL);
+		ScreenNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture = NULL);
 		
 		// Destructor
-		~HUDNode();
+		~ScreenNode();
+		void SetProgress(float p);
 
+		void Draw(Camera *camera);
 		void Update(float deltaTime);
+		void SetupShader(GLuint program, Camera* camera);
 
 		glm::mat4 CalculateFinalTransformation(Camera* camera);
 
 	private:
-
+		float progress_size_;
 	}; // class GameObj
 
 } // namespace game

@@ -29,6 +29,14 @@ namespace game {
 
 	Player::~Player() {
 	}
+
+	void Player::SetShields(float h) {
+		shields_ = h;
+	}
+	float Player::GetShields(void) const {
+		return shields_;
+	}
+
 	void Player::Fire() {
 		/*
 		Projectile* missile = new Projectile("missile", model);
