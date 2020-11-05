@@ -166,7 +166,7 @@ void Game::SetupResources(void){
 	resman_.LoadResource(Texture, "shipTexture", filename.c_str());
 	resman_.LoadResource(Mesh, "ship", "meshes/player.obj");
 	//skybox
-	filename = assets_dir + std::string("/graphics/skybox/skybox_v2.png");
+	filename = assets_dir + std::string("/graphics/skybox/skybox_v3.png");
 	resman_.LoadResource(Texture, "skyboxTexture", filename.c_str());
 	resman_.LoadResource(Mesh, "skybox", "meshes/cube.obj");
 
