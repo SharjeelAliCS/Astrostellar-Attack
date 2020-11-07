@@ -25,13 +25,16 @@ namespace game {
 		void Draw(Camera *camera);
 		void Update(float deltaTime);
 		void SetupShader(GLuint program, Camera* camera);
-		void SetEntityPositions(std::vector<glm::vec2>& e);
+		
+		void AddDotPos(glm::vec2 dot);
+		void AddDotColor(glm::vec3 color);
 
 		glm::mat4 CalculateFinalTransformation(Camera* camera);
 
 	private:
 		
-		std::vector<glm::vec2> entity_pos_;
+		std::vector<glm::vec2> dot_pos_;
+		std::vector<glm::vec3> dot_color_;
 	}; // class GameObj
 
 } // namespace game

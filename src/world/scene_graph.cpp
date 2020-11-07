@@ -218,49 +218,96 @@ void SceneGraph::Update(float deltaTime){
 }
 
 void SceneGraph::UpdateRadar() {
+	glm::vec3 direction = player_->GetOrientationObj()->GetForward();
+	for (int i = 0; i < node_.size(); i++) {
+		UpdateRadarNode(direction, node_[i]->GetPosition(),glm::vec3(0,1,0));
+	}
+	for (int i = 0; i < enemy_.size(); i++) {
+		UpdateRadarNode(direction, enemy_[i]->GetPosition(), glm::vec3(1, 0, 0));
+	}
+	UpdateRadarNode(direction, glm::vec3(0) , glm::vec3(1, 1, 1));
+
+	glm::vec3 pos_3d = player_->GetPosition();
+	glm::vec2 pos_player(pos_3d.x, pos_3d.z);
+}
+
+void SceneGraph::UpdateRadarNode(glm::vec3 direction, glm::vec3 target_pos,glm::vec3 color){
+	glm::vec2 pos_2d = CalculateDistanceFromPlayer(target_pos);
 	glm::vec3 pos_3d = player_->GetPosition();
 	glm::vec2 pos_player(pos_3d.x, pos_3d.z);
 
-	glm::vec3 direction = player_->GetOrientationObj()->GetForward();
-	std::vector<glm::vec2> entities;
-	for (int i = 0; i < node_.size(); i++) {
-		UpdateRadarNode(direction,pos_player, node_[i], entities);
-	}
-	for (int i = 0; i < enemy_.size(); i++) {
-		UpdateRadarNode(direction,pos_player, enemy_[i], entities);
-	}
-	radar_->SetEntityPositions(entities);
-
-}
-
-void SceneGraph::UpdateRadarNode(glm::vec3 direction, glm::vec2 pos, SceneNode* node, std::vector<glm::vec2>& e){
-	glm::vec3 pos_3d = node->GetPosition();
-	glm::vec2 pos_2d(pos_3d.x, pos_3d.z);
-
 	
-	if (glm::distance(pos_2d, pos) <= radar_distance_) {
-		glm::vec2 direction_2d(direction.x, direction.z);
-		direction_2d = glm::normalize(direction_2d);
-		float angle = atan2(direction_2d.x, direction_2d.y);
 
-		glm::vec2 radar_pos = pos_2d-pos;
+	if (glm::length(pos_2d) <= radar_distance_) {
+		glm::vec2 radar_pos = pos_2d;
 		radar_pos = radar_pos/radar_distance_;
 
 		radar_pos /= 2;
+		radar_pos.y *= -1;
+		//radar_pos.x *= -1;
+
+		radar_pos.x += 0.5;
+		radar_pos.y += 0.5;
+
+		radar_->AddDotPos(radar_pos);
+		radar_->AddDotColor(color);
+	}
+	else  if (glm::length(target_pos) == 0) {
+		glm::vec2 radar_pos = pos_2d;
+		radar_pos = glm::normalize(radar_pos);
+
+		radar_pos /= 2;
+		radar_pos.y *= -1;
+		radar_pos.x *= -1;
+
+		radar_pos.x += 0.5;
+		radar_pos.y += 0.5;
+
+		radar_->AddDotPos(radar_pos);
+		radar_->AddDotColor(color);
+	}
+	/*
+	else if (glm::length(target_pos) == 0) {
+		glm::vec2 direction_2d(direction.x, direction.z);
+		direction_2d = glm::normalize(direction_2d);
+		float angle = atan2(direction_2d.x, direction_2d.y);
+		
+		glm::vec2 radar_pos = pos_2d - pos_player;
+	
 
 		radar_pos.x = radar_pos.x* cos(angle) - radar_pos.y * sin(angle);
 		radar_pos.y = radar_pos.x *sin(angle) + radar_pos.y * cos(angle);
 
 		radar_pos.y *= -1;
 		radar_pos.x *= -1;
+		radar_pos = glm::normalize(radar_pos);
+		radar_pos /= 2;
 		radar_pos.x += 0.5;
 		radar_pos.y += 0.5;
 
-		e.push_back(radar_pos);
-	}
-
+		radar_->AddDotPos(radar_pos);
+		radar_->AddDotColor(color);
+	}*/
 }
 
+glm::vec2 SceneGraph::CalculateDistanceFromPlayer(glm::vec3 pos) {
+	glm::vec3 player_pos = player_->GetPosition();
+	glm::vec3 plane_up = player_->GetOrientationObj()->GetUp();
+	glm::vec3 plane_x = player_->GetOrientationObj()->GetForward();
+	glm::vec3 plane_y = player_->GetOrientationObj()->GetSide();
+
+	float dis_plane = glm::dot((pos - player_pos), plane_up);
+	glm::vec3 pos_plane = pos - dis_plane * plane_up;
+
+	float y = glm::dot(plane_x, (pos-player_pos));
+	float x = glm::dot(plane_y, (pos - player_pos));
+	//float x = glm::distance(player_pos, plane_x, pos_plane, plane_x);
+	//float y = glm::distance(player_pos, plane_y, pos_plane, plane_y);
+
+	glm::vec2 pos_2d(x,y);
+
+	return pos_2d;
+}
 void SceneGraph::SetCurrentScreen(ScreenType t) {
 	active_menu_ = t;
 }
