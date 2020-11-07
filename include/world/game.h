@@ -16,6 +16,7 @@
 #include "screen_node.h"
 #include "skybox_node.h"
 #include "radar_node.h"
+#include "asteroid_node.h"
 namespace game {
 
     // Exception type for the game
@@ -88,8 +89,8 @@ namespace game {
 
             Enemy *CreateEnemyInstance(std::string entity_name, std::string object_name, std::string material_name);
             // Create entire random asteroid field
-            void CreateEnemies(int num_enemies = 1500);
 
+			void CreateAsteroids(int num_enemies = 1500);
 			// Create entire random asteroid field
 			void CreateHUD(void);
 

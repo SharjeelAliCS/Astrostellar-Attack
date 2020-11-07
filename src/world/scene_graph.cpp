@@ -22,7 +22,7 @@ SceneGraph::SceneGraph(void){
 	}
 	active_menu_ = HUD_MENU;
 
-	radar_distance_ = 100;
+	radar_distance_ = 500;
 
 }
 
@@ -42,7 +42,6 @@ glm::vec3 SceneGraph::GetBackgroundColor(void) const {
     return background_color_;
 }
  
-
 SceneNode *SceneGraph::CreateNode(std::string node_name, Resource *geometry, Resource *material,NodeType type, Resource *texture){
 
 	SceneNode *scn;
@@ -67,6 +66,11 @@ SceneNode *SceneGraph::CreateNode(std::string node_name, Resource *geometry, Res
 		break; }
 	case NODE: {
 		SceneNode* node = new SceneNode(node_name, geometry, material, texture);
+		node_.push_back(node);
+		scn = node;
+		break; }
+	case ASTEROID: {
+		AsteroidNode* node = new AsteroidNode(node_name, geometry, material, texture);
 		node_.push_back(node);
 		scn = node;
 		break; }
@@ -220,7 +224,7 @@ void SceneGraph::Update(float deltaTime){
 void SceneGraph::UpdateRadar() {
 	glm::vec3 direction = player_->GetOrientationObj()->GetForward();
 	for (int i = 0; i < node_.size(); i++) {
-		UpdateRadarNode(direction, node_[i]->GetPosition(),glm::vec3(0,1,0));
+		UpdateRadarNode(direction, node_[i]->GetPosition(),glm::vec3(1,1,0));
 	}
 	for (int i = 0; i < enemy_.size(); i++) {
 		UpdateRadarNode(direction, enemy_[i]->GetPosition(), glm::vec3(1, 0, 0));
@@ -291,6 +295,7 @@ void SceneGraph::UpdateRadarNode(glm::vec3 direction, glm::vec3 target_pos,glm::
 }
 
 glm::vec2 SceneGraph::CalculateDistanceFromPlayer(glm::vec3 pos) {
+	//https://stackoverflow.com/questions/23472048/projecting-3d-points-to-2d-plane
 	glm::vec3 player_pos = player_->GetPosition();
 	glm::vec3 plane_up = player_->GetOrientationObj()->GetUp();
 	glm::vec3 plane_x = player_->GetOrientationObj()->GetForward();
