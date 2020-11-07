@@ -79,23 +79,31 @@ namespace game {
 		}
 		glDisable(GL_BLEND);
 		glDepthMask(true);
+
+		dot_color_.clear();
+		dot_pos_.clear();
 	}
 	void RadarNode::SetupShader(GLuint program, Camera* camera) {
 		
 		GLint sizeUniform = glGetUniformLocation(program, "arr_size");
-		glUniform1i(sizeUniform, entity_pos_.size());
+		glUniform1i(sizeUniform, dot_pos_.size());
 
 
-		if (entity_pos_.size() > 0) {
+		if (dot_pos_.size() > 0) {
 
-			//std::cout << entity_pos_[0].x << "," << entity_pos_[0].y << std::endl;
-			GLint arr_dots = glGetUniformLocation(program, "dots");
-			glUniform2fv(arr_dots, entity_pos_.size(), reinterpret_cast<GLfloat *>(entity_pos_.data()));
+			GLint arr_dots = glGetUniformLocation(program, "dots_pos");
+			glUniform2fv(arr_dots, dot_pos_.size(), reinterpret_cast<GLfloat *>(dot_pos_.data()));
+			GLint arr_colors = glGetUniformLocation(program, "dot_colors");
+			glUniform3fv(arr_colors, dot_color_.size(), reinterpret_cast<GLfloat *>(dot_color_.data()));
 		} 
 		SceneNode::SetupShader(program, camera);
 	}
-	void RadarNode::SetEntityPositions(std::vector<glm::vec2>& e) {
-		entity_pos_ = e;
+
+	void RadarNode::AddDotPos(glm::vec2 dot) {
+		dot_pos_.push_back(dot);
+	}
+	void RadarNode::AddDotColor(glm::vec3 color) {
+		dot_color_.push_back(color);
 	}
 
 
