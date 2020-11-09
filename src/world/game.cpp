@@ -16,7 +16,7 @@ const bool window_full_screen_g = false;
 
 // Viewport and camera settings
 float camera_near_clip_distance_g = 0.01;
-float camera_far_clip_distance_g = 1000.0;
+float camera_far_clip_distance_g = 5000.0;
 float camera_fov_g = 40.0; // Field-of-view of camera
 const glm::vec3 viewport_background_color_g(0.0, 0.0, 0.0);
 glm::vec3 camera_position_1st_g(0, 0, 1);
@@ -197,6 +197,17 @@ void Game::SetupResources(void){
 	//crosshairs
 	filename = assets_dir + std::string("/graphics/hud/crosshair_default.png");
 	resman_.LoadResource(Texture, "crosshairDefaultTexture", filename.c_str());
+
+	//ASTEROIDS
+
+	for(int i =0; i<10; i++){
+		std::string asteroid_name = "Asteroid" + std::to_string(i+1);
+		filename = assets_dir + std::string("/graphics/texture/asteroids/"+asteroid_name+ "_AlbedoTransparency.png");
+		resman_.LoadResource(Texture, asteroid_name+"Texture", filename.c_str());
+
+		std::string meshName = "meshes/asteroids/" + asteroid_name + ".obj";
+		resman_.LoadResource(Mesh, asteroid_name + "Mesh", meshName.c_str());
+	}
 }
 
 
@@ -216,7 +227,7 @@ void Game::SetupScene(void){
 	
 	//skybox->SetOrientation(180, glm::vec3(1, 0, 0));
 	//create enemies
-	CreateEnemies(500);
+	CreateAsteroids(500);
 	//ame::SceneNode *wall = CreateInstance("Canvas", "FlatSurface", "Procedural", "RockyTexture"); // must supply a texture, even if not used
 	//create skybox
 	SceneNode* skybox = CreateInstance("skybox", "skybox", "TextureShader", SKYBOX, "skyboxTexture");
@@ -235,6 +246,9 @@ void Game::MainLoop(void){
     // Loop while the user did not close the window
 	float player_speed = 0.5;
 	float t = 0;
+	int frames = 0;
+	float second = glfwGetTime();
+
     while (!glfwWindowShouldClose(window_)){
 
 		static double last_time = glfwGetTime();
@@ -256,8 +270,8 @@ void Game::MainLoop(void){
 				Player* player = scene_.GetPlayer();
 				player->Translate(foward * player_speed);
 				// Animate the scene
-				player->SetHealth(sin(t) / 2 + 0.5);
-				player->SetShields(sin(t) / 2 + 0.5);
+				//player->SetHealth(sin(deltaTime*100*t) / 2 + 0.5);
+				//player->SetShields(sin(deltaTime* 100 *t) / 2 + 0.5);
 
 				scene_.GetScreen("healthBar")->SetProgress(player->GetHealth());
 				scene_.GetScreen("shieldBar")->SetProgress(player->GetShields());
@@ -265,7 +279,12 @@ void Game::MainLoop(void){
 				last_time = current_time;
 				t += 0.01;
 			}
-
+			if (current_time - second >= 1.0) {
+				second = current_time;
+				std::cout << "fps: " << frames << std::endl;
+				frames = 0;
+			}
+			frames += 1;
 		}
 
         // Draw the scene
@@ -439,7 +458,7 @@ void Game::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	float max_zoom = 0.01;
 	float min_zoom = 30;
 	float curr_zoom = game->camera_.GetZoom()+yoffset;
-
+	std::cout << "scroll is " << yoffset << ", zoom is " << curr_zoom << std::endl;
 	if (curr_zoom < 5) {
 		if (yoffset > 0) {
 			game->first_person_ = false;
@@ -456,7 +475,7 @@ void Game::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 			game->camera_.SetView(camera_position_1st_g, camera_look_at_g, camera_up_g);
 		}
 	}
-	else if (curr_zoom<min_zoom && curr_zoom > max_zoom) {
+	else if (curr_zoom<min_zoom && curr_zoom > max_zoom && !game->first_person_) {
 		game->camera_.Zoom(yoffset);
 
 	}
@@ -489,8 +508,9 @@ Enemy *Game::CreateEnemyInstance(std::string entity_name, std::string object_nam
 }
 
 
-void Game::CreateEnemies(int num_enemies){
+void Game::CreateAsteroids(int num_enemies){
 
+	float radius = 5000;
     // Create a number of asteroid instances
     for (int i = 0; i < num_enemies; i++){
         // Create instance name
@@ -498,14 +518,17 @@ void Game::CreateEnemies(int num_enemies){
         ss << i;
         std::string index = ss.str();
         std::string name = "AsteroidInstance" + index;
-
+		std::string asteroid_type = "Asteroid"+std::to_string((rand() % 10) + 1);
         // Create asteroid instance
-        Enemy *en = CreateEnemyInstance(name, "SimpleSphereMesh", "ObjectMaterial");
+        SceneNode *en = CreateInstance(name, asteroid_type+"Mesh", "TextureShader",ASTEROID, asteroid_type+"Texture");
 
         // Set attributes of asteroid: random position, orientation, and
         // angular momentum
-		en->SetPosition(glm::vec3(-600.0 + 1200.0*((float) rand() / RAND_MAX), -600.0 + 1200.0*((float) rand() / RAND_MAX), 1200.0*((float) rand() / RAND_MAX)));
+
+		en->SetPosition(glm::vec3(-radius + radius *((float) rand() / RAND_MAX), -radius + radius *((float) rand() / RAND_MAX), -radius+radius*((float) rand() / RAND_MAX)));
 		en->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
+		//en->SetScale(glm::vec3(1000));
+		en->SetScale(glm::vec3((rand() % 2000) + 100));
 		/*
 		en->SetAngM(glm::normalize(glm::angleAxis(0.05f*glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
 		*/

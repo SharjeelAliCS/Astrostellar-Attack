@@ -17,6 +17,7 @@
 #include "resource.h"
 #include "camera.h"
 #include "radar_node.h"
+#include "asteroid_node.h"
 namespace game {
 
 
@@ -25,7 +26,8 @@ namespace game {
 		ENEMY,
 		HUD,
 		NODE,
-		SKYBOX
+		SKYBOX,
+		ASTEROID
 	};
 
 	enum ScreenType {
@@ -94,6 +96,7 @@ namespace game {
 			RadarNode* radar_;
 			std::vector<SceneNode*> node_;
 			std::vector<Enemy *> enemy_;
+
 			std::map <ScreenType, std::vector<ScreenNode *>> screen_;
 			ScreenType active_menu_;
 
