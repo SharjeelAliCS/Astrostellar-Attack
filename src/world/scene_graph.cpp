@@ -236,13 +236,14 @@ void SceneGraph::UpdateRadar() {
 }
 
 void SceneGraph::UpdateRadarNode(glm::vec3 direction, glm::vec3 target_pos,glm::vec3 color){
-	glm::vec2 pos_2d = CalculateDistanceFromPlayer(target_pos);
+	glm::vec3 pos_entity = CalculateDistanceFromPlayer(target_pos);
+	glm::vec2 pos_2d(pos_entity.x, pos_entity.y);
 	glm::vec3 pos_3d = player_->GetPosition();
 	glm::vec2 pos_player(pos_3d.x, pos_3d.z);
 
 	
 
-	if (glm::length(pos_2d) <= radar_distance_) {
+	if (glm::length(pos_2d) <= radar_distance_ && pos_entity.z<=radar_distance_/20) {
 		glm::vec2 radar_pos = pos_2d;
 		radar_pos = radar_pos/radar_distance_;
 
@@ -270,31 +271,9 @@ void SceneGraph::UpdateRadarNode(glm::vec3 direction, glm::vec3 target_pos,glm::
 		radar_->AddDotPos(radar_pos);
 		radar_->AddDotColor(color);
 	}
-	/*
-	else if (glm::length(target_pos) == 0) {
-		glm::vec2 direction_2d(direction.x, direction.z);
-		direction_2d = glm::normalize(direction_2d);
-		float angle = atan2(direction_2d.x, direction_2d.y);
-		
-		glm::vec2 radar_pos = pos_2d - pos_player;
-	
-
-		radar_pos.x = radar_pos.x* cos(angle) - radar_pos.y * sin(angle);
-		radar_pos.y = radar_pos.x *sin(angle) + radar_pos.y * cos(angle);
-
-		radar_pos.y *= -1;
-		radar_pos.x *= -1;
-		radar_pos = glm::normalize(radar_pos);
-		radar_pos /= 2;
-		radar_pos.x += 0.5;
-		radar_pos.y += 0.5;
-
-		radar_->AddDotPos(radar_pos);
-		radar_->AddDotColor(color);
-	}*/
 }
 
-glm::vec2 SceneGraph::CalculateDistanceFromPlayer(glm::vec3 pos) {
+glm::vec3 SceneGraph::CalculateDistanceFromPlayer(glm::vec3 pos) {
 	//https://stackoverflow.com/questions/23472048/projecting-3d-points-to-2d-plane
 	glm::vec3 player_pos = player_->GetPosition();
 	glm::vec3 plane_up = player_->GetOrientationObj()->GetUp();
@@ -309,7 +288,7 @@ glm::vec2 SceneGraph::CalculateDistanceFromPlayer(glm::vec3 pos) {
 	//float x = glm::distance(player_pos, plane_x, pos_plane, plane_x);
 	//float y = glm::distance(player_pos, plane_y, pos_plane, plane_y);
 
-	glm::vec2 pos_2d(x,y);
+	glm::vec3 pos_2d(x,y, abs(dis_plane));
 
 	return pos_2d;
 }

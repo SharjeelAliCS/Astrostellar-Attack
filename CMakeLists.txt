@@ -28,6 +28,8 @@ include_directories(${PROJECT_SOURCE_DIR}/src/attribute)
 include_directories(${PROJECT_SOURCE_DIR}/src/menu)
 
 include_directories(${PROJECT_SOURCE_DIR}/resource)
+include_directories(${PROJECT_SOURCE_DIR}/libraries)
+
 #Used the following resource to do this:
 #https://stackoverflow.com/questions/33808087/cmake-how-to-create-visual-studio-filters
 
@@ -36,6 +38,7 @@ include_directories(${PROJECT_SOURCE_DIR}/resource)
 set(HDRS
     ${PROJECT_SOURCE_DIR}/include/attribute/orientation.h
     ${PROJECT_SOURCE_DIR}/include/attribute/sound.h
+    ${PROJECT_SOURCE_DIR}/include/attribute/text.h
 
     ${PROJECT_SOURCE_DIR}/include/node/entity/entity_node.h
 
@@ -73,6 +76,7 @@ set(SRCS
     #SOURCE FILES
     ${PROJECT_SOURCE_DIR}/src/attribute/orientation.cpp
     ${PROJECT_SOURCE_DIR}/src/attribute/sound.cpp
+    ${PROJECT_SOURCE_DIR}/src/attribute/text.cpp
 
     ${PROJECT_SOURCE_DIR}/src/node/entity/entity_node.cpp
 
@@ -120,6 +124,8 @@ set(RCRS
     ${PROJECT_SOURCE_DIR}/resource/overlay_vp.glsl
     ${PROJECT_SOURCE_DIR}/resource/radar_fp.glsl
     ${PROJECT_SOURCE_DIR}/resource/radar_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/text_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/text_vp.glsl
 )
 #https://stackoverflow.com/questions/31422680/how-to-set-visual-studio-filters-for-nested-sub-directory-using-cmake
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${HDRS})
@@ -135,12 +141,6 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${RCRS})
 #source_group("Source Files\\setup" ${SOURCE_FILES_SETUP})
 #source_group("Source Files\\attribute" ${SOURCE_FILES_ATTRIBUTE})
 
-set(ASSETS
-   ${PROJECT_SOURCE_DIR}/assets
-)
-
-file(COPY ASSETS DESTINATION ${CMAKE_BINARY_DIR})
-
 # Add executable based on the source files
 add_executable(${PROJ_NAME} ${HDRS} ${SRCS} ${RCRS})
 
@@ -150,23 +150,28 @@ include_directories(${OPENGL_INCLUDE_DIR})
 target_link_libraries(${PROJ_NAME} ${OPENGL_gl_LIBRARY})
 
 # Other libraries needed
-#set(LIBRARY_PATH C:/Libraries)
-set(LIBRARY_PATH D:/CARLETON/2020-Fall/COMP3501/OpenGL_Lib/Libraries/Libraries)
+set(LIBRARY_PATH C:/Libraries)
+#set(LIBRARY_PATH D:/CARLETON/2020-Fall/COMP3501/OpenGL_Lib/Libraries/Libraries)
 
+set(LIBRARY_PATH_LOCAL   ${PROJECT_SOURCE_DIR}/libraries)
 
 include_directories(${LIBRARY_PATH}/include)
 if(NOT WIN32)
     find_library(GLEW_LIBRARY GLEW)
     find_library(GLFW_LIBRARY glfw)
     find_library(SOIL_LIBRARY SOIL)
+    find_library(FREETYPE_LIBRARY freetype)
 elseif(WIN32)
     find_library(GLEW_LIBRARY glew32s HINTS ${LIBRARY_PATH}/lib)
     find_library(GLFW_LIBRARY glfw3 HINTS ${LIBRARY_PATH}/lib)
     find_library(SOIL_LIBRARY SOIL HINTS ${LIBRARY_PATH}/lib)
+    find_library(FREETYPE_LIBRARY freetype HINTS ${LIBRARY_PATH_LOCAL}/lib)
+
 endif(NOT WIN32)
 target_link_libraries(${PROJ_NAME} ${GLEW_LIBRARY})
 target_link_libraries(${PROJ_NAME} ${GLFW_LIBRARY})
 target_link_libraries(${PROJ_NAME} ${SOIL_LIBRARY})
+target_link_libraries(${PROJ_NAME} ${FREETYPE_LIBRARY})
 
 
 # The rules here are specific to Windows Systems

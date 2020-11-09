@@ -17,6 +17,8 @@
 #include "skybox_node.h"
 #include "radar_node.h"
 #include "asteroid_node.h"
+#include "text.h"
+
 namespace game {
 
     // Exception type for the game
@@ -58,7 +60,7 @@ namespace game {
             SceneGraph scene_;
 
            
-            
+			Text text;
 
             // Camera abstraction
             Camera camera_;
@@ -76,6 +78,8 @@ namespace game {
 			int window_width;
 			int window_height;
 			float timeOfLastMove;
+
+			void SetSaveState(void);
 			//New user input function more multiple inputs
 			void GetUserInput(float deltaTime);
 
