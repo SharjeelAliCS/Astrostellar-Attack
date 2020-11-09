@@ -11,6 +11,12 @@ Resource::Resource(ResourceType type, std::string name, GLuint resource, GLsizei
     size_ = size;
 }
 
+Resource::Resource(ResourceType type, std::string name, std::string file_path,json data) {
+	type_ = type;
+	name_ = name;
+	data_ = data;
+	file_path_ = file_path;
+}
 
 Resource::Resource(ResourceType type, std::string name, GLuint array_buffer, GLuint element_array_buffer, GLsizei size){
     type_ = type;
@@ -25,7 +31,9 @@ Resource::~Resource(){
 
 }
 
-
+void Resource::SetJSON(json data) {
+	data_ = data;
+}
 ResourceType Resource::GetType(void) const {
 
     return type_;
@@ -59,6 +67,13 @@ GLuint Resource::GetElementArrayBuffer(void) const {
 GLsizei Resource::GetSize(void) const {
 
     return size_;
+}
+
+json Resource::GetJSON(void) const {
+	return data_;
+}
+std::string Resource::GetFilePath(void) const {
+	return file_path_;
 }
 
 } // namespace game

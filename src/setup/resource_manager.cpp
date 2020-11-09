@@ -18,7 +18,11 @@ ResourceManager::ResourceManager(void){
 ResourceManager::~ResourceManager(){
 }
 
-
+void ResourceManager::AddResource(ResourceType type, const std::string name, const std::string file_name, json data) {
+	Resource *res;
+	res = new Resource(type, name, file_name,data);
+	resource_.push_back(res);
+}
 void ResourceManager::AddResource(ResourceType type, const std::string name, GLuint resource, GLsizei size){
 
     Resource *res;
@@ -48,7 +52,11 @@ void ResourceManager::LoadResource(ResourceType type, const std::string name, co
         LoadTexture(name, filename);
     } else if (type == Mesh){
         LoadMesh(name, filename);
-    } else {
+    }
+	else if (type == Save) {
+		LoadGameState(name, filename);
+	}
+	else {
         throw(std::invalid_argument(std::string("Invalid type of resource")));
     }
 }
@@ -65,6 +73,25 @@ Resource *ResourceManager::GetResource(const std::string name) const {
     return NULL;
 }
 
+void ResourceManager::SaveResource(const std::string name) const {
+	Resource* resource = NULL;
+	for (int i = 0; i < resource_.size(); i++) {
+		if (resource_[i]->GetName() == name) {
+			resource =  resource_[i];
+		}
+	}
+	if (resource != NULL) {
+		std::string file_path = resource->GetFilePath();
+		switch (resource->GetType()) {
+		case Save:
+			
+			SaveJSONFile(file_path.c_str(), resource->GetJSON());
+			break;
+		default:
+			break;
+		}
+	}
+}
 
 void ResourceManager::LoadMaterial(const std::string name, const char *prefix){
 
@@ -152,8 +179,19 @@ std::string ResourceManager::LoadTextFile(const char *filename){
     return content;
 }
 
+json ResourceManager::LoadJSONFile(const char *filename) {
+	json file;
+	std::ifstream i(filename);
+	file = json::parse(i);
+	std::cout << (file).size() << ", "<< file.at("fruit")<<std::endl;
+	return file;
+}
 
 
+void ResourceManager::SaveJSONFile(const char* filename, json data) const{
+	std::ofstream o(filename);
+	o << std::setw(4) << data << std::endl;
+}
 void ResourceManager::CreateCube(std::string object_name, float w, float h, float d) {
 
 	// Create a cube
@@ -711,7 +749,10 @@ void ResourceManager::LoadTexture(const std::string name, const char *filename){
     AddResource(Texture, name, texture, 0);
 }
 
-
+void ResourceManager::LoadGameState(const std::string name, const char *filename) {
+	json save = LoadJSONFile(filename);
+	AddResource(Save, name,filename, save);
+}
 void ResourceManager::LoadMesh(const std::string name, const char *filename){
 
     // First load model into memory. If that goes well, we transfer the

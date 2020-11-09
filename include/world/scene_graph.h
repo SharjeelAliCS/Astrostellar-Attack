@@ -102,7 +102,7 @@ namespace game {
 
 			void UpdateRadar();
 			void UpdateRadarNode(glm::vec3 direction, glm::vec3 pos,glm::vec3 color);
-			glm::vec2 CalculateDistanceFromPlayer(glm::vec3 pos);
+			glm::vec3 CalculateDistanceFromPlayer(glm::vec3 pos);
 
 			float radar_distance_;
 

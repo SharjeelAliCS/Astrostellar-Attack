@@ -39,7 +39,7 @@ void Game::Init(void){
 	aspect_ratio_ = 1080.0 / 1920.0;
 	window_width = 800;
 	window_height = window_width * aspect_ratio_;
-
+	
     // Run all initialization steps
     InitWindow();
     InitView();
@@ -84,7 +84,6 @@ void Game::InitWindow(void){
 
 	glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 }
-
 
 void Game::InitView(void){
 
@@ -141,6 +140,10 @@ void Game::SetupResources(void){
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/procedural");
 	resman_.LoadResource(Material, "ObjectMaterial", filename.c_str());
 
+	//text shader
+	filename = std::string(MATERIAL_DIRECTORY) + std::string("/text");
+	resman_.LoadResource(Material, "textMaterial", filename.c_str());
+
 	//screen (hud) shader
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/screen");
 	resman_.LoadResource(Material, "ScreenMaterial", filename.c_str());
@@ -154,7 +157,6 @@ void Game::SetupResources(void){
 
 	resman_.LoadResource(Material, "RadarMaterial", filename.c_str());
 	std::string assets_dir = std::string(ASSET_DIRECTORY);
-
 
     // Load texture to be used on the object
 	filename = assets_dir + std::string("/graphics/Pumpkin_Color.png");
@@ -200,20 +202,26 @@ void Game::SetupResources(void){
 
 	//ASTEROIDS
 
-	for(int i =0; i<10; i++){
-		std::string asteroid_name = "Asteroid" + std::to_string(i+1);
-		filename = assets_dir + std::string("/graphics/texture/asteroids/"+asteroid_name+ "_AlbedoTransparency.png");
-		resman_.LoadResource(Texture, asteroid_name+"Texture", filename.c_str());
+	for (int i = 0; i < 10; i++) {
+		std::string asteroid_name = "Asteroid" + std::to_string(i + 1);
+		filename = assets_dir + std::string("/graphics/texture/asteroids/" + asteroid_name + "_AlbedoTransparency.png");
+		resman_.LoadResource(Texture, asteroid_name + "Texture", filename.c_str());
 
 		std::string meshName = "meshes/asteroids/" + asteroid_name + ".obj";
 		resman_.LoadResource(Mesh, asteroid_name + "Mesh", meshName.c_str());
 	}
+	//load save data
+	filename = SAVE_DIRECTORY + std::string("/game_state.json");
+	resman_.LoadResource(Save, "save", filename.c_str());
+
+	//load font
+	
+	text = Text(assets_dir+"/fonts/Audiowide-Regular.ttf", resman_.GetResource("textMaterial"));
 }
 
 
 
 void Game::SetupScene(void){
-
     // Set background color for the scene
     scene_.SetBackgroundColor(viewport_background_color_g);
 	
@@ -238,9 +246,25 @@ void Game::SetupScene(void){
 	scene_.GetScreen("cockpit")->SetDraw(true);
 	scene_.GetPlayer()->SetDraw(false);
 	camera_.SetZoom(0);
+	SetSaveState();
 }
 
+void Game::SetSaveState(void) {
 
+	//access save data
+	Resource* dataResource = resman_.GetResource("save");
+	json data = dataResource->GetJSON();
+
+	//modify save data
+	data["fruit"] = "ace";
+
+	//output save data
+	dataResource->SetJSON(data);
+	resman_.SaveResource("save");
+
+	std::cout << data << std::endl;
+	//std::string fruit = (*data)["fruit"];
+}
 void Game::MainLoop(void){
 
     // Loop while the user did not close the window
@@ -248,7 +272,7 @@ void Game::MainLoop(void){
 	float t = 0;
 	int frames = 0;
 	float second = glfwGetTime();
-
+	int fps = 0.0;
     while (!glfwWindowShouldClose(window_)){
 
 		static double last_time = glfwGetTime();
@@ -281,15 +305,20 @@ void Game::MainLoop(void){
 			}
 			if (current_time - second >= 1.0) {
 				second = current_time;
-				std::cout << "fps: " << frames << std::endl;
+				fps = frames;
+				//std::cout << "fps: " << frames << std::endl;
 				frames = 0;
 			}
 			frames += 1;
 		}
-
+		
+		//text.RenderText("hello nmime", glm::vec2(0, 0), 1.0f, glm::vec3(1.0));
         // Draw the scene
         scene_.Draw(&camera_);
+		text.RenderText(std::to_string(fps), glm::vec2(-1, 0.9), 0.5f, glm::vec3(1.0,1.0,0));
 
+		//text.RenderText("hello nmime", glm::vec2(0, 0), 1.0f, glm::vec3(1.0));
+		//text.RenderText("hello r", glm::vec2(400, 0), 1.0f, glm::vec3(1.0));
         // Push buffer drawn in the background onto the display
         glfwSwapBuffers(window_);
 
@@ -424,7 +453,7 @@ void Game::GetMouseCameraInput() {
 		camera_.SetOrientation(player->RotLagBehind(speed_y / 2, speed_x / 2));
 
 		ScreenNode* screen = scene_.GetScreen("cockpit");
-		screen->SetPosition(glm::vec3(speed_x,-0.1+speed_y, 0));
+		screen->SetPosition(glm::vec3(speed_x*0.5,-0.1+speed_y*0.5, 0));
 	}
 
 }
@@ -512,7 +541,7 @@ Enemy *Game::CreateEnemyInstance(std::string entity_name, std::string object_nam
 
 void Game::CreateAsteroids(int num_enemies){
 
-	float radius = 5000;
+	float radius = 1000;
     // Create a number of asteroid instances
     for (int i = 0; i < num_enemies; i++){
         // Create instance name
@@ -530,7 +559,7 @@ void Game::CreateAsteroids(int num_enemies){
 		en->SetPosition(glm::vec3(-radius + radius *((float) rand() / RAND_MAX), -radius + radius *((float) rand() / RAND_MAX), -radius+radius*((float) rand() / RAND_MAX)));
 		en->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
 		//en->SetScale(glm::vec3(1000));
-		en->SetScale(glm::vec3((rand() % 2000) + 100));
+		en->SetScale(glm::vec3((rand() % 500) + 50));
 		/*
 		en->SetAngM(glm::normalize(glm::angleAxis(0.05f*glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
 		*/
