@@ -233,7 +233,7 @@ void Game::SetupScene(void){
 void Game::MainLoop(void){
 
     // Loop while the user did not close the window
-	float player_speed = 0.5;
+	float player_speed = 0.05;
 	float t = 0;
     while (!glfwWindowShouldClose(window_)){
 
@@ -319,12 +319,14 @@ void Game::GetUserInput(float deltaTime) {
 		//camera_.Translate(foward * const_foward);
 		//player->Translate(foward * const_foward);
 
-		//Fire a missile with a cooldown of 1 second. 
-		if (timeOfLastMove + 1 < glfwGetTime()) {
-			if (glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS) {
-				//player->Fire();
-				timeOfLastMove = glfwGetTime();
-			}
+		//Fire a missile
+		if (glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS) {
+			player->Fire();
+			timeOfLastMove = glfwGetTime();
+		}
+		if ((timeOfLastMove < glfwGetTime() - 0.6) && glfwGetKey(window_, GLFW_KEY_TAB) == GLFW_PRESS) {
+			player->nextWeapon();
+			timeOfLastMove = glfwGetTime();
 		}
 
 		//move the player forward as well as the camera

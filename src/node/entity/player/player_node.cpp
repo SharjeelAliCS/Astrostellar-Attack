@@ -14,6 +14,9 @@
 
 #include "player_node.h"
 
+
+
+
  /* TODO:
 
 	 - remove unneeded camera functionality from this demo
@@ -23,6 +26,76 @@
 namespace game {
 
 	Player::Player(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture) : Entity(name, geometry, material, texture) {
+
+		geo = geometry;
+		mat = material;
+		tex = texture;
+
+
+		//resman_ refuses to be global, likely because I'm being dumbass.
+
+		//Projectile::Projectile(const std::string name, const std::string type, const std::map<std::string, int> upgrades, const Resource * geometry,
+			//const Resource * material, const Resource * texture);
+		/*
+		 std::string object_name = "ship";
+		 std::string material_name = "TextureShader";
+		 std::string texture_name = "shipTexture";
+
+		 Resource* geom = resman_.GetResource(object_name);
+		 if (!geom) {
+			// throw((std::string("Could not find resource \"") + object_name + std::string("\"")));
+		 }
+
+		 Resource* mat = resman_.GetResource(material_name);
+		 if (!mat) {
+			// throw((std::string("Could not find resource \"") + material_name + std::string("\"")));
+		 }
+
+		 Resource* tex = NULL;
+		 if (texture_name != "") {
+			 tex = resman_.GetResource(texture_name);
+			 if (!tex) {
+				// throw((std::string("Could not find resource \"") + material_name + std::string("\"")));
+			 }
+		 }
+		 */
+
+		for (int i = 0; i < 6; i++) {
+			unlockedWeapons[i] = true; // usually false, true for testing
+			rof[i] = 1.0f; //will play around with individiual rof later 
+		}
+		 
+		unlockedWeapons[0] = true; //laser battery always unlocked
+
+		upgrades["laserBatteryRangeLevel"] = 0;
+		upgrades["laserBatteryPierceLevel"] = 0;
+		upgrades["laserBatteryDamageLevel"] = 0;	 
+		
+		upgrades["pursuerROFLevel"] = 5;
+		 
+		upgrades["chargeRadiusLevel"] = 0;  //size of shot
+		upgrades["chargeDamageLevel"] = 0;  
+		upgrades["chargeDurationLevel"] = 0; //how long to charge up the shot
+		 
+		upgrades["sniperDamageLevel"] = 0;
+		upgrades["sniperRangeLevel"] = 0;
+
+		upgrades["shotgunDamageLevel"] = 0;
+		upgrades["shotgunNumLevel"] = 5; // how many are fired, +6 per level
+
+		upgrades["naniteTorpedoDamageLevel"] = 0;   //dot dmg
+		upgrades["naniteTorpedoDurationLevel"] = 0; //dot duration
+		upgrades["naniteTorpedoStackLevel"] = 0;    //max stacks of dot
+
+		projType = 0;
+
+
+		 //Projectile* missile = new Projectile("missile", "laserBattery", upgrades, geom, mat, tex);
+		 //Projectile* missile = new Projectile("missile", "laserBattery", upgrades, geometry, material, texture);
+		 //Projectile* missile = new Projectile("missile", "sniperShot", upgrades, geometry, material, texture);
+		 //missiles.push_back(missile);
+
+		 //*/
 	}
 
 
@@ -37,19 +110,40 @@ namespace game {
 		return shields_;
 	}
 
-	void Player::Fire() {
-		/*
-		Projectile* missile = new Projectile("missile", model);
-		missile->CreateCube(0.5,0.5,0.5);
-		missile->SetPosition(position_);
-		missile->SetOrgPos(position_);
-		missile->SetOrientation(orientation_.GetOrientation());
-		missile->SetMovementSpeed(500);
-		missile->SetRange(500);
+	//tab to change weapon
+	void Player::nextWeapon() {
+		std::cout << "weapon-change";
+		projType = (projType + 1) % numWeapons;
+		if (!unlockedWeapons[projType]) {
+			nextWeapon();
+		}
+		else {
+			std::cout << "weapon is: " << projectileTypes[projType];
+		}
+	}
 
-		missiles.push_back(missile);
-		*/
-		
+
+	void Player::Fire() {
+		std::string weapon = projectileTypes[projType];
+
+		double shotTime = lastShotTime + rof[projType] * ((projectileTypes[projType].compare("pursuer") == 0) ? (2 - pow(1.1, upgrades["pursuerROFLevel"])) : 1);
+		if (glfwGetTime() > shotTime) {
+			Projectile* missile;
+			if (weapon.compare("shotgun") == 0) {
+				int numShots = 15 + 6 * upgrades["shotgunNumLevel"];
+				for (int i = 0; i < numShots; i++) {
+					missile = new Projectile("missile", weapon, upgrades, orientation_->GetOrientation(), geo, mat, tex);
+					missile->SetPosition(position_);
+					missiles.push_back(missile);
+				}
+			}
+			else {
+				missile = new Projectile("missile", weapon, upgrades, orientation_->GetOrientation(), geo, mat, tex);
+				missile->SetPosition(position_);
+				missiles.push_back(missile);
+			}
+			lastShotTime = glfwGetTime();
+		}	
 	}
 
 	void Player::Draw(Camera *camera) {
@@ -114,6 +208,7 @@ namespace game {
 
 	void Player::Update(float deltaTime) {
 		//update the missiles and check if they exist or not. 
+		//std::cout << "mypos is " << position_.x << " "<< position_.y << " "<< position_.z << std::endl;
 		for (std::vector<Projectile*>::iterator it = missiles.begin(); it != missiles.end();) {
 			(*it)->Update(deltaTime);
 			if ((*it)->Exists()) {
