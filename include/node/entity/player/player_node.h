@@ -11,11 +11,16 @@
 #include "enemy_node.h"
 #include "projectile_node.h"
 #include "entity_node.h"
+#include "resource_manager.h"
+class Game;
+class ResourceManager;
+
 
 namespace game {
-
+	extern ResourceManager resman_;
 	// Class for a single player object 
 	class Player  : public Entity{
+		
 
 	public:
 		// Create game object
@@ -36,16 +41,37 @@ namespace game {
 		bool Collision(std::vector<Enemy*>* enemies);
 		//Fires a single missile. 
 		void Fire();
-
+		void nextWeapon();
 
 
 		// Update the node
 		void Update(float deltaTime);
 
+			
+
 
 	private:
 		//store all the missiles in here. 
 		std::vector<Projectile*> missiles;
+
+		int projType;
+		const int numWeapons = 6;
+		std::string projectileTypes[6] = { "laserBattery", "pursuer", "chargeBlast", "sniperShot", "shotgun", "naniteTorpedo"};
+
+		std::map<int, bool> unlockedWeapons;
+		std::map<int, float> rof;
+		double lastShotTime;
+
+		//player upgrades
+		std::map<std::string, int> upgrades;
+
+		//default geom used for projectiles, will be replaced 
+		const Resource *geo;
+		const Resource *mat;
+		const Resource *tex;
+
+
+
 		float shields_;
 	}; // class GameObj
 

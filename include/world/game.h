@@ -46,15 +46,19 @@ namespace game {
             // Run the game: keep the application active
             void MainLoop(void); 
 
+            // Resources available to the game
+            ResourceManager resman_;
         private:
+
+
             // GLFW window
             GLFWwindow* window_;
 
             // Scene graph containing all nodes to render
             SceneGraph scene_;
 
-            // Resources available to the game
-            ResourceManager resman_;
+           
+            
 
             // Camera abstraction
             Camera camera_;
