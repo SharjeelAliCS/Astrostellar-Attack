@@ -95,7 +95,7 @@ namespace game {
             // Asteroid field
             // Create instance of one asteroid
 
-            Enemy *CreateEnemyInstance(std::string entity_name, std::string object_name, std::string material_name);
+            Enemy *CreateEnemyInstance(std::string entity_name, std::string object_name, std::string material_name, std::string normal_name = std::string(""));
             // Create entire random asteroid field
 
 			void CreateAsteroids(int num_enemies = 1500);
@@ -103,10 +103,10 @@ namespace game {
 			void CreateHUD(void);
 
 			// Create an instance of an object stored in the resource manager
-			ScreenNode *CreateScreenInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name = std::string(""));
+			ScreenNode *CreateScreenInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name = std::string(""), std::string normal_name = std::string(""));
 
             // Create an instance of an object stored in the resource manager
-            SceneNode *CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type,std::string texture_name = std::string(""));
+            SceneNode *CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type,std::string texture_name = std::string(""), std::string normal_name = std::string(""));
 
 
     }; // class Game

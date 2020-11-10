@@ -25,7 +25,7 @@
 namespace game {
 
 
-	ScreenNode::ScreenNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture) : SceneNode(name, geometry, material, texture) {
+	ScreenNode::ScreenNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : SceneNode(name, geometry, material, texture,normal) {
 		int a = 5;
 		org_pos_ = position_;
 		progress_size_ = 1.0;

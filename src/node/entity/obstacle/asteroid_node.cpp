@@ -18,7 +18,7 @@
 
 namespace game {
 
-	AsteroidNode::AsteroidNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture) : ObstacleNode(name, geometry, material, texture) {
+	AsteroidNode::AsteroidNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : ObstacleNode(name, geometry, material, texture,normal) {
 	}
 
 	AsteroidNode::~AsteroidNode() {

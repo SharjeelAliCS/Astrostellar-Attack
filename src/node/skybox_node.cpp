@@ -18,7 +18,7 @@
 
 namespace game {
 
-	SkyBox::SkyBox(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture) : SceneNode(name, geometry, material, texture) {
+	SkyBox::SkyBox(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : SceneNode(name, geometry, material, texture, normal) {
 	}
 
 	SkyBox::~SkyBox() {

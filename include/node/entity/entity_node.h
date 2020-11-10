@@ -16,7 +16,7 @@ namespace game {
 
 	public:
 		// Create game object
-		Entity(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture = NULL);
+		Entity(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture = NULL, const Resource *normal = NULL);
 		~Entity();
 
 		//Check if the object has been hit using a pos and a range.
@@ -29,8 +29,9 @@ namespace game {
 		void SetHealth(float h);
 		float GetHealth(void) const;
 
-	private:
+	protected:
 		float health_;
+		float max_health_;
 	}; // class GameObj
 
 } // namespace game

@@ -19,7 +19,7 @@ namespace game {
 
 	public:
 		// Create game object
-		Projectile(const std::string name, const std::string type, const std::map<std::string, int> upgrades, glm::quat orient, const Resource *geometry, const Resource *material,const Resource *texture = NULL);
+		Projectile(const std::string name, const std::string type, const std::map<std::string, int> upgrades, glm::quat orient, const Resource *geometry, const Resource *material,const Resource *texture = NULL, const Resource *normal = NULL);
 
 		// Destructor
 		~Projectile();

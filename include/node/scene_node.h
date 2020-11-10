@@ -20,7 +20,7 @@ namespace game {
 
 	public:
 		// Create scene node from given resources
-		SceneNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture = NULL);
+		SceneNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture = NULL, const Resource *normal = NULL);
 		// Destructor
 		~SceneNode();
 
@@ -55,7 +55,7 @@ namespace game {
 		void Draw(Camera *camera);
 		
 		// Update the node
-		void Update(float deltaTime);
+		virtual void Update(float deltaTime);
 
 		//Set the parent transformation for a child to use for drawing.
 		void SetParentTransform(glm::mat4 trans);
@@ -87,6 +87,7 @@ namespace game {
 		GLsizei size_; // Number of primitives in geometry
 		GLuint material_; // Reference to shader program
 		GLuint texture_; // Reference to texture resource
+		GLuint normal_map_; // Reference to normal map resource
 
 		glm::vec3 position_; // Position of node
 		glm::vec3 org_pos_;

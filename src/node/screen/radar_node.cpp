@@ -25,7 +25,7 @@
 namespace game {
 
 
-	RadarNode::RadarNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture) : ScreenNode(name, geometry, material, texture) {
+	RadarNode::RadarNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : ScreenNode(name, geometry, material, texture,normal) {
 	}
 
 

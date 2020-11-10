@@ -24,7 +24,7 @@ namespace game {
 
 	public:
 		// Create game object
-		Player(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture = NULL);
+		Player(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture = NULL, const Resource *normal = NULL);
 		// Destructor
 		~Player();
 
@@ -73,6 +73,7 @@ namespace game {
 
 
 		float shields_;
+		float max_shields_;
 	}; // class GameObj
 
 } // namespace game

@@ -152,6 +152,10 @@ void Game::SetupResources(void){
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/overlay");
 	resman_.LoadResource(Material, "OverlayMaterial", filename.c_str());
 
+	//normal map shader
+	filename = std::string(MATERIAL_DIRECTORY) + std::string("/textured_normal_material");
+	resman_.LoadResource(Material, "NormalMaterial", filename.c_str());
+
 	//radar (hud) shader
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/radar");
 
@@ -206,6 +210,9 @@ void Game::SetupResources(void){
 		std::string asteroid_name = "Asteroid" + std::to_string(i + 1);
 		filename = assets_dir + std::string("/graphics/texture/asteroids/" + asteroid_name + "_AlbedoTransparency.png");
 		resman_.LoadResource(Texture, asteroid_name + "Texture", filename.c_str());
+
+		filename = assets_dir + std::string("/graphics/normal/asteroids/" + asteroid_name + "_Normal.png");
+		resman_.LoadResource(Texture, asteroid_name + "Normal", filename.c_str());
 
 		std::string meshName = "meshes/asteroids/" + asteroid_name + ".obj";
 		resman_.LoadResource(Mesh, asteroid_name + "Mesh", meshName.c_str());
@@ -518,7 +525,7 @@ Game::~Game(){
 }
 
 
-Enemy *Game::CreateEnemyInstance(std::string entity_name, std::string object_name, std::string material_name){
+Enemy *Game::CreateEnemyInstance(std::string entity_name, std::string object_name, std::string material_name, std::string normal_name){
 
     // Get resources
     Resource *geom = resman_.GetResource(object_name);
@@ -551,7 +558,7 @@ void Game::CreateAsteroids(int num_enemies){
         std::string name = "AsteroidInstance" + index;
 		std::string asteroid_type = "Asteroid"+std::to_string((rand() % 10) + 1);
         // Create asteroid instance
-        SceneNode *en = CreateInstance(name, asteroid_type+"Mesh", "TextureShader",ASTEROID, asteroid_type+"Texture");
+        SceneNode *en = CreateInstance(name, asteroid_type+"Mesh", "NormalMaterial",ASTEROID, asteroid_type+"Texture", asteroid_type + "Normal");//,
 
         // Set attributes of asteroid: random position, orientation, and
         // angular momentum
@@ -614,7 +621,7 @@ void Game::CreateHUD(void) {
 
 }
 
-ScreenNode *Game::CreateScreenInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name) {
+ScreenNode *Game::CreateScreenInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name, std::string normal_name) {
 
 	Resource *geom = resman_.GetResource(object_name);
 	if (!geom) {
@@ -646,7 +653,7 @@ ScreenNode *Game::CreateScreenInstance(std::string entity_name, std::string obje
 	}
 
 }
-SceneNode *Game::CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type, std::string texture_name){
+SceneNode *Game::CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type, std::string texture_name, std::string normal_name){
 
     Resource *geom = resman_.GetResource(object_name);
     if (!geom){
@@ -666,7 +673,15 @@ SceneNode *Game::CreateInstance(std::string entity_name, std::string object_name
         }
     }
 	
-    SceneNode *scn = scene_.CreateNode(entity_name, geom, mat, type, tex);
+	Resource *norm = NULL;
+	if (normal_name != "") {
+		norm = resman_.GetResource(normal_name);
+		if (!tex) {
+			throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
+		}
+
+	}
+    SceneNode *scn = scene_.CreateNode(entity_name, geom, mat, type, tex, norm);
     return scn;
 }
 
