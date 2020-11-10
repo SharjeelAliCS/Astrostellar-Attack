@@ -42,35 +42,35 @@ glm::vec3 SceneGraph::GetBackgroundColor(void) const {
     return background_color_;
 }
  
-SceneNode *SceneGraph::CreateNode(std::string node_name, Resource *geometry, Resource *material,NodeType type, Resource *texture){
+SceneNode *SceneGraph::CreateNode(std::string node_name, Resource *geometry, Resource *material,NodeType type, Resource *texture, Resource *normal){
 
 	SceneNode *scn;
 	switch (type) {
 	case PLAYER: {
-		player_ = new Player(node_name, geometry, material, texture);
+		player_ = new Player(node_name, geometry, material, texture, normal);
 		scn = player_;
 		break; }
 	case SKYBOX: {
-		skybox_ = new SkyBox(node_name, geometry, material, texture);
+		skybox_ = new SkyBox(node_name, geometry, material, texture, normal);
 		scn = skybox_;
 		break; }
 	case ENEMY: {
-		Enemy* en = new Enemy(node_name, geometry, material, texture);
+		Enemy* en = new Enemy(node_name, geometry, material, texture, normal);
 		enemy_.push_back(en);
 		scn = en;
 		break; }
 	case HUD: {
-		ScreenNode* hud = new ScreenNode(node_name, geometry, material, texture);
+		ScreenNode* hud = new ScreenNode(node_name, geometry, material, texture, normal);
 		screen_.at(NONE).push_back(hud);
 		scn = hud;
 		break; }
 	case NODE: {
-		SceneNode* node = new SceneNode(node_name, geometry, material, texture);
+		SceneNode* node = new SceneNode(node_name, geometry, material, texture, normal);
 		node_.push_back(node);
 		scn = node;
 		break; }
 	case ASTEROID: {
-		AsteroidNode* node = new AsteroidNode(node_name, geometry, material, texture);
+		AsteroidNode* node = new AsteroidNode(node_name, geometry, material, texture, normal);
 		node_.push_back(node);
 		scn = node;
 		break; }

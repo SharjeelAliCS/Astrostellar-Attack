@@ -9,7 +9,7 @@
 
 namespace game {
 
-SceneNode::SceneNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture){
+SceneNode::SceneNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal){
 
     // Set name of scene node
     name_ = name;
@@ -40,7 +40,12 @@ SceneNode::SceneNode(const std::string name, const Resource *geometry, const Res
     } else {
         texture_ = 0;
     }
-
+	if (normal) {
+		normal_map_ = normal->GetResource();
+	}
+	else {
+		normal_map_ = 0;
+	}
     // Other attributes
     scale_ = glm::vec3(1.0, 1.0, 1.0);
 	orientation_ = new Orientation();
@@ -261,8 +266,17 @@ void SceneNode::SetupShader(GLuint program, Camera* camera){
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T , GL_REPEAT);
-
     }
+
+	//normal
+	if (normal_map_) {
+		glDisable(GL_BLEND);
+		GLint tex = glGetUniformLocation(program, "normal_map");
+		glUniform1i(tex, 1); // Assign the first texture to the map
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, normal_map_); // normal texture we bind
+	}
+
 
     // Timer
     GLint timer_var = glGetUniformLocation(program, "timer");

@@ -18,7 +18,9 @@
 
 namespace game {
 
-	Entity::Entity(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture) : SceneNode(name, geometry, material, texture) {
+	Entity::Entity(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : SceneNode(name, geometry, material, texture,normal) {
+		max_health_ = 100;
+		health_ = max_health_;
 	}
 
 	Entity::~Entity() {

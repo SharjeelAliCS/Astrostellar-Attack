@@ -18,12 +18,14 @@
 
 namespace game {
 
-	ObstacleNode::ObstacleNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture) : Entity(name, geometry, material, texture) {
+	ObstacleNode::ObstacleNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : Entity(name, geometry, material, texture,normal) {
 	}
 
 	ObstacleNode::~ObstacleNode() {
 	}
-
+	void ObstacleNode::Update(float deltaTime) {
+		Rotate(deltaTime * 10, glm::vec3(1,0,0));
+	}
 
 
 }

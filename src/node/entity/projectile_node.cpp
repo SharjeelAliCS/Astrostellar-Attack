@@ -18,8 +18,8 @@ namespace game {
 
 
 
-	Projectile::Projectile(const std::string name, const std::string type, const std::map<std::string, int> upgrades, glm::quat orient, const Resource *geometry, const Resource *material, const Resource *texture)
-		: Entity(name, geometry, material, texture) {
+	Projectile::Projectile(const std::string name, const std::string type, const std::map<std::string, int> upgrades, glm::quat orient, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal)
+		: Entity(name, geometry, material, texture,normal) {
 		//default all to zero
 		upg = upgrades;
 		ttl    = 0;

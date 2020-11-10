@@ -16,7 +16,7 @@ namespace game {
 
 	public:
 		// Create game object
-		AsteroidNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture = NULL);
+		AsteroidNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture = NULL, const Resource *normal = NULL);
 		~AsteroidNode();
 
 	private:

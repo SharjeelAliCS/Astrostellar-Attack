@@ -25,12 +25,14 @@
 
 namespace game {
 
-	Player::Player(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture) : Entity(name, geometry, material, texture) {
+	Player::Player(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : Entity(name, geometry, material, texture,normal) {
 
 		geo = geometry;
 		mat = material;
 		tex = texture;
 
+		max_shields_ = 100;
+		shields_ = max_shields_;
 
 		//resman_ refuses to be global, likely because I'm being dumbass.
 

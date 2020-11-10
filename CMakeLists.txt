@@ -126,6 +126,8 @@ set(RCRS
     ${PROJECT_SOURCE_DIR}/resource/radar_vp.glsl
     ${PROJECT_SOURCE_DIR}/resource/text_fp.glsl
     ${PROJECT_SOURCE_DIR}/resource/text_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/textured_normal_material_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/textured_normal_material_vp.glsl
 )
 #https://stackoverflow.com/questions/31422680/how-to-set-visual-studio-filters-for-nested-sub-directory-using-cmake
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${HDRS})

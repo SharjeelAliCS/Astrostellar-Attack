@@ -18,7 +18,7 @@ namespace game {
 
 	public:
 		// Create game object
-		ScreenNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture = NULL);
+		ScreenNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture = NULL, const Resource *normal = NULL);
 		
 		// Destructor
 		~ScreenNode();
