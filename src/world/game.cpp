@@ -127,103 +127,48 @@ void Game::SetupResources(void){
 	resman_.CreateSphere("SimpleSphereMesh");
 	resman_.CreateTorus("SimpleTorusMesh");
 	resman_.CreateCube("c",3,3,3);
-    // Load shader for texture mapping
+
 	std::string filename;
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/textured_material");
-	resman_.LoadResource(Material, "TextureShader", filename.c_str());
-
-	// shader for corona effect
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/procedural");
-	resman_.LoadResource(Material, "Procedural", filename.c_str());
-
-	//object shader
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/procedural");
-	resman_.LoadResource(Material, "ObjectMaterial", filename.c_str());
-
-	//text shader
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/text");
-	resman_.LoadResource(Material, "textMaterial", filename.c_str());
-
-	//screen (hud) shader
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/screen");
-	resman_.LoadResource(Material, "ScreenMaterial", filename.c_str());
-
-	//overlay dark (hud) shader
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/overlay");
-	resman_.LoadResource(Material, "OverlayMaterial", filename.c_str());
-
-	//normal map shader
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/textured_normal_material");
-	resman_.LoadResource(Material, "NormalMaterial", filename.c_str());
-
-	//radar (hud) shader
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/radar");
-
-	resman_.LoadResource(Material, "RadarMaterial", filename.c_str());
-	std::string assets_dir = std::string(ASSET_DIRECTORY);
-
-    // Load texture to be used on the object
-	filename = assets_dir + std::string("/graphics/Pumpkin_Color.png");
-	resman_.LoadResource(Texture, "RockyTexture", filename.c_str());
-	resman_.LoadResource(Mesh, "pumpkin", "meshes/Pumkin.obj");
-
-	//player
-	filename = assets_dir + std::string("/graphics/player.png");
-	resman_.LoadResource(Texture, "shipTexture", filename.c_str());
-	resman_.LoadResource(Mesh, "ship", "meshes/player.obj");
-	//skybox
-	filename = assets_dir + std::string("/graphics/skybox/skybox_v3.png");
-	resman_.LoadResource(Texture, "skyboxTexture", filename.c_str());
-	resman_.LoadResource(Mesh, "skybox", "meshes/cube.obj");
-
-	//Screens-----------------------------------
-
-	//ship interior
-	filename = assets_dir + std::string("/graphics/hud/hud.png");
-	resman_.LoadResource(Texture, "cockpitTexture", filename.c_str());
-
-	//health
-	filename = assets_dir + std::string("/graphics/hud/health_bar.png");
-	resman_.LoadResource(Texture, "healthBarTexture", filename.c_str());
-
-	filename = assets_dir + std::string("/graphics/hud/health_box.png");
-	resman_.LoadResource(Texture, "healthBoxTexture", filename.c_str());
-
-	//shields
-	filename = assets_dir + std::string("/graphics/hud/shield_bar.png");
-	resman_.LoadResource(Texture, "shieldBarTexture", filename.c_str());
-
-	filename = assets_dir + std::string("/graphics/hud/shield_box.png");
-	resman_.LoadResource(Texture, "shieldBoxTexture", filename.c_str());
-
-	//radar
-	filename = assets_dir + std::string("/graphics/hud/radar.png");
-	resman_.LoadResource(Texture, "radarTexture", filename.c_str());
-
-	//crosshairs
-	filename = assets_dir + std::string("/graphics/hud/crosshair_default.png");
-	resman_.LoadResource(Texture, "crosshairDefaultTexture", filename.c_str());
-
-	//ASTEROIDS
-
-	for (int i = 0; i < 10; i++) {
-		std::string asteroid_name = "Asteroid" + std::to_string(i + 1);
-		filename = assets_dir + std::string("/graphics/texture/asteroids/" + asteroid_name + "_AlbedoTransparency.png");
-		resman_.LoadResource(Texture, asteroid_name + "Texture", filename.c_str());
-
-		filename = assets_dir + std::string("/graphics/normal/asteroids/" + asteroid_name + "_Normal.png");
-		resman_.LoadResource(Texture, asteroid_name + "Normal", filename.c_str());
-
-		std::string meshName = "meshes/asteroids/" + asteroid_name + ".obj";
-		resman_.LoadResource(Mesh, asteroid_name + "Mesh", meshName.c_str());
-	}
 	//load save data
 	filename = SAVE_DIRECTORY + std::string("/game_state.json");
 	resman_.LoadResource(Save, "save", filename.c_str());
 
-	//load font
+	//load asset data
+	filename = SAVE_DIRECTORY + std::string("/asset_data.json");
+	resman_.LoadResource(Save, "assetList", filename.c_str());
+
+	json assets = resman_.GetResource("assetList")->GetJSON();
 	
-	text = Text(assets_dir+"/fonts/Audiowide-Regular.ttf", resman_.GetResource("textMaterial"));
+	//load shaders
+	for (auto& asset : assets["Shader"].items()) {
+		filename = std::string(MATERIAL_DIRECTORY) + std::string(asset.value());
+		resman_.LoadResource(Material, asset.key(), filename.c_str());
+	}
+	
+	//load meshes
+	for (auto& asset : assets["Mesh"].items()) {
+		filename = std::string(ASSET_DIRECTORY) + "/meshes"+std::string(asset.value());
+		resman_.LoadResource(Mesh, asset.key(), filename.c_str());
+	}
+
+	//load normal maps
+	for (auto& asset : assets["Normal"].items()) {
+		filename = std::string(ASSET_DIRECTORY) + "/graphics/normal/" + std::string(asset.value());
+		resman_.LoadResource(Texture, asset.key(), filename.c_str());
+	}
+
+	//load diffuse textures
+	for (auto& asset : assets["Texture"].items()) {
+		filename = std::string(ASSET_DIRECTORY) + "/graphics/texture/" + std::string(asset.value());
+		resman_.LoadResource(Texture, asset.key(), filename.c_str());
+	}
+
+	//load fonts
+	for (auto& asset : assets["Font"].items()) {
+		filename = std::string(ASSET_DIRECTORY) + "/fonts" + std::string(asset.value());
+		text = Text(filename, resman_.GetResource("textMaterial"));
+	}
+	
 }
 
 

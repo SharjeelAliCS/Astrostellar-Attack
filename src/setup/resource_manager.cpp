@@ -183,7 +183,6 @@ json ResourceManager::LoadJSONFile(const char *filename) {
 	json file;
 	std::ifstream i(filename);
 	file = json::parse(i);
-	std::cout << (file).size() << ", "<< file.at("fruit")<<std::endl;
 	return file;
 }
 
@@ -762,7 +761,7 @@ void ResourceManager::LoadMesh(const std::string name, const char *filename){
     // Parse file
     // Open file
     std::ifstream f;
-    f.open(std::string(ASSET_DIRECTORY) +"/"+filename);
+    f.open(filename);
     if (f.fail()){
         throw(std::ios_base::failure(std::string("Error opening file ")+std::string(filename)));
     }

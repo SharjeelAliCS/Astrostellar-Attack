@@ -1,0 +1,64 @@
+{
+    "Shader": {
+      "TextureShader": "/textured_material",
+      "Procedural": "/procedural",
+      "ObjectMaterial": "/procedural",
+      "textMaterial": "/text",
+      "ScreenMaterial": "/screen",
+      "OverlayMaterial": "/overlay",
+      "NormalMaterial": "/textured_normal_material",
+      "RadarMaterial": "/radar"
+    },
+    "Mesh": {
+      "pumpkin": "/Pumkin.obj",
+      "ship": "/player.obj",
+      "skybox": "/cube.obj",
+      "Asteroid1Mesh": "/asteroids/Asteroid1.obj",
+      "Asteroid2Mesh": "/asteroids/Asteroid2.obj",
+      "Asteroid3Mesh": "/asteroids/Asteroid3.obj",
+      "Asteroid4Mesh": "/asteroids/Asteroid4.obj",
+      "Asteroid5Mesh": "/asteroids/Asteroid5.obj",
+      "Asteroid6Mesh": "/asteroids/Asteroid6.obj",
+      "Asteroid7Mesh": "/asteroids/Asteroid7.obj",
+      "Asteroid8Mesh": "/asteroids/Asteroid8.obj",
+      "Asteroid9Mesh": "/asteroids/Asteroid9.obj",
+      "Asteroid10Mesh": "/asteroids/Asteroid10.obj"
+    },
+    "Texture": {
+      "pumpkinTexture": "/Pumpkin_Color.png",
+      "shipTexture": "/player.png",
+      "skyboxTexture": "/skybox/skybox_v3.png",
+      "cockpitTexture": "/hud/hud.png",
+      "healthBarTexture": "/hud/health_bar.png",
+      "healthBoxTexture": "/hud/health_box.png",
+      "shieldBarTexture": "/hud/shield_bar.png",
+      "shieldBoxTexture": "/hud/shield_box.png",
+      "radarTexture": "/hud/radar.png",
+      "crosshairDefaultTexture": "/hud/crosshair_default.png",
+      "Asteroid1Texture": "/asteroids/Asteroid1_AlbedoTransparency.png",
+      "Asteroid2Texture": "/asteroids/Asteroid2_AlbedoTransparency.png",
+      "Asteroid3Texture": "/asteroids/Asteroid3_AlbedoTransparency.png",
+      "Asteroid4Texture": "/asteroids/Asteroid4_AlbedoTransparency.png",
+      "Asteroid5Texture": "/asteroids/Asteroid5_AlbedoTransparency.png",
+      "Asteroid6Texture": "/asteroids/Asteroid6_AlbedoTransparency.png",
+      "Asteroid7Texture": "/asteroids/Asteroid7_AlbedoTransparency.png",
+      "Asteroid8Texture": "/asteroids/Asteroid8_AlbedoTransparency.png",
+      "Asteroid9Texture": "/asteroids/Asteroid9_AlbedoTransparency.png",
+      "Asteroid10Texture": "/asteroids/Asteroid10_AlbedoTransparency.png"
+    },
+    "Normal": {
+      "Asteroid1Normal": "/asteroids/Asteroid1_Normal.png",
+      "Asteroid2Normal": "/asteroids/Asteroid2_Normal.png",
+      "Asteroid3Normal": "/asteroids/Asteroid3_Normal.png",
+      "Asteroid4Normal": "/asteroids/Asteroid4_Normal.png",
+      "Asteroid5Normal": "/asteroids/Asteroid5_Normal.png",
+      "Asteroid6Normal": "/asteroids/Asteroid6_Normal.png",
+      "Asteroid7Normal": "/asteroids/Asteroid7_Normal.png",
+      "Asteroid8Normal": "/asteroids/Asteroid8_Normal.png",
+      "Asteroid9Normal": "/asteroids/Asteroid9_Normal.png",
+      "Asteroid10Normal": "/asteroids/Asteroid10_Normal.png"
+    },
+    "Font": {
+      "Audiowide": "/Audiowide-Regular.ttf"
+    }
+}
