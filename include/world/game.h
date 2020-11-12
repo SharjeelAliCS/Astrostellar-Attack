@@ -17,6 +17,7 @@
 #include "skybox_node.h"
 #include "radar_node.h"
 #include "asteroid_node.h"
+#include "particle_node.h"
 #include "text.h"
 
 namespace game {
@@ -94,6 +95,8 @@ namespace game {
 			static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
             // Asteroid field
             // Create instance of one asteroid
+
+			ParticleNode* CreateParticleInstance(int count, std::string particle_name, std::string object_name, std::string material_name, std::string texture_name = std::string(""));
 
             Enemy *CreateEnemyInstance(std::string entity_name, std::string object_name, std::string material_name, std::string normal_name = std::string(""));
             // Create entire random asteroid field

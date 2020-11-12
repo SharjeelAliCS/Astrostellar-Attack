@@ -61,6 +61,7 @@ set(HDRS
 
     ${PROJECT_SOURCE_DIR}/include/node/scene_node.h
     ${PROJECT_SOURCE_DIR}/include/node/skybox_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/particle_node.h
 
     ${PROJECT_SOURCE_DIR}/include/setup/model_loader.h
     ${PROJECT_SOURCE_DIR}/include/setup/path_config.h
@@ -99,6 +100,7 @@ set(SRCS
 
     ${PROJECT_SOURCE_DIR}/src/node/scene_node.cpp
     ${PROJECT_SOURCE_DIR}/src/node/skybox_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/node/particle_node.cpp
 
     ${PROJECT_SOURCE_DIR}/src/setup/resource.cpp
     ${PROJECT_SOURCE_DIR}/src/setup/resource_manager.cpp
@@ -128,6 +130,9 @@ set(RCRS
     ${PROJECT_SOURCE_DIR}/resource/text_vp.glsl
     ${PROJECT_SOURCE_DIR}/resource/textured_normal_material_fp.glsl
     ${PROJECT_SOURCE_DIR}/resource/textured_normal_material_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle_stream_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle_stream_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle_stream_gp.glsl
 )
 #https://stackoverflow.com/questions/31422680/how-to-set-visual-studio-filters-for-nested-sub-directory-using-cmake
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${HDRS})

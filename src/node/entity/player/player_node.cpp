@@ -154,7 +154,7 @@ namespace game {
 			(*it)->Draw(camera);
 		}
 		if (!draw_)return;
-		SceneNode::Draw(camera);
+		Entity::Draw(camera);
 
 	}
 	glm::quat Player::RotLagBehind(float pitch, float yaw) {
@@ -223,8 +223,11 @@ namespace game {
 			}
 
 		}
-
-
+	
+		Entity::Update(deltaTime);
+		if (particles_ != NULL) {
+			//particles_->Rotate(-90, glm::vec3(0, 1, 0));
+		}
 
 	}
 }

@@ -52,7 +52,7 @@ namespace game {
 		
 		// Draw the node according to scene parameters in 'camera'
 		// variable
-		void Draw(Camera *camera);
+		virtual void Draw(Camera *camera);
 		
 		// Update the node
 		virtual void Update(float deltaTime);
@@ -104,7 +104,7 @@ namespace game {
 		bool exists_;
 		bool draw_;
 		// Set matrices that transform the node in a shader program
-		void SetupShader(GLuint program, Camera* camera);
+		virtual void SetupShader(GLuint program, Camera* camera);
 
 		virtual  glm::mat4 CalculateFinalTransformation(Camera* camera);
 

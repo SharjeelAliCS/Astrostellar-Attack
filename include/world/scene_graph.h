@@ -27,7 +27,8 @@ namespace game {
 		HUD,
 		NODE,
 		SKYBOX,
-		ASTEROID
+		ASTEROID,
+		PARTICLE
 	};
 
 	enum ScreenType {

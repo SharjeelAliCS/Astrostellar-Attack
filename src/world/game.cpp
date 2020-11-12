@@ -171,19 +171,16 @@ void Game::SetupResources(void){
 	
 }
 
-
-
 void Game::SetupScene(void){
     // Set background color for the scene
     scene_.SetBackgroundColor(viewport_background_color_g);
 	
 	//create player object
 	SceneNode* player =CreateInstance("player", "ship", "TextureShader", PLAYER,"shipTexture");
-	player->SetScale(glm::vec3(0.05));
+	//player->SetScale(glm::vec3(0.05));
 	player->SetOrientation(-90, glm::vec3(0, 1, 0));
     // Create an object for showing the texture
 	// instance contains identifier, geometry, shader, and texture
-	
 	
 	//skybox->SetOrientation(180, glm::vec3(1, 0, 0));
 	//create enemies
@@ -195,6 +192,16 @@ void Game::SetupScene(void){
 
 	CreateHUD();
 
+	//create particles:
+	ParticleNode* pn = CreateParticleInstance(20000, "jetstream", "playerParticles", "ParticleMaterial");
+	pn->SetOrientation(90, glm::vec3(0, 1, 0));
+	pn->Rotate(-90, glm::vec3(1, 0, 0));
+	pn->Translate(glm::vec3(1, 0.5, -3)); 
+	pn->SetJoint(glm::vec3(0,0.2,-1));
+	pn->SetScale(glm::vec3(10));
+	//pn->SetJoint(glm::vec3(0, 0, -1));
+	//scene_.GetPlayer()->SetParticleSystem(pn);
+	scene_.GetPlayer()->AddChild(pn);
 	scene_.GetScreen("cockpit")->SetDraw(true);
 	scene_.GetPlayer()->SetDraw(false);
 	camera_.SetZoom(0);
@@ -220,7 +227,7 @@ void Game::SetSaveState(void) {
 void Game::MainLoop(void){
 
     // Loop while the user did not close the window
-	float player_speed = 0.05;
+	float player_speed = 0.5;
 	float t = 0;
 	int frames = 0;
 	float second = glfwGetTime();
@@ -310,7 +317,7 @@ void Game::GetUserInput(float deltaTime) {
 
 		Player* player = scene_.GetPlayer();
 		//Get the factors used for movement
-		float foward_factor = 2;
+		float foward_factor = 20;
 		float side_factor = foward_factor*0.33;
 		//glm::vec3 pos = player->GetPosition();
 		glm::vec3 foward = camera_.GetForward();
@@ -401,7 +408,9 @@ void Game::GetMouseCameraInput() {
 
 		player->GetOrientationObj()->Yaw(-speed_x);
 		player->GetOrientationObj()->Pitch(-speed_y);
-	
+		//player->GetParticle()->GetOrientationObj()->Roll(-speed_x*0.5);
+		//player->GetParticle()->GetOrientationObj()->Roll(-speed_y);
+		//player->GetParticle()->SetOrientation(player->GetOrientation());
 		camera_.SetOrientation(player->RotLagBehind(speed_y / 2, speed_x / 2));
 
 		ScreenNode* screen = scene_.GetScreen("cockpit");
@@ -469,7 +478,24 @@ Game::~Game(){
     glfwTerminate();
 }
 
+ParticleNode* Game::CreateParticleInstance(int count, std::string particle_name, std::string object_name, std::string material_name, std::string texture_name) {
+	//create resource
+	resman_.CreateSphereParticles(particle_name, count);
+	Resource *geom = resman_.GetResource(particle_name);
+	if (!geom) {
+		throw(GameException(std::string("Could not find resource \"") + object_name + std::string("\"")));
+	}
 
+	Resource *mat = resman_.GetResource(material_name);
+	if (!mat) {
+		throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
+	}
+
+	// Create asteroid instance
+	ParticleNode *pn = new ParticleNode(object_name, geom, mat);
+	
+	return pn;
+}
 Enemy *Game::CreateEnemyInstance(std::string entity_name, std::string object_name, std::string material_name, std::string normal_name){
 
     // Get resources

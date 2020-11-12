@@ -7,7 +7,8 @@
       "ScreenMaterial": "/screen",
       "OverlayMaterial": "/overlay",
       "NormalMaterial": "/textured_normal_material",
-      "RadarMaterial": "/radar"
+      "RadarMaterial": "/radar",
+      "ParticleMaterial": "/particle_stream"
     },
     "Mesh": {
       "pumpkin": "/Pumkin.obj",
