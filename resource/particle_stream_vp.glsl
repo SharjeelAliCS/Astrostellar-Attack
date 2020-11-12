@@ -21,7 +21,7 @@ out float timestep;
 uniform vec3 up_vec = vec3(0.0, 1.0, 0.0);
 uniform vec3 object_color = vec3(0.3, 0.8, 0.8);
 float grav = 0.5; // Gravity
-float speed = 20; // Allows to control the speed of the explosion
+float speed = 30; // Allows to control the speed of the explosion
 float upward = 1.0; // additional y velocity for all particles
 
 void main()
@@ -38,7 +38,7 @@ void main()
 
     // Move point along normal and down with t*t (acceleration under gravity)
     position.x += norm.x*t*speed;
-    position.y -= norm.y*t*speed*0.5;
+    position.y += norm.y*t*speed*0.5;
     position.z += norm.z*t*speed;
     
     // Now apply view transformation
