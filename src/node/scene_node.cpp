@@ -213,8 +213,8 @@ glm::mat4 SceneNode::CalculateFinalTransformation(Camera* camera) {
 	glm::mat4 trans_joint_inv = glm::translate(glm::mat4(1.0), -joint_);
 
 	glm::mat4 orbit = trans_joint_inv * Orientation * trans_joint;
-	glm::mat4 transf = translation * orbit;
-
+	glm::mat4 transf = parentTransform_* translation * orbit;
+	
 	for (std::vector<SceneNode*>::iterator it = children_.begin(); it != children_.end(); ++it) {
 		(*it)->SetParentTransform(transf);
 	}

@@ -15,12 +15,12 @@
 
 #include "entity_node.h"
 
-
 namespace game {
 
 	Entity::Entity(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : SceneNode(name, geometry, material, texture,normal) {
 		max_health_ = 100;
 		health_ = max_health_;
+		particles_ = NULL;
 	}
 
 	Entity::~Entity() {
@@ -34,6 +34,9 @@ namespace game {
 		movement_speed = s;
 	}
 
+	ParticleNode* Entity::GetParticle(void) {
+		return particles_;
+	}
 	bool Entity::Hit(glm::vec3 pos, float range) {
 		float R = 0.15;
 		float r = 0.6;
@@ -87,6 +90,33 @@ namespace game {
 		rotation_speed_ = rotation_speed;
 	}
 
+	void Entity::Update(float deltaTime) {
+		if (particles_ != NULL) {
+			//particles_->Rotate(deltaTime * 30, glm::vec3(0,0,1));
+		}
+	}
+
+	glm::mat4 Entity::CalculateFinalTransformation(Camera* camera) {
+		// World transformation
+		glm::mat4 transf = SceneNode::CalculateFinalTransformation(camera);
+		if (particles_ != NULL) {
+			particles_->SetParentTransform(transf);
+		}
+		return transf;
+
+	}
+	void Entity::SetParticleSystem(ParticleNode* particles) {
+		particles_ = particles;
+	}
+
+	void Entity::Draw(Camera *camera) {
+		
+		if (particles_ != NULL) {
+			int a = 4;
+			particles_->Draw(camera);
+		}
+		SceneNode::Draw(camera);
+	}
 
 
 }

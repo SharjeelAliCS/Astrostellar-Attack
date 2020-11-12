@@ -9,6 +9,8 @@
 #ifndef ENTITY_NODE_H_
 #define ENTITY_NODE_H_
 #include "scene_node.h"
+#include "particle_node.h"
+
 namespace game {
 
 	// Stores the enemy object, which for the demo is simply a "planet". It is a child of the GameObj class. 
@@ -29,9 +31,17 @@ namespace game {
 		void SetHealth(float h);
 		float GetHealth(void) const;
 
+		void SetParticleSystem(ParticleNode* particles);
+		ParticleNode* GetParticle(void);
+		void Update(float deltaTime);
+		void Draw(Camera *camera);
+
 	protected:
 		float health_;
 		float max_health_;
+		ParticleNode* particles_;
+
+		glm::mat4 CalculateFinalTransformation(Camera* camera);
 	}; // class GameObj
 
 } // namespace game

@@ -74,6 +74,7 @@ SceneNode *SceneGraph::CreateNode(std::string node_name, Resource *geometry, Res
 		node_.push_back(node);
 		scn = node;
 		break; }
+
 	}
 	return scn;
 }
