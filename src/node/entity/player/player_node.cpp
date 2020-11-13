@@ -33,6 +33,8 @@ namespace game {
 
 		max_shields_ = 100;
 		shields_ = max_shields_;
+		boosted_ = 0;
+		boost_speed_ = 20;
 
 		//resman_ refuses to be global, likely because I'm being dumbass.
 
@@ -105,12 +107,22 @@ namespace game {
 	Player::~Player() {
 	}
 
+	void Player::SetBoosted(int i) {
+		boosted_ = i;
+	}
+	int Player::GetBoosted(void) const {
+		return boosted_;
+	}
+	float Player::GetBoostSpeed(void) const {
+		return boost_speed_;
+	}
 	void Player::SetShields(float h) {
 		shields_ = h;
 	}
 	float Player::GetShields(void) const {
 		return shields_;
 	}
+
 
 	//tab to change weapon
 	void Player::nextWeapon() {
@@ -140,6 +152,7 @@ namespace game {
 				}
 			}
 			else {
+				glm::vec3 fo = orientation_->GetForward();
 				missile = new Projectile("missile", weapon, upgrades, orientation_->GetOrientation(), geo, mat, tex);
 				missile->SetPosition(position_);
 				missiles.push_back(missile);

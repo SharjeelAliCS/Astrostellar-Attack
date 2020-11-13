@@ -119,7 +119,7 @@ void Game::InitEventHandlers(void){
 
 
 void Game::SetupResources(void){
-
+	audio_ = new Audio();
     // Create geometry of the objects
     //resman_.CreateTorus("SimpleTorusMesh",0.8,0.35,30,30);
 	resman_.CreateWall("FlatSurface");
@@ -168,6 +168,22 @@ void Game::SetupResources(void){
 		filename = std::string(ASSET_DIRECTORY) + "/fonts" + std::string(asset.value());
 		text = Text(filename, resman_.GetResource("textMaterial"));
 	}
+
+	//load soundtrack
+	for (auto& asset : assets["Soundtrack"].items()) {
+		filename = std::string(ASSET_DIRECTORY) + "/sounds/soundtrack/" + std::string(asset.value());
+		audio_->addAudio(filename,asset.key());
+	}
+
+	//load sound effects
+	for (auto& asset : assets["SoundEffects"].items()) {
+		filename = std::string(ASSET_DIRECTORY) + "/sounds/effects/" + std::string(asset.value());
+		audio_->addAudio(filename, asset.key());
+	}
+
+	audio_->volume("ambience", 100);
+	audio_->volume("playerEngine", 300);
+	audio_->playRepeat("ambience");
 	
 }
 
@@ -177,7 +193,7 @@ void Game::SetupScene(void){
 	
 	//create player object
 	SceneNode* player =CreateInstance("player", "ship", "TextureShader", PLAYER,"shipTexture");
-	//player->SetScale(glm::vec3(0.05));
+	player->SetScale(glm::vec3(2));
 	player->SetOrientation(-90, glm::vec3(0, 1, 0));
     // Create an object for showing the texture
 	// instance contains identifier, geometry, shader, and texture
@@ -198,7 +214,8 @@ void Game::SetupScene(void){
 	pn->Rotate(-90, glm::vec3(1, 0, 0));
 	pn->Translate(glm::vec3(1, 0.5, -3)); 
 	pn->SetJoint(glm::vec3(0,0.2,-1));
-	pn->SetScale(glm::vec3(10));
+	pn->SetScale(glm::vec3(8));
+	pn->SetDraw(false);
 	//pn->SetJoint(glm::vec3(0, 0, -1));
 	//scene_.GetPlayer()->SetParticleSystem(pn);
 	scene_.GetPlayer()->AddChild(pn);
@@ -317,8 +334,6 @@ void Game::GetUserInput(float deltaTime) {
 
 		Player* player = scene_.GetPlayer();
 		//Get the factors used for movement
-		float foward_factor = 20;
-		float side_factor = foward_factor*0.33;
 		//glm::vec3 pos = player->GetPosition();
 		glm::vec3 foward = camera_.GetForward();
 
@@ -342,8 +357,18 @@ void Game::GetUserInput(float deltaTime) {
 			//glm::vec3 pos = player->GetPosition();
 			glm::vec3 foward = camera_.GetForward();
 
-			camera_.Translate(foward * foward_factor);
-			player->Translate(foward * foward_factor);
+			camera_.Translate(foward * player->GetBoostSpeed());
+			player->Translate(foward * player->GetBoostSpeed());
+			if (player->GetBoosted() == 0) {
+				audio_->playRepeat("playerEngine");
+				player->SetBoosted(1);
+				player->GetChild("jetstream")->SetDraw(true);
+			}
+		}
+		else if(player->GetBoosted() == 1) {
+			player->SetBoosted(0);
+			audio_->stop("playerEngine");
+			player->GetChild("jetstream")->SetDraw(false);
 		}
 		/*
 		//move the player back as well as the camera
@@ -519,7 +544,7 @@ Enemy *Game::CreateEnemyInstance(std::string entity_name, std::string object_nam
 
 void Game::CreateAsteroids(int num_enemies){
 
-	float radius = 1000;
+	float radius = 2000;
     // Create a number of asteroid instances
     for (int i = 0; i < num_enemies; i++){
         // Create instance name
@@ -537,7 +562,7 @@ void Game::CreateAsteroids(int num_enemies){
 		en->SetPosition(glm::vec3(-radius + radius *((float) rand() / RAND_MAX), -radius + radius *((float) rand() / RAND_MAX), -radius+radius*((float) rand() / RAND_MAX)));
 		en->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
 		//en->SetScale(glm::vec3(1000));
-		en->SetScale(glm::vec3((rand() % 500) + 50));
+		en->SetScale(glm::vec3((rand() % 50) + 1));
 		/*
 		en->SetAngM(glm::normalize(glm::angleAxis(0.05f*glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
 		*/

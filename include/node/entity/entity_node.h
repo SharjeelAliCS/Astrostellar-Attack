@@ -31,6 +31,9 @@ namespace game {
 		void SetHealth(float h);
 		float GetHealth(void) const;
 
+		void SetSpeed(float s);
+		float GetSpeed(void) const;
+
 		void SetParticleSystem(ParticleNode* particles);
 		ParticleNode* GetParticle(void);
 		void Update(float deltaTime);
@@ -39,6 +42,7 @@ namespace game {
 	protected:
 		float health_;
 		float max_health_;
+		float speed_;
 		ParticleNode* particles_;
 
 		glm::mat4 CalculateFinalTransformation(Camera* camera);

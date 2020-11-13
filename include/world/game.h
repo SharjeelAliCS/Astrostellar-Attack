@@ -19,7 +19,7 @@
 #include "asteroid_node.h"
 #include "particle_node.h"
 #include "text.h"
-
+#include "sound.h"
 namespace game {
 
     // Exception type for the game
@@ -60,6 +60,7 @@ namespace game {
             // Scene graph containing all nodes to render
             SceneGraph scene_;
 
+			Audio* audio_;
            
 			Text text;
 
