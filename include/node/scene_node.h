@@ -64,6 +64,7 @@ namespace game {
 		//Add a child to the current list of children for the current node
 
 		void AddChild(SceneNode* child);
+		SceneNode* GetChild(std::string child);
 		// OpenGL variables
 		GLenum GetMode(void) const;
 		GLuint GetArrayBuffer(void) const;

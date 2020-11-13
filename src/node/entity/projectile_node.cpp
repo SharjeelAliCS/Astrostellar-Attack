@@ -31,7 +31,7 @@ namespace game {
 		dmg = []() {return 0;};
 		move = [this](float deltaTime) { /*do nothing*/ };
 		this->SetOrientation(orient);
-		this->SetScale(glm::vec3(0.02));
+		this->SetScale(glm::vec3(0.2));
 		init(type, upgrades);
 
 		//displayStats();

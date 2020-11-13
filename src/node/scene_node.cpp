@@ -89,6 +89,12 @@ void SceneNode::SetPosition(glm::vec3 position,bool newOrgPos){
 	org_pos_ = position;
 }
 
+SceneNode* SceneNode::GetChild(std::string child) {
+	for (std::vector<SceneNode*>::iterator it = children_.begin(); it != children_.end(); ++it) {
+		return (*it);
+	}
+	return NULL;
+}
 
 void SceneNode::SetOrientation(float angle, glm::vec3 normal) {
 	

@@ -18,6 +18,8 @@
 #include "camera.h"
 #include "radar_node.h"
 #include "asteroid_node.h"
+
+#include "sound.h"
 namespace game {
 
 
@@ -97,7 +99,7 @@ namespace game {
 			RadarNode* radar_;
 			std::vector<SceneNode*> node_;
 			std::vector<Enemy *> enemy_;
-
+			
 			std::map <ScreenType, std::vector<ScreenNode *>> screen_;
 			ScreenType active_menu_;
 

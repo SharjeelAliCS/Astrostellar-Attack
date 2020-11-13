@@ -61,5 +61,12 @@
     },
     "Font": {
       "Audiowide": "/Audiowide-Regular.ttf"
+    },
+    "Soundtrack": {
+      "ambience": "spacial-harvest-by-kevin-macleod-from-filmmusic-io.mp3"
+
+    },
+    "SoundEffects": {
+      "playerEngine": "46504_phreaksaccount_shipengine.mp3"
     }
 }

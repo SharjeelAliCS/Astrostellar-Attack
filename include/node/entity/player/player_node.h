@@ -43,7 +43,9 @@ namespace game {
 		void Fire();
 		void nextWeapon();
 
-
+		void SetBoosted(int i);
+		int GetBoosted(void) const;
+		float GetBoostSpeed(void) const;
 		// Update the node
 		void Update(float deltaTime);
 
@@ -62,6 +64,9 @@ namespace game {
 		std::map<int, float> rof;
 		double lastShotTime;
 
+		//0: no boost. 1: boosted. 2: boost off
+		int boosted_;
+		float boost_speed_;
 		//player upgrades
 		std::map<std::string, int> upgrades;
 
