@@ -16,7 +16,7 @@ const bool window_full_screen_g = false;
 
 // Viewport and camera settings
 float camera_near_clip_distance_g = 0.01;
-float camera_far_clip_distance_g = 5000.0;
+float camera_far_clip_distance_g = 3000.0;
 float camera_fov_g = 40.0; // Field-of-view of camera
 const glm::vec3 viewport_background_color_g(0.0, 0.0, 0.0);
 glm::vec3 camera_position_1st_g(0, 0, 1);
@@ -544,7 +544,7 @@ Enemy *Game::CreateEnemyInstance(std::string entity_name, std::string object_nam
 
 void Game::CreateAsteroids(int num_enemies){
 
-	float radius = 2000;
+	float radius = 4000;
     // Create a number of asteroid instances
     for (int i = 0; i < num_enemies; i++){
         // Create instance name
@@ -562,7 +562,7 @@ void Game::CreateAsteroids(int num_enemies){
 		en->SetPosition(glm::vec3(-radius + radius *((float) rand() / RAND_MAX), -radius + radius *((float) rand() / RAND_MAX), -radius+radius*((float) rand() / RAND_MAX)));
 		en->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
 		//en->SetScale(glm::vec3(1000));
-		en->SetScale(glm::vec3((rand() % 50) + 1));
+		en->SetScale(glm::vec3((rand() % 30) + 1));
 		/*
 		en->SetAngM(glm::normalize(glm::angleAxis(0.05f*glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
 		*/

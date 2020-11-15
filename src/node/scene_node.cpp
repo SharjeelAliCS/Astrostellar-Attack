@@ -177,6 +177,25 @@ GLuint SceneNode::GetMaterial(void) const {
 
 void SceneNode::Draw(Camera *camera){
 	if (!draw_)return;
+
+	/*
+	//https://stackoverflow.com/questions/6301085/how-to-check-if-an-object-lies-outside-the-clipping-volume-in-opengl
+	glm::mat4 view_mat = camera->GetView();
+	glm::vec4 Pclip = view_mat * glm::vec4(position_, 1.);
+	if(not( abs(Pclip.x) < Pclip.w &&
+		abs(Pclip.y) < Pclip.w &&
+		abs(Pclip.z) < Pclip.w)){
+		return;
+		}
+	else {
+	}
+	*/
+	
+	glm::vec3 view_plane = camera->GetForward();
+	if (glm::dot(view_plane, (position_-camera->GetPosition())) < 0 &&
+		glm::distance(camera->GetPosition(), position_)< camera->GetFarDistance()) {
+		return;
+	}
     // Select proper material (shader program)
     glUseProgram(material_);
 

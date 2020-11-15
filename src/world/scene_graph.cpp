@@ -22,7 +22,7 @@ SceneGraph::SceneGraph(void){
 	}
 	active_menu_ = HUD_MENU;
 
-	radar_distance_ = 500;
+	radar_distance_ = 1000;
 
 }
 
