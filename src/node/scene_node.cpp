@@ -96,6 +96,13 @@ SceneNode* SceneNode::GetChild(std::string child) {
 	return NULL;
 }
 
+
+void SceneNode::SetAudio(Audio* audio) {
+	audio_ = audio;
+}
+void SceneNode::SetTexture(Resource* texture) {
+	texture_ = texture->GetResource();
+}
 void SceneNode::SetOrientation(float angle, glm::vec3 normal) {
 	
 	orientation_->SetOrientation(glm::angleAxis(angle*glm::pi<float>() / 180.0f, normal));

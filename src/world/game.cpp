@@ -195,6 +195,7 @@ void Game::SetupScene(void){
 	SceneNode* player =CreateInstance("player", "ship", "TextureShader", PLAYER,"shipTexture");
 	player->SetScale(glm::vec3(2));
 	player->SetOrientation(-90, glm::vec3(0, 1, 0));
+	player->SetAudio(audio_);
     // Create an object for showing the texture
 	// instance contains identifier, geometry, shader, and texture
 	
@@ -203,7 +204,7 @@ void Game::SetupScene(void){
 	CreateAsteroids(500);
 	//ame::SceneNode *wall = CreateInstance("Canvas", "FlatSurface", "Procedural", "RockyTexture"); // must supply a texture, even if not used
 	//create skybox
-	SceneNode* skybox = CreateInstance("skybox", "skybox", "TextureShader", SKYBOX, "skyboxTexture");
+	SceneNode* skybox = CreateInstance("skybox", "skybox", "SkyBoxMaterial", SKYBOX, "skyboxTexture");
 	skybox->SetScale(glm::vec3(0.25));
 
 	CreateHUD();
@@ -249,6 +250,7 @@ void Game::MainLoop(void){
 	int frames = 0;
 	float second = glfwGetTime();
 	int fps = 0.0;
+	Player* player = scene_.GetPlayer();
     while (!glfwWindowShouldClose(window_)){
 
 		static double last_time = glfwGetTime();
@@ -267,7 +269,7 @@ void Game::MainLoop(void){
 
 				glm::vec3 foward = camera_.GetForward();
 				camera_.Translate(foward * player_speed);
-				Player* player = scene_.GetPlayer();
+				
 				player->Translate(foward * player_speed);
 				// Animate the scene
 				//player->SetHealth(sin(deltaTime*100*t) / 2 + 0.5);
@@ -278,6 +280,10 @@ void Game::MainLoop(void){
 
 				last_time = current_time;
 				t += 0.01;
+				
+				std::string currWeapon = player->GetCurrentWeapon() + "Texture";
+				scene_.GetScreen("weaponsHUD")->SetTexture(resman_.GetResource(currWeapon));
+
 			}
 			if (current_time - second >= 1.0) {
 				second = current_time;
@@ -291,6 +297,8 @@ void Game::MainLoop(void){
 		//text.RenderText("hello nmime", glm::vec2(0, 0), 1.0f, glm::vec3(1.0));
         // Draw the scene
         scene_.Draw(&camera_);
+
+		text.RenderText(player->GetCurrentWeapon(), glm::vec2(0.6, -0.78), 0.4f, glm::vec3(0.0941,0.698,0.921));
 		text.RenderText(std::to_string(fps), glm::vec2(-1, 0.9), 0.5f, glm::vec3(1.0,1.0,0));
 
 		//text.RenderText("hello nmime", glm::vec2(0, 0), 1.0f, glm::vec3(1.0));
@@ -610,10 +618,16 @@ void Game::CreateHUD(void) {
 	node->SetScale(glm::vec3(0.3));
 	node->SetPosition(glm::vec3(-0.75, -0.6, 0));
 
+	//WEAPONS
+	node = CreateScreenInstance("weaponsHUD", "FlatSurface", "ScreenMaterial", HUD_MENU, "laserBatteryTexture");
+	node->SetOrientation(180, glm::vec3(1, 0, 0));
+	node->SetScale(glm::vec3(0.384,0.08,1));//multiply by 4.8
+	node->SetPosition(glm::vec3(0.75, -0.6, 0));
 	//PAUSE MENU
 	node = CreateScreenInstance("pauseBackground", "FlatSurface", "OverlayMaterial", PAUSE_MENU, "healthBarTexture");
 	node->SetOrientation(180, glm::vec3(1, 0, 0));
 	node->SetScale(glm::vec3(2));//multiply by 17.72crosshairDefaultTexture
+
 
 }
 

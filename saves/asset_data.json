@@ -8,7 +8,8 @@
       "OverlayMaterial": "/overlay",
       "NormalMaterial": "/textured_normal_material",
       "RadarMaterial": "/radar",
-      "ParticleMaterial": "/particle_stream"
+      "ParticleMaterial": "/particle_stream",
+      "SkyBoxMaterial": "/skybox"
     },
     "Mesh": {
       "pumpkin": "/Pumkin.obj",
@@ -36,6 +37,12 @@
       "shieldBoxTexture": "/hud/shield_box.png",
       "radarTexture": "/hud/radar.png",
       "crosshairDefaultTexture": "/hud/crosshair_default.png",
+      "chargeBlastTexture": "/hud/weapons/charge_blast.png",
+      "laserBatteryTexture": "/hud/weapons/laser.png",
+      "naniteTorpedoTexture": "/hud/weapons/nanite_torpedo.png",
+      "pursuerTexture": "/hud/weapons/pursuer.png",
+      "shotgunTexture": "/hud/weapons/shotgun.png",
+      "sniperShotTexture": "/hud/weapons/sniper.png",
       "Asteroid1Texture": "/asteroids/Asteroid1_AlbedoTransparency.png",
       "Asteroid2Texture": "/asteroids/Asteroid2_AlbedoTransparency.png",
       "Asteroid3Texture": "/asteroids/Asteroid3_AlbedoTransparency.png",

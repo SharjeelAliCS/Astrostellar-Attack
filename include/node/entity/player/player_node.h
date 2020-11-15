@@ -46,9 +46,10 @@ namespace game {
 		void SetBoosted(int i);
 		int GetBoosted(void) const;
 		float GetBoostSpeed(void) const;
+		std::string GetCurrentWeapon(void) const;
 		// Update the node
 		void Update(float deltaTime);
-
+		
 			
 
 

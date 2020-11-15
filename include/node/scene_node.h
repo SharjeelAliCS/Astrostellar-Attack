@@ -13,6 +13,7 @@
 #include "resource.h"
 #include "camera.h"
 #include "orientation.h"
+#include "sound.h"
 namespace game {
 
 	// Class that manages one object in a scene 
@@ -42,13 +43,14 @@ namespace game {
 		void SetScale(glm::vec3 scale);
 		void SetJoint(glm::vec3 joint);
 		void SetDraw(bool d);
+		void SetTexture(Resource* texture);
 		
 		// Perform transformations on node
 		void Translate(glm::vec3 trans);
 		void Rotate(glm::quat rot);
 		void Rotate(float angle, glm::vec3 normal);
 		void Scale(glm::vec3 scale);
-
+		void SetAudio(Audio* audio);
 		
 		// Draw the node according to scene parameters in 'camera'
 		// variable
@@ -73,7 +75,7 @@ namespace game {
 		GLuint GetMaterial(void) const;
 
 	protected:
-
+		Audio* audio_;
 		//Parent of a node
 		SceneNode* parent_;
 		//List of children for a node
