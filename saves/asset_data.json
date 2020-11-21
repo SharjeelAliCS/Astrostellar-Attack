@@ -28,6 +28,8 @@
     },
     "Texture": {
       "pumpkinTexture": "/Pumpkin_Color.png",
+      "buttonTexture": "/buttonTest.png",
+      "jetParticleTexture": "/particle/flame4x4orig.png",
       "shipTexture": "/player.png",
       "skyboxTexture": "/skybox/skybox_v3.png",
       "cockpitTexture": "/hud/hud.png",

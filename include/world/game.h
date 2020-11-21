@@ -18,6 +18,7 @@
 #include "radar_node.h"
 #include "asteroid_node.h"
 #include "particle_node.h"
+#include "button_node.h"
 #include "text.h"
 #include "sound.h"
 namespace game {
@@ -86,7 +87,7 @@ namespace game {
 			void GetUserInput(float deltaTime);
 
 			//Camera input for mouse (See .cpp file for more info)
-			void GetMouseCameraInput();
+			void GetMouseCameraInput(float xpos, float ypos);
 
             // Methods to handle events
             static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -106,8 +107,12 @@ namespace game {
 			// Create entire random asteroid field
 			void CreateHUD(void);
 
+
 			// Create an instance of an object stored in the resource manager
 			ScreenNode *CreateScreenInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name = std::string(""), std::string normal_name = std::string(""));
+
+			// Create an instance of an object stored in the resource manager
+			ButtonNode *CreateButtonInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name = std::string(""), std::string normal_name = std::string(""));
 
             // Create an instance of an object stored in the resource manager
             SceneNode *CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type,std::string texture_name = std::string(""), std::string normal_name = std::string(""));

@@ -210,13 +210,15 @@ void Game::SetupScene(void){
 	CreateHUD();
 
 	//create particles:
-	ParticleNode* pn = CreateParticleInstance(20000, "jetstream", "playerParticles", "ParticleMaterial");
+	ParticleNode* pn = CreateParticleInstance(20000, "jetstream", "playerParticles", "ParticleMaterial","jetParticleTexture");
 	pn->SetOrientation(90, glm::vec3(0, 1, 0));
 	pn->Rotate(-90, glm::vec3(1, 0, 0));
 	pn->Translate(glm::vec3(1, 0.5, -3)); 
 	pn->SetJoint(glm::vec3(0,0.2,-1));
 	pn->SetScale(glm::vec3(8));
 	pn->SetDraw(false);
+	pn->SetBlending(true);
+	pn->SetParticleColor(glm::vec3(0, 0.749, 1));
 	//pn->SetJoint(glm::vec3(0, 0, -1));
 	//scene_.GetPlayer()->SetParticleSystem(pn);
 	scene_.GetPlayer()->AddChild(pn);
@@ -224,6 +226,9 @@ void Game::SetupScene(void){
 	scene_.GetPlayer()->SetDraw(false);
 	camera_.SetZoom(0);
 	SetSaveState();
+
+
+	scene_.UpdateScreenSizeNodes(window_width, window_height);
 }
 
 void Game::SetSaveState(void) {
@@ -337,8 +342,23 @@ void Game::GetUserInput(float deltaTime) {
 		}
 
 	}
+	double xpos, ypos;
+	glfwGetCursorPos(window_, &xpos, &ypos);
+	
+
+	if ((timeOfLastMove < glfwGetTime() - 0.5) &&  glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+		int afg = 45;
+		std::string btn = scene_.ButtonClick(xpos, ypos);
+		if (btn != "") {
+
+			timeOfLastMove = glfwGetTime();
+		}
+	}
+
+	
 	if (animating_) {
-		GetMouseCameraInput();
+
+		GetMouseCameraInput(xpos, ypos);
 
 		Player* player = scene_.GetPlayer();
 		//Get the factors used for movement
@@ -412,9 +432,7 @@ void Game::GetUserInput(float deltaTime) {
 
 }
 
-void Game::GetMouseCameraInput() {
-	double xpos, ypos;
-	glfwGetCursorPos(window_, &xpos, &ypos);
+void Game::GetMouseCameraInput(float xpos, float ypos) {
 
 	//For this, I decided the best way to do it was simply to keep the cursor set at the center
 	//so that the user only moves the game WHEN their mouse is within the screen. 
@@ -470,6 +488,7 @@ void Game::ResizeCallback(GLFWwindow* window, int width, int height) {
 	game->camera_.SetProjection(camera_fov_g, camera_near_clip_distance_g, camera_far_clip_distance_g, width, height);
 	game->window_width = width;
 	game->window_height = height;
+	game->scene_.UpdateScreenSizeNodes(width, height);
 
 
 
@@ -523,9 +542,15 @@ ParticleNode* Game::CreateParticleInstance(int count, std::string particle_name,
 	if (!mat) {
 		throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
 	}
-
+	Resource *tex = NULL;
+	if (texture_name != "") {
+		tex = resman_.GetResource(texture_name);
+		if (!tex) {
+			throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
+		}
+	}
 	// Create asteroid instance
-	ParticleNode *pn = new ParticleNode(object_name, geom, mat);
+	ParticleNode *pn = new ParticleNode(object_name, geom, mat,tex);
 	
 	return pn;
 }
@@ -580,55 +605,47 @@ void Game::CreateAsteroids(int num_enemies){
 void Game::CreateHUD(void) {
 	ScreenNode* node;
 	node  = CreateScreenInstance("cockpit", "FlatSurface", "ScreenMaterial",NONE, "cockpitTexture");
-	node->SetOrientation(180, glm::vec3(1,0,0));
 	node->SetScale(glm::vec3(2,1.2,1));
 
 	//shield
 	node = CreateScreenInstance("shieldBox", "FlatSurface", "ScreenMaterial", HUD_MENU, "shieldBoxTexture");
-	node->SetOrientation(180, glm::vec3(1, 0, 0));
 	node->SetScale(glm::vec3(0.85, 0.05,1));//multiply by 17
 	node->SetPosition(glm::vec3(0,0.92,0));
 
 	node = CreateScreenInstance("shieldBar", "FlatSurface", "ScreenMaterial", HUD_MENU, "shieldBarTexture");
-	node->SetOrientation(180, glm::vec3(1, 0, 0));
 	node->SetScale(glm::vec3(0.843, 0.04, 1));//multiply by 21
 	node->SetPosition(glm::vec3(0, 0.92, 0));
 	
 	//health
 	node = CreateScreenInstance("healthBox", "FlatSurface", "ScreenMaterial", HUD_MENU, "healthBoxTexture");
-	node->SetOrientation(180, glm::vec3(1, 0, 0));
 	node->SetScale(glm::vec3(0.41, 0.03416, 1));//multiply by 12
 	node->SetPosition(glm::vec3(0, 0.86, 0));
 
 	node = CreateScreenInstance("healthBar", "FlatSurface", "ScreenMaterial", HUD_MENU, "healthBarTexture");
-	node->SetOrientation(180, glm::vec3(1, 0, 0));
 	node->SetScale(glm::vec3(0.40, 0.02257, 1));//multiply by 17.72
 	node->SetPosition(glm::vec3(0, 0.86, 0));
 	
 	//crosshair
 	node = CreateScreenInstance("crosshair", "FlatSurface", "ScreenMaterial", HUD_MENU, "crosshairDefaultTexture");
-	node->SetOrientation(180, glm::vec3(1, 0, 0));
 	node->SetScale(glm::vec3(0.1));
 
 	//radar
 	node = CreateScreenInstance("radar", "FlatSurface", "RadarMaterial", HUD_MENU, "radarTexture");
-
-	node->SetOrientation(180, glm::vec3(1, 0, 0));
 	node->Rotate(30);
 	node->SetScale(glm::vec3(0.3));
 	node->SetPosition(glm::vec3(-0.75, -0.6, 0));
 
 	//WEAPONS
 	node = CreateScreenInstance("weaponsHUD", "FlatSurface", "ScreenMaterial", HUD_MENU, "laserBatteryTexture");
-	node->SetOrientation(180, glm::vec3(1, 0, 0));
 	node->SetScale(glm::vec3(0.384,0.08,1));//multiply by 4.8
 	node->SetPosition(glm::vec3(0.75, -0.6, 0));
 	//PAUSE MENU
 	node = CreateScreenInstance("pauseBackground", "FlatSurface", "OverlayMaterial", PAUSE_MENU, "healthBarTexture");
-	node->SetOrientation(180, glm::vec3(1, 0, 0));
 	node->SetScale(glm::vec3(2));//multiply by 17.72crosshairDefaultTexture
 
-
+	node = CreateButtonInstance("buttonTest", "FlatSurface", "ScreenMaterial", PAUSE_MENU, "buttonTexture");
+	node->SetScale(glm::vec3(0.2,0.4,1));//multiply by 17.72crosshairDefaultTexture
+	node->SetPosition(glm::vec3(0.0, -0.5, 0));
 }
 
 ScreenNode *Game::CreateScreenInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name, std::string normal_name) {
@@ -653,16 +670,47 @@ ScreenNode *Game::CreateScreenInstance(std::string entity_name, std::string obje
 	;
 	if (entity_name == "radar") {
 		RadarNode* scn = new RadarNode(entity_name, geom, mat, tex);
+		scn->SetOrientation(180, glm::vec3(1, 0, 0));
 		scene_.AddRadar(scn);
 		return scn;
 	}
 	else {
 		ScreenNode *scn = new ScreenNode(entity_name, geom, mat, tex);
+		scn->SetOrientation(180, glm::vec3(1, 0, 0));
 		scene_.AddScreen(scn, type);
 		return scn;
 	}
 
 }
+
+ButtonNode *Game::CreateButtonInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name, std::string normal_name) {
+
+	Resource *geom = resman_.GetResource(object_name);
+	if (!geom) {
+		throw(GameException(std::string("Could not find resource \"") + object_name + std::string("\"")));
+	}
+
+	Resource *mat = resman_.GetResource(material_name);
+	if (!mat) {
+		throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
+	}
+
+	Resource *tex = NULL;
+	if (texture_name != "") {
+		tex = resman_.GetResource(texture_name);
+		if (!tex) {
+			throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
+		}
+	}
+
+		ButtonNode *btn = new ButtonNode(entity_name, geom, mat, tex);
+		btn->SetOrientation(180, glm::vec3(1, 0, 0));
+		scene_.AddButton(btn, type);
+		return btn;
+	
+
+}
+
 SceneNode *Game::CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type, std::string texture_name, std::string normal_name){
 
     Resource *geom = resman_.GetResource(object_name);

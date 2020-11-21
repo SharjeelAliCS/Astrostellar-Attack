@@ -17,8 +17,10 @@ SceneGraph::SceneGraph(void){
 	skybox_ = NULL;
 
 	for (int i = HUD_MENU; i != NONE+1; i++){
-		std::vector<ScreenNode*> temp;
-		screen_.insert({static_cast<ScreenType>(i), temp });
+		std::vector<ScreenNode*> screen;
+		std::vector<ButtonNode*> button;
+		screen_.insert({static_cast<ScreenType>(i), screen });
+		button_.insert({ static_cast<ScreenType>(i), button });
 	}
 	active_menu_ = HUD_MENU;
 
@@ -145,7 +147,24 @@ ScreenNode *SceneGraph::GetScreen(std::string node_name) const {
 		}
 	}
 
-	
+	return NULL;
+
+}
+
+void SceneGraph::AddButton(ButtonNode *node, ScreenType type) {
+	button_.at(type).push_back(node);
+}
+
+ButtonNode *SceneGraph::GetButton(std::string node_name) const {
+	// Find node with the specified name
+	for (auto it = button_.begin(); it != button_.end(); it++) {
+		for (int i = 0; i < it->second.size(); i++) {
+			if (it->second[i]->GetName() == node_name) {
+				return it->second[i];
+			}
+		}
+	}
+
 	return NULL;
 
 }
@@ -161,15 +180,15 @@ void SceneGraph::Draw(Camera *camera){
     // Draw all scene nodes
 
 	if (skybox_ != NULL)skybox_->Draw(camera);
-	
-	if(player_!=NULL)player_->Draw(camera);
 
-    for (int i = 0; i < node_.size(); i++){
-        node_[i]->Draw(camera);
-    }
+	for (int i = 0; i < node_.size(); i++) {
+		node_[i]->Draw(camera);
+	}
 	for (int i = 0; i < enemy_.size(); i++) {
 		enemy_[i]->Draw(camera);
 	}
+	if(player_!=NULL)player_->Draw(camera);
+
 
 	if (active_menu_ == HUD_MENU || active_menu_ == PAUSE_MENU) {
 		for (int i = 0; i < screen_.at(NONE).size(); i++) {
@@ -182,8 +201,13 @@ void SceneGraph::Draw(Camera *camera){
 			screen_.at(HUD_MENU)[i]->Draw(camera);
 		}
 	}
+
 	for (int i = 0; i < screen_.at(active_menu_).size(); i++) {
 		screen_.at(active_menu_)[i]->Draw(camera);
+	}
+
+	for (int i = 0; i < button_.at(active_menu_).size(); i++) {
+		button_.at(active_menu_)[i]->Draw(camera);
 	}
 
 	
@@ -236,6 +260,24 @@ void SceneGraph::UpdateRadar() {
 	glm::vec2 pos_player(pos_3d.x, pos_3d.z);
 }
 
+
+std::string SceneGraph::ButtonClick(float x, float y) {
+
+	for (int i = 0; i < button_.at(active_menu_).size(); i++) {
+		if (button_.at(active_menu_)[i]->Clicked(x, y)) {
+			return button_.at(active_menu_)[i]->GetName();
+		}
+	}
+	return "";
+}
+
+void SceneGraph::UpdateScreenSizeNodes(float x, float y) {
+	for (auto it = button_.begin(); it != button_.end(); it++) {
+		for (int i = 0; i < it->second.size(); i++) {
+			it->second[i]->UpdateScreenSize(x, y);
+		}
+	}
+}
 void SceneGraph::UpdateRadarNode(glm::vec3 direction, glm::vec3 target_pos,glm::vec3 color){
 	glm::vec3 pos_entity = CalculateDistanceFromPlayer(target_pos);
 	glm::vec2 pos_2d(pos_entity.x, pos_entity.y);

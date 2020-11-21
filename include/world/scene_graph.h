@@ -18,8 +18,10 @@
 #include "camera.h"
 #include "radar_node.h"
 #include "asteroid_node.h"
+#include "button_node.h"
 
 #include "sound.h"
+
 namespace game {
 
 
@@ -57,6 +59,8 @@ namespace game {
             // Create a scene node from the specified resources
             SceneNode *CreateNode(std::string node_name, Resource *geometry, Resource *material,NodeType type, Resource *texture = NULL, Resource *normal = NULL);
             // Add an already-created node
+			template <typename T>
+			T GetNode(std::string name) const;
 
             void AddNode(SceneNode *node);
             // Find a scene node with a specific name
@@ -82,12 +86,21 @@ namespace game {
 			ScreenNode *GetScreen(std::string node_name) const;
             // Get node const iterator
 
+			void AddButton(ButtonNode *node, ScreenType type);
+			// Find a scene node with a specific name
+			ButtonNode *GetButton(std::string node_name) const;
+			// Get node const iterator
+
+
 			void SetCurrentScreen(ScreenType t);
             // Draw the entire scene
             void Draw(Camera *camera);
 
             // Update entire scene
             void Update(float deltaTime);
+
+			std::string ButtonClick(float x, float y);
+			void UpdateScreenSizeNodes(float x, float y);
 
 		private:
 			// Background color
@@ -98,10 +111,12 @@ namespace game {
 			SkyBox* skybox_;
 			RadarNode* radar_;
 			std::vector<SceneNode*> node_;
+			std::vector<AsteroidNode*> asteroid_;
 			std::vector<Enemy *> enemy_;
 			
 			std::map <ScreenType, std::vector<ScreenNode *>> screen_;
 			ScreenType active_menu_;
+			std::map<ScreenType, std::vector<ButtonNode *>> button_;
 
 			void UpdateRadar();
 			void UpdateRadarNode(glm::vec3 direction, glm::vec3 pos,glm::vec3 color);

@@ -1216,7 +1216,7 @@ void ResourceManager::CreateSphereParticles(std::string object_name, int num_par
 		//glm::vec3 normal(0.2*spray*cos(theta)*sin(phi), spray*tmod * 1, 0.2*spray*cos(phi));
 		glm::vec3 normal(0.2*spray*cos(theta)*sin(phi), spray*tmod * 1, 0.2*spray*cos(phi));
 		glm::vec3 position(normal.x*trad, normal.y*trad, normal.z*trad);
-		glm::vec3 color(0.2, 0.2, 0);//(i/(float) num_particles, 0.0, 1.0 - (i/(float) num_particles)); // We can use the color for debug, if needed
+		glm::vec3 color(i / (float)num_particles, 0.0, 1.0 - (i / (float)num_particles)); // The red channel of the color stores the particle id
 
 		// Add vectors to the data buffer
 		for (int k = 0; k < 3; k++) {

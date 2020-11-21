@@ -58,6 +58,7 @@ set(HDRS
     ${PROJECT_SOURCE_DIR}/include/node/screen/screen_node.h
     ${PROJECT_SOURCE_DIR}/include/node/screen/text_node.h
     ${PROJECT_SOURCE_DIR}/include/node/screen/radar_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/screen/button_node.h
 
     ${PROJECT_SOURCE_DIR}/include/node/scene_node.h
     ${PROJECT_SOURCE_DIR}/include/node/skybox_node.h
@@ -97,6 +98,7 @@ set(SRCS
     ${PROJECT_SOURCE_DIR}/src/node/screen/screen_node.cpp
     ${PROJECT_SOURCE_DIR}/src/node/screen/text_node.cpp
     ${PROJECT_SOURCE_DIR}/src/node/screen/radar_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/node/screen/button_node.cpp
 
     ${PROJECT_SOURCE_DIR}/src/node/scene_node.cpp
     ${PROJECT_SOURCE_DIR}/src/node/skybox_node.cpp
@@ -133,6 +135,8 @@ set(RCRS
     ${PROJECT_SOURCE_DIR}/resource/particle_stream_fp.glsl
     ${PROJECT_SOURCE_DIR}/resource/particle_stream_vp.glsl
     ${PROJECT_SOURCE_DIR}/resource/particle_stream_gp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/skybox_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/skybox_fp.glsl
 )
 #https://stackoverflow.com/questions/31422680/how-to-set-visual-studio-filters-for-nested-sub-directory-using-cmake
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${HDRS})

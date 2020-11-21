@@ -31,6 +31,7 @@ namespace game {
 		glm::quat GetOrientation(void) const;
 		Orientation*  GetOrientationObj(void) const;
 		glm::vec3 GetScale(void) const;
+		bool GetBlending(void) const;
 		const std::string GetName(void) const;
 
 		
@@ -51,7 +52,7 @@ namespace game {
 		void Rotate(float angle, glm::vec3 normal);
 		void Scale(glm::vec3 scale);
 		void SetAudio(Audio* audio);
-		
+		void SetBlending(bool blending);
 		// Draw the node according to scene parameters in 'camera'
 		// variable
 		virtual void Draw(Camera *camera);
@@ -106,9 +107,11 @@ namespace game {
 
 		bool exists_;
 		bool draw_;
+		bool blending_; // Draw with blending or not
 		// Set matrices that transform the node in a shader program
 		virtual void SetupShader(GLuint program, Camera* camera);
 
+		virtual void SetupBlending(void);
 		virtual  glm::mat4 CalculateFinalTransformation(Camera* camera);
 
 	}; // class SceneNode
