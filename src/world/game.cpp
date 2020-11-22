@@ -262,6 +262,7 @@ void Game::MainLoop(void){
 		Player* player = scene_.GetPlayer();
 		player->setCam(&camera_);
 		player->setAsteroids(scene_.GetAsteroids());
+		player->setEnemies(scene_.GetEnemies());
 
 		GetUserInput(deltaTime);
 		if (animating_) {
@@ -341,7 +342,7 @@ void Game::GetUserInput(float deltaTime) {
 
 		//Fire a missile
 		if (glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS) {
-			std::cout << "\n\nFIRE\n\n";
+			//std::cout << "\n\nFIRE\n\n";
 			player->Fire();
 			timeOfLastMove = glfwGetTime();
 		}

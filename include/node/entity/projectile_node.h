@@ -13,32 +13,36 @@
 #include <functional>
 #include "enemy_node.h";
 
-namespace game {
 
+namespace game {
+	
 	// Class for a single projectile object 
 	class Projectile : public Entity {
 
 	public:
 		// Create game object
-		Projectile(const std::string name, const std::string type, std::map<std::string, int> upgrades, SceneNode* p, std::vector<SceneNode*>* ast, std::vector<Enemy*>* enemy,
+		Projectile(const std::string name, const std::string type, std::map<std::string, int> upgrades, std::vector<SceneNode*>* ast, std::vector<Enemy*>* enemy,
 			const Resource *geometry, const Resource *material,const Resource *texture = NULL, const Resource *normal = NULL);
 
 		// Destructor
 		~Projectile();
 
 		//defines stats for player attack types
-		void init(const std::string type, const std::map<std::string, int> upgrades);
+		void init();
+
+
+		void setSpeed(float s) { speed = s; }
 
 		void Update(float deltaTime);
 
 		//Set the max range it can be as a function of time
 		void SetTTL(double t);
-		glm::quat RotationBetweenVectors(glm::vec3 start, glm::vec3 dest);
 		void displayStats();
 
 	private:
 		float lastTime=0; //just for debugging
 
+		std::string type;
 		//time to live, a cheaper way to simulate range
 		double ttl;
 		//
@@ -52,7 +56,6 @@ namespace game {
 
 		//damage is a function because of the sniper existing, and maybe aoe shots will have more damage in the center of the blast, etc
 		std::function<double()> dmg;
-		SceneNode* player;
 
 
 		//movement is a function because of the pursuer existing

@@ -124,6 +124,57 @@ void SceneNode::Translate(glm::vec3 trans){
 }
 
 
+bool SceneNode::Hit(glm::vec3 pos, float range) {
+	//std::cout << "distance is: " << glm::distance(pos, this->GetPosition()) << std::endl;
+	//std::cout << "range is: " <<  range + glm::length(this->GetScale()) << std::endl<< std::endl;
+
+	return glm::distance(pos, this->GetPosition()) <= range + glm::length(this->GetScale());
+}
+
+
+bool SceneNode::HitTorus(glm::vec3 pos, float range) {
+
+	float R = 0.15;
+	float r = 0.6;
+	float t = 0.2;
+	bool hit = true;
+	glm::vec3 n = orientation_->GetForward();
+	glm::vec3 pc = pos - position_;
+	float dist_y = glm::dot(pc, n);
+
+	glm::vec3 dis_plane_v = dist_y * n;
+	glm::vec3 p_plane = pos - dis_plane_v;
+
+	glm::vec3 pnc = p_plane - position_;
+	float dist_x = glm::length(pnc) - r;
+	/*
+	glm::vec3 co = r * glm::normalize(pnc);
+
+	glm::vec3 dis_co_p_v = pos - co;
+	float dist = glm::length(dis_co_p_v);
+	*/
+
+	float dist = glm::length(glm::vec2(dist_x, dist_y));
+
+	dist -= t;
+	dist -= R;
+	std::cout << "plane: " << dist_y << ", dist " << dist_x << std::endl;
+	if (dist < 0) {
+		std::cout << "HIT " << std::endl;
+	}
+	/*
+	float dis = glm::distance(pos, position_);
+	//std::cout << dis << std::endl;
+	if (dis <= range) {
+
+		exists_ = false;
+	}
+	*/
+
+	return hit;
+}
+
+
 void SceneNode::Rotate(glm::quat rot){
 	orientation_->Rotate(rot);
 }

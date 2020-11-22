@@ -36,6 +36,8 @@ namespace game {
 		boosted_ = 0;
 		movement_speed = 20;
 		boost_speed_ = 4*movement_speed;
+
+
 		//resman_ refuses to be global, likely because I'm being dumbass.
 
 		//Projectile::Projectile(const std::string name, const std::string type, const std::map<std::string, int> upgrades, const Resource * geometry,
@@ -149,7 +151,10 @@ namespace game {
 
 			}
 			for (int i = 0; i < numShots; i++) {
-				missile = new Projectile("missile", weapon, upgrades, this, asteroids, enemies, geo, mat, tex);
+				missile = new Projectile("missile", weapon, upgrades, asteroids, enemies, geo, mat, tex);
+				missile->SetOrientation(this->GetOrientation());
+				missile->setSpeed(this->getCurSpeed());
+				missile->init();
 				missile->SetPosition(position_);
 				missiles.push_back(missile);
 			}
@@ -179,16 +184,25 @@ namespace game {
 
 	}
 
-	bool Player::Collision(std::vector<Enemy*>* enemies) {
+	bool Player::Collision() {
 		//check for collisions with player, set collide to true/false depending/ 
 		bool collide = false;
 		for (auto en = enemies->begin(); en != enemies->end(); ) {
-			if ((*en)->Hit(position_, glm::length((*en)->GetScale())*1.2)) {
+			if ((*en)->Hit(position_, glm::length((*en)->GetScale()) * 1.0)) {
 				en = enemies->erase(en);
 				collide = true;
 			}
 			else {
 				++en;
+			}
+		}
+		for (auto ast = asteroids->begin(); ast != asteroids->end(); ) {
+			if ((*ast)->Hit(position_, glm::length((*ast)->GetScale()) * 0.9)) {
+				ast = asteroids->erase(ast);
+				collide = true;
+			}
+			else {
+				++ast;
 			}
 		}
 
@@ -208,6 +222,20 @@ namespace game {
 					++en;
 				}
 			}
+			for (auto ast = asteroids->begin(); ast != asteroids->end(); ) {
+			
+				if ((*ast)->Hit((*it)->GetPosition(), glm::length((*ast)->GetScale()) * 1.2)) {
+					std::cout << "\nHIT\n";
+					it = missiles.erase(it);
+					asteroids->erase(ast);
+					removed = true;
+					break;
+
+				}
+				else {
+					++ast;
+				}
+			}
 			if (!removed) {
 				++it;
 			}
@@ -220,6 +248,7 @@ namespace game {
 	void Player::Update(float deltaTime) {
 		Translate(c_->GetForward() * getCurSpeed() *deltaTime);
 		c_->Translate(c_->GetForward() * getCurSpeed() *deltaTime);
+		Collision();
 
 		//update the missiles and check if they exist or not. 
 		//std::cout << "mypos is " << position_.x << " "<< position_.y << " "<< position_.z << std::endl;
@@ -231,6 +260,8 @@ namespace game {
 			}
 			else {
 				int a;
+				*it = NULL;
+				std::cout << "DEAD";
 				it = missiles.erase(it);
 			}
 

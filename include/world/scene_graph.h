@@ -91,6 +91,7 @@ namespace game {
 
 			
 			std::vector<SceneNode*>* GetAsteroids()const { return node_; };
+			std::vector<Enemy*>* GetEnemies()const { return enemy_; };
 
 		private:
 			// Background color

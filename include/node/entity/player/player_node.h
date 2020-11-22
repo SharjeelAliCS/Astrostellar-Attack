@@ -16,7 +16,6 @@
 class Game;
 class ResourceManager;
 
-
 namespace game {
 	extern ResourceManager resman_;
 	// Class for a single player object 
@@ -39,7 +38,7 @@ namespace game {
 		void Draw(Camera *camera);
 
 		//The collision function detects all collisions with the enemies. 
-		bool Collision(std::vector<Enemy*>* enemies);
+		bool Collision();
 		//Fires a single missile. 
 		void Fire();
 		void nextWeapon();

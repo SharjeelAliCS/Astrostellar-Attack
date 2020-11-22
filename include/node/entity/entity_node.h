@@ -21,8 +21,7 @@ namespace game {
 		Entity(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture = NULL, const Resource *normal = NULL);
 		~Entity();
 
-		//Check if the object has been hit using a pos and a range.
-		bool Hit(glm::vec3 pos, float range);
+
 		//Rotate over time simply rotates over the given norma axis per update iteration. 
 		void RotateOverTime(float Orientation_speed, glm::vec3 Orientation_normal);
 		void SetMovementSpeed(float s);
