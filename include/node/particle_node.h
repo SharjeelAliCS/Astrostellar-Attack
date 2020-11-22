@@ -19,9 +19,7 @@ namespace game {
 		ParticleNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture = NULL, const Resource *normal = NULL);
 		~ParticleNode();
 		void Draw(Camera *camera);
-		void SetParticleColor(glm::vec3 c);
 	private:
-		glm::vec3 particle_color_;
 		void SetupShader(GLuint program, Camera* camera);
 	}; // class GameObj
 

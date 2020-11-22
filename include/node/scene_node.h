@@ -51,6 +51,7 @@ namespace game {
 		void Rotate(glm::quat rot);
 		void Rotate(float angle, glm::vec3 normal);
 		void Scale(glm::vec3 scale);
+		void SetColor(glm::vec3 c);
 		void SetAudio(Audio* audio);
 		void SetBlending(bool blending);
 		// Draw the node according to scene parameters in 'camera'
@@ -96,6 +97,7 @@ namespace game {
 		glm::vec3 position_; // Position of node
 		glm::vec3 org_pos_;
 		glm::vec3 joint_;
+		glm::vec3 color_;
 		Orientation* orientation_; // Orientation of node
 		glm::vec3 scale_; // Scale of node
 

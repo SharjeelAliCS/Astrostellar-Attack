@@ -13,7 +13,7 @@ in float particle_id[];
 uniform mat4 projection_mat;
 
 // Simulation parameters (constants)
-uniform float particle_size = 0.025;
+uniform float particle_size = 5;
 
 // Attributes passed to the fragment shader
 out vec4 frag_color;
@@ -26,7 +26,7 @@ void main(void){
     vec4 position = gl_in[0].gl_Position;
 
     // Define particle size
-    float p_size = particle_size; //
+    float p_size = particle_size*timestep[0]; //
 
     // Define the positions of the four vertices that will form a quad 
     // The positions are based on the position of the particle and its size

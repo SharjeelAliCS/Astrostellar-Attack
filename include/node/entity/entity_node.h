@@ -36,7 +36,6 @@ namespace game {
 		void SetParticleSystem(ParticleNode* particles);
 		ParticleNode* GetParticle(void);
 		void Update(float deltaTime);
-		void Draw(Camera *camera);
 
 	protected:
 

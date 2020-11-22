@@ -19,16 +19,15 @@
 namespace game {
 
 	ParticleNode::ParticleNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : SceneNode(name, geometry, material, texture, normal) {
-		particle_color_ = glm::vec3(1);
 	}
 
 	ParticleNode::~ParticleNode() {
 	}
 
 	void ParticleNode::Draw(Camera *camera) {
-		SetupBlending();
+	
 		if (!draw_)return;
-
+		SetupBlending();
 		// Select particle blending or not
 		
 		// Select proper material (shader program)
@@ -62,9 +61,6 @@ namespace game {
 
 	}
 
-	void ParticleNode::SetParticleColor(glm::vec3 c) {
-		particle_color_ = c;
-	}
 	void ParticleNode::SetupShader(GLuint program, Camera* camera) {
 
 		int size = 12;
@@ -103,8 +99,8 @@ namespace game {
 		glUniformMatrix4fv(normal_mat, 1, GL_FALSE, glm::value_ptr(normal_matrix));
 
 		//color
-		GLint color = glGetUniformLocation(program, "object_color");
-		glUniform3f(color, particle_color_.x, particle_color_.y, particle_color_.z);
+		GLint color = glGetUniformLocation(program, "color");
+		glUniform3f(color, color_.x, color_.y, color_.z);
 
 		// Texture
 		if (texture_) {

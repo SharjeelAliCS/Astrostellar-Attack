@@ -50,6 +50,7 @@ namespace game {
 			// "Wall", a flat object
             void CreateWall(std::string object_name);
 			void CreateSphereParticles(std::string object_name, int num_particles = 1000);
+			void CreateCometParticles(std::string object_name, int num_particles = 1000);
 
         private:
             // List storing all resources

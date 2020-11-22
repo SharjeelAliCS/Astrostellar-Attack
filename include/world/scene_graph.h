@@ -19,6 +19,7 @@
 #include "radar_node.h"
 #include "asteroid_node.h"
 #include "button_node.h"
+#include "comet_node.h"
 
 #include "sound.h"
 
@@ -59,38 +60,32 @@ namespace game {
             // Create a scene node from the specified resources
             SceneNode *CreateNode(std::string node_name, Resource *geometry, Resource *material,NodeType type, Resource *texture = NULL, Resource *normal = NULL);
             // Add an already-created node
-			template <typename T>
-			T GetNode(std::string name) const;
 
             void AddNode(SceneNode *node);
-            // Find a scene node with a specific name
             SceneNode *GetNode(std::string node_name) const;
 
 			void AddSkyBox(SkyBox *node);
-			// Find a scene node with a specific name
 			SkyBox *GetSkyBox() const;
 
 			void AddPlayer(Player *node);
-			// Find a scene node with a specific name
 			Player *GetPlayer() const;
 
 			void AddRadar(RadarNode *node);
-			// Find a scene node with a specific name
 
 			void AddEnemy(Enemy *node);
-			// Find a scene node with a specific name
 			Enemy *GetEnemy(std::string node_name) const;
 
+			void AddAsteroid(AsteroidNode *node);
+			AsteroidNode *GetAsteroid(std::string node_name) const;
+
+			void AddComet(CometNode *node);
+			CometNode *GetComet(std::string node_name) const;
+
 			void AddScreen(ScreenNode *node,ScreenType type);
-			// Find a scene node with a specific name
 			ScreenNode *GetScreen(std::string node_name) const;
-            // Get node const iterator
 
 			void AddButton(ButtonNode *node, ScreenType type);
-			// Find a scene node with a specific name
 			ButtonNode *GetButton(std::string node_name) const;
-			// Get node const iterator
-
 
 			void SetCurrentScreen(ScreenType t);
             // Draw the entire scene
@@ -112,6 +107,7 @@ namespace game {
 			RadarNode* radar_;
 			std::vector<SceneNode*> node_;
 			std::vector<AsteroidNode*> asteroid_;
+			std::vector<CometNode*> comet_;
 			std::vector<Enemy *> enemy_;
 			
 			std::map <ScreenType, std::vector<ScreenNode *>> screen_;

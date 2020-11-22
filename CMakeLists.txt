@@ -135,6 +135,9 @@ set(RCRS
     ${PROJECT_SOURCE_DIR}/resource/particle_stream_fp.glsl
     ${PROJECT_SOURCE_DIR}/resource/particle_stream_vp.glsl
     ${PROJECT_SOURCE_DIR}/resource/particle_stream_gp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle_comet_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle_comet_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle_comet_gp.glsl
     ${PROJECT_SOURCE_DIR}/resource/skybox_vp.glsl
     ${PROJECT_SOURCE_DIR}/resource/skybox_fp.glsl
 )

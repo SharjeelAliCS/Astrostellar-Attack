@@ -30,6 +30,7 @@ namespace game {
 		org_pos_ = position_;
 		progress_size_ = 1.0;
 		rotation_ = 0;
+		SetOrientation(180, glm::vec3(1, 0, 0));
 	}
 
 

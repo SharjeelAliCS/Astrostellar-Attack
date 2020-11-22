@@ -127,6 +127,9 @@ void Game::SetupResources(void){
 	resman_.CreateSphere("SimpleSphereMesh");
 	resman_.CreateTorus("SimpleTorusMesh");
 	resman_.CreateCube("c",3,3,3);
+	
+	resman_.CreateSphereParticles("particleStream", 20000);
+	resman_.CreateCometParticles("cometParticles", 3000);
 
 	std::string filename;
 	//load save data
@@ -202,6 +205,7 @@ void Game::SetupScene(void){
 	//skybox->SetOrientation(180, glm::vec3(1, 0, 0));
 	//create enemies
 	CreateAsteroids(500);
+	CreateComets();
 	//ame::SceneNode *wall = CreateInstance("Canvas", "FlatSurface", "Procedural", "RockyTexture"); // must supply a texture, even if not used
 	//create skybox
 	SceneNode* skybox = CreateInstance("skybox", "skybox", "SkyBoxMaterial", SKYBOX, "skyboxTexture");
@@ -210,7 +214,7 @@ void Game::SetupScene(void){
 	CreateHUD();
 
 	//create particles:
-	ParticleNode* pn = CreateParticleInstance(20000, "jetstream", "playerParticles", "ParticleMaterial","jetParticleTexture");
+	ParticleNode* pn = CreateParticleInstance(20000, "jetstream", "particleStream", "ParticleMaterial","jetParticleTexture");
 	pn->SetOrientation(90, glm::vec3(0, 1, 0));
 	pn->Rotate(-90, glm::vec3(1, 0, 0));
 	pn->Translate(glm::vec3(1, 0.5, -3)); 
@@ -218,7 +222,7 @@ void Game::SetupScene(void){
 	pn->SetScale(glm::vec3(8));
 	pn->SetDraw(false);
 	pn->SetBlending(true);
-	pn->SetParticleColor(glm::vec3(0, 0.749, 1));
+	pn->SetColor(glm::vec3(0, 0.749, 1));
 	//pn->SetJoint(glm::vec3(0, 0, -1));
 	//scene_.GetPlayer()->SetParticleSystem(pn);
 	scene_.GetPlayer()->AddChild(pn);
@@ -530,56 +534,11 @@ Game::~Game(){
     glfwTerminate();
 }
 
-ParticleNode* Game::CreateParticleInstance(int count, std::string particle_name, std::string object_name, std::string material_name, std::string texture_name) {
-	//create resource
-	resman_.CreateSphereParticles(particle_name, count);
-	Resource *geom = resman_.GetResource(particle_name);
-	if (!geom) {
-		throw(GameException(std::string("Could not find resource \"") + object_name + std::string("\"")));
-	}
-
-	Resource *mat = resman_.GetResource(material_name);
-	if (!mat) {
-		throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
-	}
-	Resource *tex = NULL;
-	if (texture_name != "") {
-		tex = resman_.GetResource(texture_name);
-		if (!tex) {
-			throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
-		}
-	}
-	// Create asteroid instance
-	ParticleNode *pn = new ParticleNode(object_name, geom, mat,tex);
-	
-	return pn;
-}
-Enemy *Game::CreateEnemyInstance(std::string entity_name, std::string object_name, std::string material_name, std::string normal_name){
-
-    // Get resources
-    Resource *geom = resman_.GetResource(object_name);
-    if (!geom){
-        throw(GameException(std::string("Could not find resource \"")+object_name+std::string("\"")));
-    }
-
-    Resource *mat = resman_.GetResource(material_name);
-    if (!mat){
-        throw(GameException(std::string("Could not find resource \"")+material_name+std::string("\"")));
-    }
-
-    // Create asteroid instance
-    Enemy *en = new Enemy(entity_name, geom, mat);
-    scene_.AddEnemy(en);
-	en->SetScale(glm::vec3(3));
-    return en;
-}
-
-
-void Game::CreateAsteroids(int num_enemies){
+void Game::CreateAsteroids(int num_asteroids){
 
 	float radius = 4000;
     // Create a number of asteroid instances
-    for (int i = 0; i < num_enemies; i++){
+    for (int i = 0; i < num_asteroids; i++){
         // Create instance name
         std::stringstream ss;
         ss << i;
@@ -587,21 +546,58 @@ void Game::CreateAsteroids(int num_enemies){
         std::string name = "AsteroidInstance" + index;
 		std::string asteroid_type = "Asteroid"+std::to_string((rand() % 10) + 1);
         // Create asteroid instance
-        SceneNode *en = CreateInstance(name, asteroid_type+"Mesh", "NormalMaterial",ASTEROID, asteroid_type+"Texture", asteroid_type + "Normal");//,
+        AsteroidNode *ast = CreateAsteroidInstance(name, asteroid_type+"Mesh", "NormalMaterial", asteroid_type+"Texture", asteroid_type + "Normal");//,
 
         // Set attributes of asteroid: random position, orientation, and
         // angular momentum
 
-		en->SetPosition(glm::vec3(-radius + radius *((float) rand() / RAND_MAX), -radius + radius *((float) rand() / RAND_MAX), -radius+radius*((float) rand() / RAND_MAX)));
-		en->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
+		ast->SetPosition(glm::vec3(-radius + radius *((float) rand() / RAND_MAX), -radius + radius *((float) rand() / RAND_MAX), -radius+radius*((float) rand() / RAND_MAX)));
+		ast->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
 		//en->SetScale(glm::vec3(1000));
-		en->SetScale(glm::vec3((rand() % 30) + 1));
+		ast->SetScale(glm::vec3((rand() % 30) + 1));
 		/*
 		en->SetAngM(glm::normalize(glm::angleAxis(0.05f*glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
 		*/
     }
 }
 
+void Game::CreateComets(int num_comets) {
+	float radius = 100;
+	for (int i = 0; i < 1; i++) {
+		// Create instance name
+		std::stringstream ss;
+		ss << i;
+		std::string index = ss.str();
+		std::string name = "Comet" + index;
+		std::string asteroid_type = "Asteroid" + std::to_string((rand() % 10) + 1);
+		// Create asteroid instance
+		CometNode *cmt = CreateCometNode(name, asteroid_type + "Mesh", "NormalMaterial", asteroid_type + "Texture", asteroid_type + "Normal");//,
+
+		// Set attributes of asteroid: random position, orientation, and
+		// angular momentum
+
+		//cmt->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
+		cmt->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float)rand() / RAND_MAX), glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX)))));
+		float scale = 3;
+		cmt->SetScale(glm::vec3(scale));
+		cmt->SetColor(glm::vec3(1,0.5,0.5));
+
+
+		ParticleNode* pn = CreateParticleInstance(20000, "cometStream", "cometParticles", "CometParticleMaterial", "jetParticleTexture");
+		pn->SetOrientation(90, glm::vec3(0, -1, 0));
+		float pos = scale / 2;
+		pn->SetPosition(glm::vec3(-cmt->GetOrientationObj()->GetForward()*pos));
+		pn->Rotate(-90, glm::vec3(-1, 0, 0));
+		pn->SetJoint(glm::vec3(0, 0.2, -1));
+		pn->SetScale(glm::vec3(scale*5));
+		pn->SetDraw(false);
+		pn->SetBlending(true);
+		pn->SetColor(glm::vec3(0.8,0.8,1));
+		pn->SetDraw(true);
+		cmt->AddChild(pn);
+
+	}
+}
 void Game::CreateHUD(void) {
 	ScreenNode* node;
 	node  = CreateScreenInstance("cockpit", "FlatSurface", "ScreenMaterial",NONE, "cockpitTexture");
@@ -648,51 +644,95 @@ void Game::CreateHUD(void) {
 	node->SetPosition(glm::vec3(0.0, -0.5, 0));
 }
 
+
+ParticleNode* Game::CreateParticleInstance(int count, std::string particle_name, std::string object_name, std::string material_name, std::string texture_name) {
+	//create resource
+	NodeResources rsc = GetResources(object_name, material_name, texture_name, "");
+	
+	// Create asteroid instance
+	ParticleNode *pn = new ParticleNode(particle_name, rsc["geom"], rsc["mat"], rsc["tex"]);
+	return pn;
+}
+Enemy *Game::CreateEnemyInstance(std::string entity_name, std::string object_name, std::string material_name, std::string normal_name) {
+	NodeResources rsc = GetResources(object_name, material_name, "", normal_name);
+	// Create asteroid instance
+	Enemy *en = new Enemy(entity_name, rsc["geom"], rsc["mat"], rsc["tex"], rsc["norm"]);
+	scene_.AddEnemy(en);
+	en->SetScale(glm::vec3(3));
+	return en;
+}
+
+
+
 ScreenNode *Game::CreateScreenInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name, std::string normal_name) {
-
-	Resource *geom = resman_.GetResource(object_name);
-	if (!geom) {
-		throw(GameException(std::string("Could not find resource \"") + object_name + std::string("\"")));
-	}
-
-	Resource *mat = resman_.GetResource(material_name);
-	if (!mat) {
-		throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
-	}
-
-	Resource *tex = NULL;
-	if (texture_name != "") {
-		tex = resman_.GetResource(texture_name);
-		if (!tex) {
-			throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
-		}
-	}
-	;
+	NodeResources rsc = GetResources(object_name, material_name, texture_name, normal_name);
+	
 	if (entity_name == "radar") {
-		RadarNode* scn = new RadarNode(entity_name, geom, mat, tex);
-		scn->SetOrientation(180, glm::vec3(1, 0, 0));
+		RadarNode* scn = new RadarNode(entity_name, rsc["geom"], rsc["mat"], rsc["tex"], rsc["norm"]);
 		scene_.AddRadar(scn);
 		return scn;
 	}
 	else {
-		ScreenNode *scn = new ScreenNode(entity_name, geom, mat, tex);
-		scn->SetOrientation(180, glm::vec3(1, 0, 0));
+		ScreenNode *scn = new ScreenNode(entity_name, rsc["geom"], rsc["mat"], rsc["tex"], rsc["norm"]);
 		scene_.AddScreen(scn, type);
 		return scn;
 	}
 
 }
 
+AsteroidNode *Game::CreateAsteroidInstance(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name, std::string normal_name) {
+
+	NodeResources rsc = GetResources(object_name, material_name, texture_name, normal_name);
+	AsteroidNode *ast = new AsteroidNode(entity_name, rsc["geom"], rsc["mat"], rsc["tex"], rsc["norm"]);
+	scene_.AddAsteroid(ast);
+	return ast;
+}
+CometNode *Game::CreateCometNode(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name, std::string normal_name) {
+
+	NodeResources rsc = GetResources(object_name, material_name, texture_name, normal_name);
+	CometNode *ast = new CometNode(entity_name, rsc["geom"], rsc["mat"], rsc["tex"], rsc["norm"]);
+	scene_.AddComet(ast);
+	return ast;
+}
+
 ButtonNode *Game::CreateButtonInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name, std::string normal_name) {
+
+	NodeResources rsc = GetResources(object_name, material_name, texture_name, normal_name);
+
+	ButtonNode *btn = new ButtonNode(entity_name, rsc["geom"], rsc["mat"], rsc["tex"], rsc["norm"]);
+	scene_.AddButton(btn, type);
+	return btn;
+	
+}
+
+SceneNode *Game::CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type, std::string texture_name, std::string normal_name){
+	NodeResources rsc = GetResources(object_name, material_name, texture_name, normal_name);
+
+    SceneNode *scn = scene_.CreateNode(entity_name, rsc["geom"], rsc["mat"], type, rsc["tex"], rsc["norm"]);
+    return scn;
+}
+
+NodeResources Game::GetResources(std::string object_name, std::string material_name, std::string texture_name, std::string normal_name) {
+	NodeResources rsc;
+	rsc.insert({ "geom" , NULL });
+	rsc.insert({ "mat" , NULL });
+	rsc.insert({ "tex" , NULL });
+	rsc.insert({ "norm" , NULL });
 
 	Resource *geom = resman_.GetResource(object_name);
 	if (!geom) {
 		throw(GameException(std::string("Could not find resource \"") + object_name + std::string("\"")));
 	}
+	else {
+		rsc.at("geom") = geom;
+	}
 
 	Resource *mat = resman_.GetResource(material_name);
 	if (!mat) {
 		throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
+	}
+	else {
+		rsc.at("mat") = mat;
 	}
 
 	Resource *tex = NULL;
@@ -701,46 +741,23 @@ ButtonNode *Game::CreateButtonInstance(std::string entity_name, std::string obje
 		if (!tex) {
 			throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
 		}
+		else {
+			rsc.at("tex") = tex;
+		}
 	}
 
-		ButtonNode *btn = new ButtonNode(entity_name, geom, mat, tex);
-		btn->SetOrientation(180, glm::vec3(1, 0, 0));
-		scene_.AddButton(btn, type);
-		return btn;
-	
-
-}
-
-SceneNode *Game::CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type, std::string texture_name, std::string normal_name){
-
-    Resource *geom = resman_.GetResource(object_name);
-    if (!geom){
-        throw(GameException(std::string("Could not find resource \"")+object_name+std::string("\"")));
-    }
-
-    Resource *mat = resman_.GetResource(material_name);
-    if (!mat){
-        throw(GameException(std::string("Could not find resource \"")+material_name+std::string("\"")));
-    }
-
-    Resource *tex = NULL;
-    if (texture_name != ""){
-        tex = resman_.GetResource(texture_name);
-        if (!tex){
-            throw(GameException(std::string("Could not find resource \"")+material_name+std::string("\"")));
-        }
-    }
-	
 	Resource *norm = NULL;
 	if (normal_name != "") {
 		norm = resman_.GetResource(normal_name);
 		if (!tex) {
 			throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
 		}
-
+		else {
+			rsc.at("norm") = norm;
+		}
 	}
-    SceneNode *scn = scene_.CreateNode(entity_name, geom, mat, type, tex, norm);
-    return scn;
+	return rsc;
+
 }
 
 } // namespace game

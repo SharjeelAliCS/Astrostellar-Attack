@@ -53,6 +53,7 @@ SceneNode::SceneNode(const std::string name, const Resource *geometry, const Res
 	joint_ = glm::vec3(0);
 	parentTransform_ = glm::mat4(1);
 	blending_ = false;
+	color_ = glm::vec3(1);
 }
 
 
@@ -93,6 +94,9 @@ void SceneNode::SetPosition(glm::vec3 position,bool newOrgPos){
 	org_pos_ = position;
 }
 
+void SceneNode::SetColor(glm::vec3 c) {
+	color_ = c;
+}
 SceneNode* SceneNode::GetChild(std::string child) {
 	for (std::vector<SceneNode*>::iterator it = children_.begin(); it != children_.end(); ++it) {
 		return (*it);
@@ -192,7 +196,7 @@ GLuint SceneNode::GetMaterial(void) const {
 void SceneNode::SetupBlending(void) {
 	if (blending_) {
 		// Disable z-buffer
-		//glDisable(GL_DEPTH_TEST);
+		glDisable(GL_DEPTH_TEST);
 
 		// Enable blending
 		glEnable(GL_BLEND);
@@ -334,6 +338,10 @@ void SceneNode::SetupShader(GLuint program, Camera* camera){
 		glBindTexture(GL_TEXTURE_2D, normal_map_); // normal texture we bind
 	}
 
+
+	//color
+	GLint color = glGetUniformLocation(program, "color");
+	glUniform3f(color, color_.x, color_.y, color_.z);
 
     // Timer
     GLint timer_var = glGetUniformLocation(program, "timer");
