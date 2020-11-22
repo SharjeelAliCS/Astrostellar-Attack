@@ -42,7 +42,7 @@ namespace game {
 	protected:
 		float health_;
 		float max_health_;
-		float speed_;
+		//float speed_;
 		ParticleNode* particles_;
 
 		glm::mat4 CalculateFinalTransformation(Camera* camera);

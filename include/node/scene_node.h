@@ -32,6 +32,7 @@ namespace game {
 		glm::vec3 GetScale(void) const;
 		const std::string GetName(void) const;
 
+		float getCurSpeed(void) { return movement_speed; }
 		
 
 		// Set node attributes

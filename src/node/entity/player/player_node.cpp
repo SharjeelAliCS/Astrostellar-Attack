@@ -34,8 +34,8 @@ namespace game {
 		max_shields_ = 100;
 		shields_ = max_shields_;
 		boosted_ = 0;
-		boost_speed_ = 20;
-
+		movement_speed = 20;
+		boost_speed_ = 4*movement_speed;
 		//resman_ refuses to be global, likely because I'm being dumbass.
 
 		//Projectile::Projectile(const std::string name, const std::string type, const std::map<std::string, int> upgrades, const Resource * geometry,
@@ -143,17 +143,13 @@ namespace game {
 		double shotTime = lastShotTime + rof[projType] * ((projectileTypes[projType].compare("pursuer") == 0) ? (2 - pow(1.1, upgrades["pursuerROFLevel"])) : 1);
 		if (glfwGetTime() > shotTime) {
 			Projectile* missile;
+			int numShots = 1;
 			if (weapon.compare("shotgun") == 0) {
-				int numShots = 15 + 6 * upgrades["shotgunNumLevel"];
-				for (int i = 0; i < numShots; i++) {
-					missile = new Projectile("missile", weapon, upgrades, orientation_->GetOrientation(), geo, mat, tex);
-					missile->SetPosition(position_);
-					missiles.push_back(missile);
-				}
+				numShots = 15 + 6 * upgrades["shotgunNumLevel"];
+
 			}
-			else {
-				glm::vec3 fo = orientation_->GetForward();
-				missile = new Projectile("missile", weapon, upgrades, orientation_->GetOrientation(), geo, mat, tex);
+			for (int i = 0; i < numShots; i++) {
+				missile = new Projectile("missile", weapon, upgrades, this, asteroids, enemies, geo, mat, tex);
 				missile->SetPosition(position_);
 				missiles.push_back(missile);
 			}
@@ -222,6 +218,9 @@ namespace game {
 	}
 
 	void Player::Update(float deltaTime) {
+		Translate(c_->GetForward() * getCurSpeed() *deltaTime);
+		c_->Translate(c_->GetForward() * getCurSpeed() *deltaTime);
+
 		//update the missiles and check if they exist or not. 
 		//std::cout << "mypos is " << position_.x << " "<< position_.y << " "<< position_.z << std::endl;
 		for (std::vector<Projectile*>::iterator it = missiles.begin(); it != missiles.end();) {
@@ -242,5 +241,26 @@ namespace game {
 			//particles_->Rotate(-90, glm::vec3(0, 1, 0));
 		}
 
+	}
+
+
+	float Player::getCurSpeed() const {
+		if (boosted_) {
+			return boost_speed_+movement_speed;
+		}
+		else {
+			return movement_speed;
+		}
+	}
+
+	void Player::setCam(Camera* c) {
+		c_ = c;
+	}
+
+	void Player::setAsteroids(std::vector<SceneNode*>* a) {
+		asteroids = a;
+	}
+	void Player::setEnemies(std::vector<Enemy*>* e) {
+		enemies = e;
 	}
 }

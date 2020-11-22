@@ -11,6 +11,7 @@
 #include "entity_node.h"
 #include <map>
 #include <functional>
+#include "enemy_node.h";
 
 namespace game {
 
@@ -19,7 +20,8 @@ namespace game {
 
 	public:
 		// Create game object
-		Projectile(const std::string name, const std::string type, const std::map<std::string, int> upgrades, glm::quat orient, const Resource *geometry, const Resource *material,const Resource *texture = NULL, const Resource *normal = NULL);
+		Projectile(const std::string name, const std::string type, std::map<std::string, int> upgrades, SceneNode* p, std::vector<SceneNode*>* ast, std::vector<Enemy*>* enemy,
+			const Resource *geometry, const Resource *material,const Resource *texture = NULL, const Resource *normal = NULL);
 
 		// Destructor
 		~Projectile();
@@ -31,7 +33,7 @@ namespace game {
 
 		//Set the max range it can be as a function of time
 		void SetTTL(double t);
-
+		glm::quat RotationBetweenVectors(glm::vec3 start, glm::vec3 dest);
 		void displayStats();
 
 	private:
@@ -44,17 +46,20 @@ namespace game {
 		float dotDmg;
 		float dotDuration;
 		int dotStackMax;
+		float speed;
 		SceneNode *target;
 		std::map<std::string, int> upg;
 
 		//damage is a function because of the sniper existing, and maybe aoe shots will have more damage in the center of the blast, etc
 		std::function<double()> dmg;
+		SceneNode* player;
 
 
 		//movement is a function because of the pursuer existing
 		std::function<void(float)> move;
 
-
+		std::vector<SceneNode*>* asteroids;
+		std::vector<Enemy*>* enemies;
 
 	}; // class GameObj
 

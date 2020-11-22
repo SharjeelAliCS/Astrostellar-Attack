@@ -89,6 +89,9 @@ namespace game {
             // Update entire scene
             void Update(float deltaTime);
 
+			
+			std::vector<SceneNode*>* GetAsteroids()const { return node_; };
+
 		private:
 			// Background color
 			glm::vec3 background_color_;
@@ -97,8 +100,8 @@ namespace game {
 			Player* player_;
 			SkyBox* skybox_;
 			RadarNode* radar_;
-			std::vector<SceneNode*> node_;
-			std::vector<Enemy *> enemy_;
+			std::vector<SceneNode*>* node_;
+			std::vector<Enemy *>* enemy_;
 			
 			std::map <ScreenType, std::vector<ScreenNode *>> screen_;
 			ScreenType active_menu_;
