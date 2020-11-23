@@ -87,7 +87,7 @@ namespace game {
 		upgrades["sniperRangeLevel"] = 0;
 
 		upgrades["shotgunDamageLevel"] = 0;
-		upgrades["shotgunNumLevel"] = 5; // how many are fired, +6 per level
+		upgrades["shotgun_NumShots_Level"] = 5; // how many are fired, +6 per level
 
 		upgrades["naniteTorpedoDamageLevel"] = 0;   //dot dmg
 		upgrades["naniteTorpedoDurationLevel"] = 0; //dot duration
@@ -147,7 +147,7 @@ namespace game {
 			Projectile* missile;
 			int numShots = 1;
 			if (weapon.compare("shotgun") == 0) {
-				numShots = 15 + 6 * upgrades["shotgunNumLevel"];
+				numShots = 15 + 6 * upgrades["shotgun_NumShots_Level"];
 
 			}
 			for (int i = 0; i < numShots; i++) {

@@ -139,6 +139,9 @@ void Game::SetupResources(void){
 	resman_.LoadResource(Save, "assetList", filename.c_str());
 
 	json assets = resman_.GetResource("assetList")->GetJSON();
+
+	//todo David  
+	json saveData = resman_.GetResource("save")->GetJSON();
 	
 	//load shaders
 	for (auto& asset : assets["Shader"].items()) {
