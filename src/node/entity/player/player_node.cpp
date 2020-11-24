@@ -221,9 +221,13 @@ namespace game {
 		return collide;
 	}
 
+	std::string Player::GetCurrentWeapon(void) const {
+		return projectileTypes[projType];
+	}
 	void Player::Update(float deltaTime) {
 		//update the missiles and check if they exist or not. 
 		//std::cout << "mypos is " << position_.x << " "<< position_.y << " "<< position_.z << std::endl;
+		
 		for (std::vector<Projectile*>::iterator it = missiles.begin(); it != missiles.end();) {
 			(*it)->Update(deltaTime);
 			if ((*it)->Exists()) {

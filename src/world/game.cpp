@@ -16,7 +16,7 @@ const bool window_full_screen_g = false;
 
 // Viewport and camera settings
 float camera_near_clip_distance_g = 0.01;
-float camera_far_clip_distance_g = 5000.0;
+float camera_far_clip_distance_g = 3000.0;
 float camera_fov_g = 40.0; // Field-of-view of camera
 const glm::vec3 viewport_background_color_g(0.0, 0.0, 0.0);
 glm::vec3 camera_position_1st_g(0, 0, 1);
@@ -29,7 +29,6 @@ const std::string material_directory_g = MATERIAL_DIRECTORY;
 
 
 Game::Game(void){
-
     // Don't do work in the constructor, leave it for the Init() function
 }
 
@@ -127,6 +126,9 @@ void Game::SetupResources(void){
 	resman_.CreateSphere("SimpleSphereMesh");
 	resman_.CreateTorus("SimpleTorusMesh");
 	resman_.CreateCube("c",3,3,3);
+	
+	resman_.CreateSphereParticles("particleStream", 20000);
+	resman_.CreateCometParticles("cometParticles", 3000);
 
 	std::string filename;
 	//load save data
@@ -166,7 +168,7 @@ void Game::SetupResources(void){
 	//load fonts
 	for (auto& asset : assets["Font"].items()) {
 		filename = std::string(ASSET_DIRECTORY) + "/fonts" + std::string(asset.value());
-		text = Text(filename, resman_.GetResource("textMaterial"));
+		text = TextRenderer(filename, resman_.GetResource("textMaterial"));
 	}
 
 	//load soundtrack
@@ -195,27 +197,31 @@ void Game::SetupScene(void){
 	SceneNode* player =CreateInstance("player", "ship", "TextureShader", PLAYER,"shipTexture");
 	player->SetScale(glm::vec3(2));
 	player->SetOrientation(-90, glm::vec3(0, 1, 0));
+	player->SetAudio(audio_);
     // Create an object for showing the texture
 	// instance contains identifier, geometry, shader, and texture
 	
 	//skybox->SetOrientation(180, glm::vec3(1, 0, 0));
 	//create enemies
 	CreateAsteroids(500);
+	CreateComets();
 	//ame::SceneNode *wall = CreateInstance("Canvas", "FlatSurface", "Procedural", "RockyTexture"); // must supply a texture, even if not used
 	//create skybox
-	SceneNode* skybox = CreateInstance("skybox", "skybox", "TextureShader", SKYBOX, "skyboxTexture");
+	SceneNode* skybox = CreateInstance("skybox", "skybox", "SkyBoxMaterial", SKYBOX, "skyboxTexture");
 	skybox->SetScale(glm::vec3(0.25));
 
 	CreateHUD();
 
 	//create particles:
-	ParticleNode* pn = CreateParticleInstance(20000, "jetstream", "playerParticles", "ParticleMaterial");
+	ParticleNode* pn = CreateParticleInstance(20000, "jetstream", "particleStream", "ParticleMaterial","jetParticleTexture");
 	pn->SetOrientation(90, glm::vec3(0, 1, 0));
 	pn->Rotate(-90, glm::vec3(1, 0, 0));
 	pn->Translate(glm::vec3(1, 0.5, -3)); 
 	pn->SetJoint(glm::vec3(0,0.2,-1));
 	pn->SetScale(glm::vec3(8));
 	pn->SetDraw(false);
+	pn->SetBlending(true);
+	pn->SetColor(glm::vec3(0, 0.749, 1));
 	//pn->SetJoint(glm::vec3(0, 0, -1));
 	//scene_.GetPlayer()->SetParticleSystem(pn);
 	scene_.GetPlayer()->AddChild(pn);
@@ -223,6 +229,9 @@ void Game::SetupScene(void){
 	scene_.GetPlayer()->SetDraw(false);
 	camera_.SetZoom(0);
 	SetSaveState();
+
+
+	scene_.UpdateScreenSizeNodes(window_width, window_height);
 }
 
 void Game::SetSaveState(void) {
@@ -249,6 +258,7 @@ void Game::MainLoop(void){
 	int frames = 0;
 	float second = glfwGetTime();
 	int fps = 0.0;
+	Player* player = scene_.GetPlayer();
     while (!glfwWindowShouldClose(window_)){
 
 		static double last_time = glfwGetTime();
@@ -267,7 +277,7 @@ void Game::MainLoop(void){
 
 				glm::vec3 foward = camera_.GetForward();
 				camera_.Translate(foward * player_speed);
-				Player* player = scene_.GetPlayer();
+				
 				player->Translate(foward * player_speed);
 				// Animate the scene
 				//player->SetHealth(sin(deltaTime*100*t) / 2 + 0.5);
@@ -278,6 +288,10 @@ void Game::MainLoop(void){
 
 				last_time = current_time;
 				t += 0.01;
+				
+				std::string currWeapon = player->GetCurrentWeapon() + "Texture";
+				scene_.GetScreen("weaponsHUD")->SetTexture(resman_.GetResource(currWeapon));
+
 			}
 			if (current_time - second >= 1.0) {
 				second = current_time;
@@ -291,7 +305,9 @@ void Game::MainLoop(void){
 		//text.RenderText("hello nmime", glm::vec2(0, 0), 1.0f, glm::vec3(1.0));
         // Draw the scene
         scene_.Draw(&camera_);
-		text.RenderText(std::to_string(fps), glm::vec2(-1, 0.9), 0.5f, glm::vec3(1.0,1.0,0));
+
+		text.RenderText(new Text(player->GetCurrentWeapon(), glm::vec2(0.6, -0.78), 0.4f, glm::vec3(0.0941,0.698,0.921)));
+		text.RenderText(new Text(std::to_string(fps), glm::vec2(-1, 0.9), 0.5f, glm::vec3(1.0,1.0,0)));
 
 		//text.RenderText("hello nmime", glm::vec2(0, 0), 1.0f, glm::vec3(1.0));
 		//text.RenderText("hello r", glm::vec2(400, 0), 1.0f, glm::vec3(1.0));
@@ -329,8 +345,26 @@ void Game::GetUserInput(float deltaTime) {
 		}
 
 	}
+	double xpos, ypos;
+	glfwGetCursorPos(window_, &xpos, &ypos);
+	
+	std::string btn = scene_.ButtonEvents(xpos, ypos);
+	if (btn != "" && (timeOfLastMove < glfwGetTime() - 0.5) && glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+			timeOfLastMove = glfwGetTime();
+
+			if (btn == "resumeButton") {
+				scene_.SetCurrentScreen(HUD_MENU);
+				animating_ = true;
+				glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+			}
+		
+	}
+	
+
+	
 	if (animating_) {
-		GetMouseCameraInput();
+
+		GetMouseCameraInput(xpos, ypos);
 
 		Player* player = scene_.GetPlayer();
 		//Get the factors used for movement
@@ -404,9 +438,7 @@ void Game::GetUserInput(float deltaTime) {
 
 }
 
-void Game::GetMouseCameraInput() {
-	double xpos, ypos;
-	glfwGetCursorPos(window_, &xpos, &ypos);
+void Game::GetMouseCameraInput(float xpos, float ypos) {
 
 	//For this, I decided the best way to do it was simply to keep the cursor set at the center
 	//so that the user only moves the game WHEN their mouse is within the screen. 
@@ -462,6 +494,7 @@ void Game::ResizeCallback(GLFWwindow* window, int width, int height) {
 	game->camera_.SetProjection(camera_fov_g, camera_near_clip_distance_g, camera_far_clip_distance_g, width, height);
 	game->window_width = width;
 	game->window_height = height;
+	game->scene_.UpdateScreenSizeNodes(width, height);
 
 
 
@@ -503,50 +536,11 @@ Game::~Game(){
     glfwTerminate();
 }
 
-ParticleNode* Game::CreateParticleInstance(int count, std::string particle_name, std::string object_name, std::string material_name, std::string texture_name) {
-	//create resource
-	resman_.CreateSphereParticles(particle_name, count);
-	Resource *geom = resman_.GetResource(particle_name);
-	if (!geom) {
-		throw(GameException(std::string("Could not find resource \"") + object_name + std::string("\"")));
-	}
+void Game::CreateAsteroids(int num_asteroids){
 
-	Resource *mat = resman_.GetResource(material_name);
-	if (!mat) {
-		throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
-	}
-
-	// Create asteroid instance
-	ParticleNode *pn = new ParticleNode(object_name, geom, mat);
-	
-	return pn;
-}
-Enemy *Game::CreateEnemyInstance(std::string entity_name, std::string object_name, std::string material_name, std::string normal_name){
-
-    // Get resources
-    Resource *geom = resman_.GetResource(object_name);
-    if (!geom){
-        throw(GameException(std::string("Could not find resource \"")+object_name+std::string("\"")));
-    }
-
-    Resource *mat = resman_.GetResource(material_name);
-    if (!mat){
-        throw(GameException(std::string("Could not find resource \"")+material_name+std::string("\"")));
-    }
-
-    // Create asteroid instance
-    Enemy *en = new Enemy(entity_name, geom, mat);
-    scene_.AddEnemy(en);
-	en->SetScale(glm::vec3(3));
-    return en;
-}
-
-
-void Game::CreateAsteroids(int num_enemies){
-
-	float radius = 2000;
+	float radius = 4000;
     // Create a number of asteroid instances
-    for (int i = 0; i < num_enemies; i++){
+    for (int i = 0; i < num_asteroids; i++){
         // Create instance name
         std::stringstream ss;
         ss << i;
@@ -554,79 +548,196 @@ void Game::CreateAsteroids(int num_enemies){
         std::string name = "AsteroidInstance" + index;
 		std::string asteroid_type = "Asteroid"+std::to_string((rand() % 10) + 1);
         // Create asteroid instance
-        SceneNode *en = CreateInstance(name, asteroid_type+"Mesh", "NormalMaterial",ASTEROID, asteroid_type+"Texture", asteroid_type + "Normal");//,
+        AsteroidNode *ast = CreateAsteroidInstance(name, asteroid_type+"Mesh", "NormalMaterial", asteroid_type+"Texture", asteroid_type + "Normal");//,
 
         // Set attributes of asteroid: random position, orientation, and
         // angular momentum
 
-		en->SetPosition(glm::vec3(-radius + radius *((float) rand() / RAND_MAX), -radius + radius *((float) rand() / RAND_MAX), -radius+radius*((float) rand() / RAND_MAX)));
-		en->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
+		ast->SetPosition(glm::vec3(-radius + radius *((float) rand() / RAND_MAX), -radius + radius *((float) rand() / RAND_MAX), -radius+radius*((float) rand() / RAND_MAX)));
+		ast->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
 		//en->SetScale(glm::vec3(1000));
-		en->SetScale(glm::vec3((rand() % 50) + 1));
+		ast->SetScale(glm::vec3((rand() % 30) + 1));
 		/*
 		en->SetAngM(glm::normalize(glm::angleAxis(0.05f*glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
 		*/
     }
 }
 
+void Game::CreateComets(int num_comets) {
+	float radius = 100;
+	for (int i = 0; i < 1; i++) {
+		// Create instance name
+		std::stringstream ss;
+		ss << i;
+		std::string index = ss.str();
+		std::string name = "Comet" + index;
+		std::string asteroid_type = "Asteroid" + std::to_string((rand() % 10) + 1);
+		// Create asteroid instance
+		CometNode *cmt = CreateCometNode(name, asteroid_type + "Mesh", "NormalMaterial", asteroid_type + "Texture", asteroid_type + "Normal");//,
+
+		// Set attributes of asteroid: random position, orientation, and
+		// angular momentum
+
+		//cmt->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
+		cmt->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float)rand() / RAND_MAX), glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX)))));
+		float scale = 3;
+		cmt->SetScale(glm::vec3(scale));
+		cmt->SetColor(glm::vec3(1,0.5,0.5));
+
+
+		ParticleNode* pn = CreateParticleInstance(20000, "cometStream", "cometParticles", "CometParticleMaterial", "jetParticleTexture");
+		pn->SetOrientation(90, glm::vec3(0, -1, 0));
+		float pos = scale / 2;
+		pn->SetPosition(glm::vec3(-cmt->GetOrientationObj()->GetForward()*pos));
+		pn->Rotate(-90, glm::vec3(-1, 0, 0));
+		pn->SetJoint(glm::vec3(0, 0.2, -1));
+		pn->SetScale(glm::vec3(scale*5));
+		pn->SetDraw(false);
+		pn->SetBlending(true);
+		pn->SetColor(glm::vec3(0.8,0.8,1));
+		pn->SetDraw(true);
+		cmt->AddChild(pn);
+
+	}
+}
 void Game::CreateHUD(void) {
 	ScreenNode* node;
 	node  = CreateScreenInstance("cockpit", "FlatSurface", "ScreenMaterial",NONE, "cockpitTexture");
-	node->SetOrientation(180, glm::vec3(1,0,0));
 	node->SetScale(glm::vec3(2,1.2,1));
 
 	//shield
 	node = CreateScreenInstance("shieldBox", "FlatSurface", "ScreenMaterial", HUD_MENU, "shieldBoxTexture");
-	node->SetOrientation(180, glm::vec3(1, 0, 0));
 	node->SetScale(glm::vec3(0.85, 0.05,1));//multiply by 17
 	node->SetPosition(glm::vec3(0,0.92,0));
 
 	node = CreateScreenInstance("shieldBar", "FlatSurface", "ScreenMaterial", HUD_MENU, "shieldBarTexture");
-	node->SetOrientation(180, glm::vec3(1, 0, 0));
 	node->SetScale(glm::vec3(0.843, 0.04, 1));//multiply by 21
 	node->SetPosition(glm::vec3(0, 0.92, 0));
 	
 	//health
 	node = CreateScreenInstance("healthBox", "FlatSurface", "ScreenMaterial", HUD_MENU, "healthBoxTexture");
-	node->SetOrientation(180, glm::vec3(1, 0, 0));
 	node->SetScale(glm::vec3(0.41, 0.03416, 1));//multiply by 12
 	node->SetPosition(glm::vec3(0, 0.86, 0));
 
 	node = CreateScreenInstance("healthBar", "FlatSurface", "ScreenMaterial", HUD_MENU, "healthBarTexture");
-	node->SetOrientation(180, glm::vec3(1, 0, 0));
 	node->SetScale(glm::vec3(0.40, 0.02257, 1));//multiply by 17.72
 	node->SetPosition(glm::vec3(0, 0.86, 0));
 	
 	//crosshair
 	node = CreateScreenInstance("crosshair", "FlatSurface", "ScreenMaterial", HUD_MENU, "crosshairDefaultTexture");
-	node->SetOrientation(180, glm::vec3(1, 0, 0));
 	node->SetScale(glm::vec3(0.1));
 
 	//radar
 	node = CreateScreenInstance("radar", "FlatSurface", "RadarMaterial", HUD_MENU, "radarTexture");
-
-	node->SetOrientation(180, glm::vec3(1, 0, 0));
 	node->Rotate(30);
 	node->SetScale(glm::vec3(0.3));
 	node->SetPosition(glm::vec3(-0.75, -0.6, 0));
 
+	//WEAPONS
+	node = CreateScreenInstance("weaponsHUD", "FlatSurface", "ScreenMaterial", HUD_MENU, "laserBatteryTexture");
+	node->SetScale(glm::vec3(0.384,0.08,1));//multiply by 4.8
+	node->SetPosition(glm::vec3(0.75, -0.6, 0));
 	//PAUSE MENU
 	node = CreateScreenInstance("pauseBackground", "FlatSurface", "OverlayMaterial", PAUSE_MENU, "healthBarTexture");
-	node->SetOrientation(180, glm::vec3(1, 0, 0));
 	node->SetScale(glm::vec3(2));//multiply by 17.72crosshairDefaultTexture
+
+	ButtonNode* btn = CreateButtonInstance("resumeButton", "FlatSurface", "ScreenMaterial", PAUSE_MENU, "pauseButton");
+	btn->SetScale(glm::vec3(0.25,0.25,1));//multiply by 17.72crosshairDefaultTexture
+	btn->SetPosition(glm::vec3(-0.8, 0.5, 0));
+	btn->SetText(new Text("Resume", glm::vec2(-1.0,-1.7), 0.3, glm::vec3(0,0.6,0.83)));
 
 }
 
+
+ParticleNode* Game::CreateParticleInstance(int count, std::string particle_name, std::string object_name, std::string material_name, std::string texture_name) {
+	//create resource
+	NodeResources rsc = GetResources(object_name, material_name, texture_name, "");
+	
+	// Create asteroid instance
+	ParticleNode *pn = new ParticleNode(particle_name, rsc["geom"], rsc["mat"], rsc["tex"]);
+	return pn;
+}
+Enemy *Game::CreateEnemyInstance(std::string entity_name, std::string object_name, std::string material_name, std::string normal_name) {
+	NodeResources rsc = GetResources(object_name, material_name, "", normal_name);
+	// Create asteroid instance
+	Enemy *en = new Enemy(entity_name, rsc["geom"], rsc["mat"], rsc["tex"], rsc["norm"]);
+	scene_.AddEnemy(en);
+	en->SetScale(glm::vec3(3));
+	return en;
+}
+
+
+
 ScreenNode *Game::CreateScreenInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name, std::string normal_name) {
+	NodeResources rsc = GetResources(object_name, material_name, texture_name, normal_name);
+	
+	if (entity_name == "radar") {
+		RadarNode* scn = new RadarNode(entity_name, rsc["geom"], rsc["mat"], rsc["tex"], rsc["norm"]);
+		scene_.AddRadar(scn);
+		return scn;
+	}
+	else {
+		ScreenNode *scn = new ScreenNode(entity_name, rsc["geom"], rsc["mat"], rsc["tex"], rsc["norm"]);
+		scene_.AddScreen(scn, type);
+		return scn;
+	}
+
+}
+
+AsteroidNode *Game::CreateAsteroidInstance(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name, std::string normal_name) {
+
+	NodeResources rsc = GetResources(object_name, material_name, texture_name, normal_name);
+	AsteroidNode *ast = new AsteroidNode(entity_name, rsc["geom"], rsc["mat"], rsc["tex"], rsc["norm"]);
+	scene_.AddAsteroid(ast);
+	return ast;
+}
+CometNode *Game::CreateCometNode(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name, std::string normal_name) {
+
+	NodeResources rsc = GetResources(object_name, material_name, texture_name, normal_name);
+	CometNode *ast = new CometNode(entity_name, rsc["geom"], rsc["mat"], rsc["tex"], rsc["norm"]);
+	scene_.AddComet(ast);
+	return ast;
+}
+
+ButtonNode *Game::CreateButtonInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name, std::string normal_name) {
+
+	NodeResources rsc = GetResources(object_name, material_name, texture_name, normal_name);
+
+	ButtonNode *btn = new ButtonNode(entity_name, rsc["geom"], rsc["mat"], rsc["tex"], rsc["norm"]);
+	btn->SetTextObj(&text);
+	scene_.AddButton(btn, type);
+	return btn;
+	
+}
+
+SceneNode *Game::CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type, std::string texture_name, std::string normal_name){
+	NodeResources rsc = GetResources(object_name, material_name, texture_name, normal_name);
+
+    SceneNode *scn = scene_.CreateNode(entity_name, rsc["geom"], rsc["mat"], type, rsc["tex"], rsc["norm"]);
+    return scn;
+}
+
+NodeResources Game::GetResources(std::string object_name, std::string material_name, std::string texture_name, std::string normal_name) {
+	NodeResources rsc;
+	rsc.insert({ "geom" , NULL });
+	rsc.insert({ "mat" , NULL });
+	rsc.insert({ "tex" , NULL });
+	rsc.insert({ "norm" , NULL });
 
 	Resource *geom = resman_.GetResource(object_name);
 	if (!geom) {
 		throw(GameException(std::string("Could not find resource \"") + object_name + std::string("\"")));
 	}
+	else {
+		rsc.at("geom") = geom;
+	}
 
 	Resource *mat = resman_.GetResource(material_name);
 	if (!mat) {
 		throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
+	}
+	else {
+		rsc.at("mat") = mat;
 	}
 
 	Resource *tex = NULL;
@@ -635,50 +746,23 @@ ScreenNode *Game::CreateScreenInstance(std::string entity_name, std::string obje
 		if (!tex) {
 			throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
 		}
-	}
-	;
-	if (entity_name == "radar") {
-		RadarNode* scn = new RadarNode(entity_name, geom, mat, tex);
-		scene_.AddRadar(scn);
-		return scn;
-	}
-	else {
-		ScreenNode *scn = new ScreenNode(entity_name, geom, mat, tex);
-		scene_.AddScreen(scn, type);
-		return scn;
+		else {
+			rsc.at("tex") = tex;
+		}
 	}
 
-}
-SceneNode *Game::CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type, std::string texture_name, std::string normal_name){
-
-    Resource *geom = resman_.GetResource(object_name);
-    if (!geom){
-        throw(GameException(std::string("Could not find resource \"")+object_name+std::string("\"")));
-    }
-
-    Resource *mat = resman_.GetResource(material_name);
-    if (!mat){
-        throw(GameException(std::string("Could not find resource \"")+material_name+std::string("\"")));
-    }
-
-    Resource *tex = NULL;
-    if (texture_name != ""){
-        tex = resman_.GetResource(texture_name);
-        if (!tex){
-            throw(GameException(std::string("Could not find resource \"")+material_name+std::string("\"")));
-        }
-    }
-	
 	Resource *norm = NULL;
 	if (normal_name != "") {
 		norm = resman_.GetResource(normal_name);
 		if (!tex) {
 			throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
 		}
-
+		else {
+			rsc.at("norm") = norm;
+		}
 	}
-    SceneNode *scn = scene_.CreateNode(entity_name, geom, mat, type, tex, norm);
-    return scn;
+	return rsc;
+
 }
 
 } // namespace game

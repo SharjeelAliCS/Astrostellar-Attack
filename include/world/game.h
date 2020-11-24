@@ -18,6 +18,7 @@
 #include "radar_node.h"
 #include "asteroid_node.h"
 #include "particle_node.h"
+#include "button_node.h"
 #include "text.h"
 #include "sound.h"
 namespace game {
@@ -33,6 +34,7 @@ namespace game {
             virtual ~GameException() throw() {};
     };
 
+	typedef std::map<std::string, Resource*> NodeResources;
     // Game application
     class Game {
 
@@ -62,7 +64,7 @@ namespace game {
 
 			Audio* audio_;
            
-			Text text;
+			TextRenderer text;
 
             // Camera abstraction
             Camera camera_;
@@ -86,7 +88,7 @@ namespace game {
 			void GetUserInput(float deltaTime);
 
 			//Camera input for mouse (See .cpp file for more info)
-			void GetMouseCameraInput();
+			void GetMouseCameraInput(float xpos, float ypos);
 
             // Methods to handle events
             static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -97,22 +99,28 @@ namespace game {
             // Asteroid field
             // Create instance of one asteroid
 
-			ParticleNode* CreateParticleInstance(int count, std::string particle_name, std::string object_name, std::string material_name, std::string texture_name = std::string(""));
-
-            Enemy *CreateEnemyInstance(std::string entity_name, std::string object_name, std::string material_name, std::string normal_name = std::string(""));
             // Create entire random asteroid field
 
-			void CreateAsteroids(int num_enemies = 1500);
+			void CreateAsteroids(int num_asteroids = 1500);
+			void CreateComets(int num_comets = 10);
 			// Create entire random asteroid field
 			void CreateHUD(void);
 
-			// Create an instance of an object stored in the resource manager
+			AsteroidNode *CreateAsteroidInstance(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name = std::string(""), std::string normal_name = std::string(""));
+
+			CometNode *CreateCometNode(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name = std::string(""), std::string normal_name = std::string(""));
+
+			ParticleNode* CreateParticleInstance(int count, std::string particle_name, std::string object_name, std::string material_name, std::string texture_name = std::string(""));
+
+			Enemy *CreateEnemyInstance(std::string entity_name, std::string object_name, std::string material_name, std::string normal_name = std::string(""));
+
 			ScreenNode *CreateScreenInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name = std::string(""), std::string normal_name = std::string(""));
 
-            // Create an instance of an object stored in the resource manager
+			ButtonNode *CreateButtonInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name = std::string(""), std::string normal_name = std::string(""));
+
             SceneNode *CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type,std::string texture_name = std::string(""), std::string normal_name = std::string(""));
 
-
+			NodeResources GetResources(std::string object_name,std::string material_name, std::string texture_name, std::string normal_name);
     }; // class Game
 
 } // namespace game

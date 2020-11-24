@@ -29,31 +29,23 @@ void main()
 {
 	particle_id = color.r; // Derived from the particle color. We use the id to keep track of particles
     // Let time cycle every four seconds
-	float duration = 1.5*t_d;
-	timer;
-    float circtime = timer - duration * floor(timer / duration);
-    float t = circtime; // Our time parameter
+	float duration = 40*t_d;
+
+    //float circtime = timer - duration * floor(timer / duration);
+    float t = mod(timer+particle_id*duration, duration)/duration;//circtime; // Our time parameter
     
     // Let's first work in model space (apply only world matrix)
-    vec4 position =  world_mat *vec4(vertex, 1.0);
+    vec3 position = vertex;
     vec4 norm = normal_mat * vec4(normal, 1.0);
 
     // Move point along normal and down with t*t (acceleration under gravity)
-    position.x += norm.x*t*speed;
-    position.y += norm.y*t*speed*0.5;
-    position.z += norm.z*t*speed;
-    
+    position.x -= min(normal.x*t*0.05,position.x);
+    position.y -=t*speed*2;
+    position.z -=min(normal.z*t*0.05,position.z);
+
     // Now apply view transformation
-    gl_Position = view_mat *position;
+     gl_Position = view_mat * world_mat * vec4(position, 1.0);
         
-    // Define outputs
-    // Define color of vertex
-    //vertex_color = color.rgb; // Color defined during the construction of the particles
-    //vertex_color = object_color; // Uniform color 
-	//vertex_color = vec3(t_d);
-    //vertex_color = vec3(t, 0.0, 1-t); // red-purple dynamic color
-    //vertex_color = vec3(1-t, 0.4+(t)*0.4, t); // red-yellow dynamic color
-	vertex_color = vec4(1-t,1-t*0.2, 1.0,1-t);
-    // Forward time step to geometry shader
-    timestep = t;
+	vertex_color = vec4(1-t,1-t*0.2, 1.0,1-t*5);
+    timestep = 1-t;
 }

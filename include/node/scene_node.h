@@ -13,6 +13,7 @@
 #include "resource.h"
 #include "camera.h"
 #include "orientation.h"
+#include "sound.h"
 namespace game {
 
 	// Class that manages one object in a scene 
@@ -30,6 +31,7 @@ namespace game {
 		glm::quat GetOrientation(void) const;
 		Orientation*  GetOrientationObj(void) const;
 		glm::vec3 GetScale(void) const;
+		bool GetBlending(void) const;
 		const std::string GetName(void) const;
 
 		
@@ -42,14 +44,16 @@ namespace game {
 		void SetScale(glm::vec3 scale);
 		void SetJoint(glm::vec3 joint);
 		void SetDraw(bool d);
+		void SetTexture(Resource* texture);
 		
 		// Perform transformations on node
 		void Translate(glm::vec3 trans);
 		void Rotate(glm::quat rot);
 		void Rotate(float angle, glm::vec3 normal);
 		void Scale(glm::vec3 scale);
-
-		
+		void SetColor(glm::vec3 c);
+		void SetAudio(Audio* audio);
+		void SetBlending(bool blending);
 		// Draw the node according to scene parameters in 'camera'
 		// variable
 		virtual void Draw(Camera *camera);
@@ -73,7 +77,7 @@ namespace game {
 		GLuint GetMaterial(void) const;
 
 	protected:
-
+		Audio* audio_;
 		//Parent of a node
 		SceneNode* parent_;
 		//List of children for a node
@@ -93,6 +97,7 @@ namespace game {
 		glm::vec3 position_; // Position of node
 		glm::vec3 org_pos_;
 		glm::vec3 joint_;
+		glm::vec3 color_;
 		Orientation* orientation_; // Orientation of node
 		glm::vec3 scale_; // Scale of node
 
@@ -104,9 +109,11 @@ namespace game {
 
 		bool exists_;
 		bool draw_;
+		bool blending_; // Draw with blending or not
 		// Set matrices that transform the node in a shader program
 		virtual void SetupShader(GLuint program, Camera* camera);
 
+		virtual void SetupBlending(void);
 		virtual  glm::mat4 CalculateFinalTransformation(Camera* camera);
 
 	}; // class SceneNode

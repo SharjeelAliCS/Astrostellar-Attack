@@ -89,6 +89,14 @@ namespace game {
 	}
 
 
+	glm::mat4 Camera::GetView(void) const {
+		return projection_matrix_;
+	}
+
+	float Camera::GetFarDistance(void) const {
+		return far_distance_;
+	}
+
 	void Camera::Pitch(float angle) {
 
 		orientation_->Pitch(angle);
@@ -121,6 +129,7 @@ namespace game {
 		float right = top * w / h;
 		projection_matrix_ = glm::frustum(-right, right, -top, top, near, far);
 		aspect_ratio_ = h / w;
+		far_distance_ = far;
 	}
 
 

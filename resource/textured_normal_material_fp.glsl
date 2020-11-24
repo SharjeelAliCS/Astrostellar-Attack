@@ -12,7 +12,7 @@ uniform sampler2D normal_map; // Normal map
 
 // Material attributes (constants)
 uniform vec4 object_color = vec4(1, 0.36, 0.20, 1.0);
-
+uniform vec3 color = vec3(1.0);
 
 void main() 
 {
@@ -52,6 +52,7 @@ void main()
         
     // Assume all components have the same color but with different weights
     float ambient = 0.4;
+	pixel  = vec4(pixel.r*color.r,pixel.g*color.g,pixel.b*color.b,pixel.a);
     if (gl_FrontFacing){
         gl_FragColor = (0.25*ambient + 0.5*lambertian + 1.0*specular)*pixel;
     } else {

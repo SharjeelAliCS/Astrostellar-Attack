@@ -28,10 +28,13 @@ namespace game {
 		virtual void Update(float deltaTime);
 		virtual void SetupShader(GLuint program, Camera* camera);
 		void Rotate(float angle);
+		void SetGlow(bool g);
 
 		glm::mat4 CalculateFinalTransformation(Camera* camera);
 
 	protected:
+		glm::vec3 glow_amount_;
+		bool glow_ = false;
 		float progress_size_;
 		float rotation_;
 	}; // class GameObj

@@ -8,7 +8,9 @@
       "OverlayMaterial": "/overlay",
       "NormalMaterial": "/textured_normal_material",
       "RadarMaterial": "/radar",
-      "ParticleMaterial": "/particle_stream"
+      "ParticleMaterial": "/particle_stream",
+      "CometParticleMaterial": "/particle_comet",
+      "SkyBoxMaterial": "/skybox"
     },
     "Mesh": {
       "pumpkin": "/Pumkin.obj",
@@ -27,6 +29,8 @@
     },
     "Texture": {
       "pumpkinTexture": "/Pumpkin_Color.png",
+      "buttonTexture": "/buttonTest.png",
+      "jetParticleTexture": "/particle/flame4x4orig.png",
       "shipTexture": "/player.png",
       "skyboxTexture": "/skybox/skybox_v3.png",
       "cockpitTexture": "/hud/hud.png",
@@ -36,6 +40,13 @@
       "shieldBoxTexture": "/hud/shield_box.png",
       "radarTexture": "/hud/radar.png",
       "crosshairDefaultTexture": "/hud/crosshair_default.png",
+      "chargeBlastTexture": "/hud/weapons/charge_blast.png",
+      "laserBatteryTexture": "/hud/weapons/laser.png",
+      "naniteTorpedoTexture": "/hud/weapons/nanite_torpedo.png",
+      "pursuerTexture": "/hud/weapons/pursuer.png",
+      "shotgunTexture": "/hud/weapons/shotgun.png",
+      "sniperShotTexture": "/hud/weapons/sniper.png",
+      "pauseButton": "/menu/pause/pause.png",
       "Asteroid1Texture": "/asteroids/Asteroid1_AlbedoTransparency.png",
       "Asteroid2Texture": "/asteroids/Asteroid2_AlbedoTransparency.png",
       "Asteroid3Texture": "/asteroids/Asteroid3_AlbedoTransparency.png",

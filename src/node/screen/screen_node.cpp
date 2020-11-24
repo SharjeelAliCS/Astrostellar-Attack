@@ -30,14 +30,19 @@ namespace game {
 		org_pos_ = position_;
 		progress_size_ = 1.0;
 		rotation_ = 0;
+		SetOrientation(180, glm::vec3(1, 0, 0));
+		glow_ = false;
+		glow_amount_ = glm::vec3(0, 0, 0);
 	}
-
-
 
 	ScreenNode::~ScreenNode() {
 	}
 
-	
+	void ScreenNode::SetGlow(bool g) {
+		glow_ = g;
+	}
+
+
 	void ScreenNode::SetProgress(float p) {
 		progress_size_ = p;
 	}
@@ -89,6 +94,9 @@ namespace game {
 	}
 	void ScreenNode::SetupShader(GLuint program, Camera* camera) {
 
+		//color
+		GLint color = glGetUniformLocation(program, "glow");
+		glUniform3f(color, glow_amount_.r*glow_, glow_amount_.g*glow_, glow_amount_.b*glow_);
 
 		GLint progress_uniform = glGetUniformLocation(program, "progress_size");
 		glUniform1f(progress_uniform, progress_size_);

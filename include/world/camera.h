@@ -34,7 +34,8 @@ namespace game {
             glm::vec3 GetForward(void) const;
             glm::vec3 GetSide(void) const;
             glm::vec3 GetUp(void) const;
-
+			glm::mat4 GetView(void) const;
+			float GetFarDistance(void) const;
             // Perform relative transformations of camera
             void Pitch(float angle);
             void Yaw(float angle);
@@ -63,6 +64,8 @@ namespace game {
             glm::vec3 side_; // Initial side vector
             glm::mat4 view_matrix_; // View matrix
             glm::mat4 projection_matrix_; // Projection matrix
+
+			float far_distance_;
 
             // Create view matrix from current camera parameters
             void SetupViewMatrix(void);

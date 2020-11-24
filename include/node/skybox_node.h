@@ -21,7 +21,8 @@ namespace game {
 
 		
 		void Draw(Camera *camera);
-
+		glm::mat4 CalculateFinalTransformation(Camera* camera);
+		void SetupShader(GLuint program, Camera* camera);
 
 
 	private:

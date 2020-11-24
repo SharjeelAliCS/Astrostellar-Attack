@@ -25,12 +25,11 @@ namespace game {
 	}
 
 	void ParticleNode::Draw(Camera *camera) {
+	
 		if (!draw_)return;
-		//		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glBlendFunc(GL_ONE, GL_ONE);
-		glBlendEquation(GL_FUNC_ADD);
-		glEnable(GL_BLEND);
-		//		
+		SetupBlending();
+		// Select particle blending or not
+		
 		// Select proper material (shader program)
 		glUseProgram(material_);
 
@@ -61,6 +60,7 @@ namespace game {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	}
+
 	void ParticleNode::SetupShader(GLuint program, Camera* camera) {
 
 		int size = 12;
@@ -97,6 +97,10 @@ namespace game {
 		glm::mat4 normal_matrix = glm::transpose(glm::inverse(transf));
 		GLint normal_mat = glGetUniformLocation(program, "normal_mat");
 		glUniformMatrix4fv(normal_mat, 1, GL_FALSE, glm::value_ptr(normal_matrix));
+
+		//color
+		GLint color = glGetUniformLocation(program, "color");
+		glUniform3f(color, color_.x, color_.y, color_.z);
 
 		// Texture
 		if (texture_) {

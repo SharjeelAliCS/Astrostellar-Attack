@@ -17,12 +17,14 @@ SceneGraph::SceneGraph(void){
 	skybox_ = NULL;
 
 	for (int i = HUD_MENU; i != NONE+1; i++){
-		std::vector<ScreenNode*> temp;
-		screen_.insert({static_cast<ScreenType>(i), temp });
+		std::vector<ScreenNode*> screen;
+		std::vector<ButtonNode*> button;
+		screen_.insert({static_cast<ScreenType>(i), screen });
+		button_.insert({ static_cast<ScreenType>(i), button });
 	}
 	active_menu_ = HUD_MENU;
 
-	radar_distance_ = 500;
+	radar_distance_ = 1000;
 
 }
 
@@ -119,16 +121,41 @@ void SceneGraph::AddEnemy(Enemy *node) {
 }
 
 Enemy *SceneGraph::GetEnemy(std::string node_name) const {
-
 	// Find node with the specified name
 	for (int i = 0; i < enemy_.size(); i++) {
-
 		if (enemy_[i]->GetName() == node_name) {
 			return enemy_[i];
 		}
 	}
 	return NULL;
+}
 
+void SceneGraph::AddAsteroid(AsteroidNode *node) {
+	asteroid_.push_back(node);
+}
+
+AsteroidNode *SceneGraph::GetAsteroid(std::string node_name) const {
+	// Find node with the specified name
+	for (int i = 0; i < enemy_.size(); i++) {
+		if (asteroid_[i]->GetName() == node_name) {
+			return asteroid_[i];
+		}
+	}
+	return NULL;
+}
+
+void SceneGraph::AddComet(CometNode *node) {
+	comet_.push_back(node);
+}
+
+CometNode *SceneGraph::GetComet(std::string node_name) const {
+	// Find node with the specified name
+	for (int i = 0; i < enemy_.size(); i++) {
+		if (comet_[i]->GetName() == node_name) {
+			return comet_[i];
+		}
+	}
+	return NULL;
 }
 
 void SceneGraph::AddScreen(ScreenNode *node, ScreenType type) {
@@ -145,7 +172,24 @@ ScreenNode *SceneGraph::GetScreen(std::string node_name) const {
 		}
 	}
 
-	
+	return NULL;
+
+}
+
+void SceneGraph::AddButton(ButtonNode *node, ScreenType type) {
+	button_.at(type).push_back(node);
+}
+
+ButtonNode *SceneGraph::GetButton(std::string node_name) const {
+	// Find node with the specified name
+	for (auto it = button_.begin(); it != button_.end(); it++) {
+		for (int i = 0; i < it->second.size(); i++) {
+			if (it->second[i]->GetName() == node_name) {
+				return it->second[i];
+			}
+		}
+	}
+
 	return NULL;
 
 }
@@ -161,15 +205,21 @@ void SceneGraph::Draw(Camera *camera){
     // Draw all scene nodes
 
 	if (skybox_ != NULL)skybox_->Draw(camera);
-	
-	if(player_!=NULL)player_->Draw(camera);
 
-    for (int i = 0; i < node_.size(); i++){
-        node_[i]->Draw(camera);
-    }
+	for (int i = 0; i < node_.size(); i++) {
+		node_[i]->Draw(camera);
+	}
 	for (int i = 0; i < enemy_.size(); i++) {
 		enemy_[i]->Draw(camera);
 	}
+	for (int i = 0; i < asteroid_.size(); i++) {
+		asteroid_[i]->Draw(camera);
+	}
+	for (int i = 0; i < comet_.size(); i++) {
+		comet_[i]->Draw(camera);
+	}
+	if(player_!=NULL)player_->Draw(camera);
+
 
 	if (active_menu_ == HUD_MENU || active_menu_ == PAUSE_MENU) {
 		for (int i = 0; i < screen_.at(NONE).size(); i++) {
@@ -182,8 +232,13 @@ void SceneGraph::Draw(Camera *camera){
 			screen_.at(HUD_MENU)[i]->Draw(camera);
 		}
 	}
+
 	for (int i = 0; i < screen_.at(active_menu_).size(); i++) {
 		screen_.at(active_menu_)[i]->Draw(camera);
+	}
+
+	for (int i = 0; i < button_.at(active_menu_).size(); i++) {
+		button_.at(active_menu_)[i]->Draw(camera);
 	}
 
 	
@@ -200,6 +255,12 @@ void SceneGraph::Update(float deltaTime){
     }
 	for (int i = 0; i < enemy_.size(); i++) {
 		enemy_[i]->Update(deltaTime);
+	}
+	for (int i = 0; i < asteroid_.size(); i++) {
+		asteroid_[i]->Update(deltaTime);
+	}
+	for (int i = 0; i < comet_.size(); i++) {
+		comet_[i]->Update(deltaTime);
 	}
 	for (int i = 0; i < screen_.at(NONE).size(); i++) {
 		screen_.at(NONE)[i]->Update(deltaTime);
@@ -224,8 +285,11 @@ void SceneGraph::Update(float deltaTime){
 
 void SceneGraph::UpdateRadar() {
 	glm::vec3 direction = player_->GetOrientationObj()->GetForward();
-	for (int i = 0; i < node_.size(); i++) {
-		UpdateRadarNode(direction, node_[i]->GetPosition(),glm::vec3(1,1,0));
+	for (int i = 0; i < asteroid_.size(); i++) {
+		UpdateRadarNode(direction, asteroid_[i]->GetPosition(),glm::vec3(1,1,0));
+	}
+	for (int i = 0; i < comet_.size(); i++) {
+		UpdateRadarNode(direction, comet_[i]->GetPosition(), glm::vec3(1, 1, 0));
 	}
 	for (int i = 0; i < enemy_.size(); i++) {
 		UpdateRadarNode(direction, enemy_[i]->GetPosition(), glm::vec3(1, 0, 0));
@@ -236,15 +300,34 @@ void SceneGraph::UpdateRadar() {
 	glm::vec2 pos_player(pos_3d.x, pos_3d.z);
 }
 
+
+std::string SceneGraph::ButtonEvents(float x, float y) {
+
+	std::string btn = "";
+	for (int i = 0; i < button_.at(active_menu_).size(); i++) {
+		bool within_range = button_.at(active_menu_)[i]->WithinButton(x, y);
+		button_.at(active_menu_)[i]->SetGlow(within_range);
+		if (within_range) {
+			btn = button_.at(active_menu_)[i]->GetName();
+		}
+	}
+	return btn;
+}
+
+void SceneGraph::UpdateScreenSizeNodes(float x, float y) {
+	for (auto it = button_.begin(); it != button_.end(); it++) {
+		for (int i = 0; i < it->second.size(); i++) {
+			it->second[i]->UpdateScreenSize(x, y);
+		}
+	}
+}
 void SceneGraph::UpdateRadarNode(glm::vec3 direction, glm::vec3 target_pos,glm::vec3 color){
 	glm::vec3 pos_entity = CalculateDistanceFromPlayer(target_pos);
 	glm::vec2 pos_2d(pos_entity.x, pos_entity.y);
 	glm::vec3 pos_3d = player_->GetPosition();
 	glm::vec2 pos_player(pos_3d.x, pos_3d.z);
 
-	
-
-	if (glm::length(pos_2d) <= radar_distance_ && pos_entity.z<=radar_distance_/20) {
+	if (glm::length(pos_2d) <= radar_distance_ && pos_entity.z<=radar_distance_/10) {
 		glm::vec2 radar_pos = pos_2d;
 		radar_pos = radar_pos/radar_distance_;
 

@@ -18,8 +18,11 @@
 #include "camera.h"
 #include "radar_node.h"
 #include "asteroid_node.h"
-
+#include "button_node.h"
+#include "comet_node.h"
 #include "sound.h"
+#include "text.h"
+
 namespace game {
 
 
@@ -59,28 +62,30 @@ namespace game {
             // Add an already-created node
 
             void AddNode(SceneNode *node);
-            // Find a scene node with a specific name
             SceneNode *GetNode(std::string node_name) const;
 
 			void AddSkyBox(SkyBox *node);
-			// Find a scene node with a specific name
 			SkyBox *GetSkyBox() const;
 
 			void AddPlayer(Player *node);
-			// Find a scene node with a specific name
 			Player *GetPlayer() const;
 
 			void AddRadar(RadarNode *node);
-			// Find a scene node with a specific name
 
 			void AddEnemy(Enemy *node);
-			// Find a scene node with a specific name
 			Enemy *GetEnemy(std::string node_name) const;
 
+			void AddAsteroid(AsteroidNode *node);
+			AsteroidNode *GetAsteroid(std::string node_name) const;
+
+			void AddComet(CometNode *node);
+			CometNode *GetComet(std::string node_name) const;
+
 			void AddScreen(ScreenNode *node,ScreenType type);
-			// Find a scene node with a specific name
 			ScreenNode *GetScreen(std::string node_name) const;
-            // Get node const iterator
+
+			void AddButton(ButtonNode *node, ScreenType type);
+			ButtonNode *GetButton(std::string node_name) const;
 
 			void SetCurrentScreen(ScreenType t);
             // Draw the entire scene
@@ -88,6 +93,9 @@ namespace game {
 
             // Update entire scene
             void Update(float deltaTime);
+
+			std::string ButtonEvents(float x, float y);
+			void UpdateScreenSizeNodes(float x, float y);
 
 		private:
 			// Background color
@@ -98,10 +106,16 @@ namespace game {
 			SkyBox* skybox_;
 			RadarNode* radar_;
 			std::vector<SceneNode*> node_;
+			std::vector<AsteroidNode*> asteroid_;
+			std::vector<CometNode*> comet_;
 			std::vector<Enemy *> enemy_;
+
+
+			Text text;
 			
 			std::map <ScreenType, std::vector<ScreenNode *>> screen_;
 			ScreenType active_menu_;
+			std::map<ScreenType, std::vector<ButtonNode *>> button_;
 
 			void UpdateRadar();
 			void UpdateRadarNode(glm::vec3 direction, glm::vec3 pos,glm::vec3 color);
