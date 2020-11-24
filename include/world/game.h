@@ -64,7 +64,7 @@ namespace game {
 
 			Audio* audio_;
            
-			Text text;
+			TextRenderer text;
 
             // Camera abstraction
             Camera camera_;

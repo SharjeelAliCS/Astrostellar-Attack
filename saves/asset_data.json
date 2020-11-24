@@ -9,6 +9,7 @@
       "NormalMaterial": "/textured_normal_material",
       "RadarMaterial": "/radar",
       "ParticleMaterial": "/particle_stream",
+      "CometParticleMaterial": "/particle_comet",
       "SkyBoxMaterial": "/skybox"
     },
     "Mesh": {
@@ -45,6 +46,7 @@
       "pursuerTexture": "/hud/weapons/pursuer.png",
       "shotgunTexture": "/hud/weapons/shotgun.png",
       "sniperShotTexture": "/hud/weapons/sniper.png",
+      "pauseButton": "/menu/pause/pause.png",
       "Asteroid1Texture": "/asteroids/Asteroid1_AlbedoTransparency.png",
       "Asteroid2Texture": "/asteroids/Asteroid2_AlbedoTransparency.png",
       "Asteroid3Texture": "/asteroids/Asteroid3_AlbedoTransparency.png",

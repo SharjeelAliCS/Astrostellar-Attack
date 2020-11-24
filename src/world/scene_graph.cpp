@@ -301,14 +301,17 @@ void SceneGraph::UpdateRadar() {
 }
 
 
-std::string SceneGraph::ButtonClick(float x, float y) {
+std::string SceneGraph::ButtonEvents(float x, float y) {
 
+	std::string btn = "";
 	for (int i = 0; i < button_.at(active_menu_).size(); i++) {
-		if (button_.at(active_menu_)[i]->Clicked(x, y)) {
-			return button_.at(active_menu_)[i]->GetName();
+		bool within_range = button_.at(active_menu_)[i]->WithinButton(x, y);
+		button_.at(active_menu_)[i]->SetGlow(within_range);
+		if (within_range) {
+			btn = button_.at(active_menu_)[i]->GetName();
 		}
 	}
-	return "";
+	return btn;
 }
 
 void SceneGraph::UpdateScreenSizeNodes(float x, float y) {

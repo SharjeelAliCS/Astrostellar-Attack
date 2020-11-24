@@ -29,7 +29,6 @@ const std::string material_directory_g = MATERIAL_DIRECTORY;
 
 
 Game::Game(void){
-
     // Don't do work in the constructor, leave it for the Init() function
 }
 
@@ -169,7 +168,7 @@ void Game::SetupResources(void){
 	//load fonts
 	for (auto& asset : assets["Font"].items()) {
 		filename = std::string(ASSET_DIRECTORY) + "/fonts" + std::string(asset.value());
-		text = Text(filename, resman_.GetResource("textMaterial"));
+		text = TextRenderer(filename, resman_.GetResource("textMaterial"));
 	}
 
 	//load soundtrack
@@ -307,8 +306,8 @@ void Game::MainLoop(void){
         // Draw the scene
         scene_.Draw(&camera_);
 
-		text.RenderText(player->GetCurrentWeapon(), glm::vec2(0.6, -0.78), 0.4f, glm::vec3(0.0941,0.698,0.921));
-		text.RenderText(std::to_string(fps), glm::vec2(-1, 0.9), 0.5f, glm::vec3(1.0,1.0,0));
+		text.RenderText(new Text(player->GetCurrentWeapon(), glm::vec2(0.6, -0.78), 0.4f, glm::vec3(0.0941,0.698,0.921)));
+		text.RenderText(new Text(std::to_string(fps), glm::vec2(-1, 0.9), 0.5f, glm::vec3(1.0,1.0,0)));
 
 		//text.RenderText("hello nmime", glm::vec2(0, 0), 1.0f, glm::vec3(1.0));
 		//text.RenderText("hello r", glm::vec2(400, 0), 1.0f, glm::vec3(1.0));
@@ -349,15 +348,18 @@ void Game::GetUserInput(float deltaTime) {
 	double xpos, ypos;
 	glfwGetCursorPos(window_, &xpos, &ypos);
 	
-
-	if ((timeOfLastMove < glfwGetTime() - 0.5) &&  glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-		int afg = 45;
-		std::string btn = scene_.ButtonClick(xpos, ypos);
-		if (btn != "") {
-
+	std::string btn = scene_.ButtonEvents(xpos, ypos);
+	if (btn != "" && (timeOfLastMove < glfwGetTime() - 0.5) && glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
 			timeOfLastMove = glfwGetTime();
-		}
+
+			if (btn == "resumeButton") {
+				scene_.SetCurrentScreen(HUD_MENU);
+				animating_ = true;
+				glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+			}
+		
 	}
+	
 
 	
 	if (animating_) {
@@ -639,9 +641,11 @@ void Game::CreateHUD(void) {
 	node = CreateScreenInstance("pauseBackground", "FlatSurface", "OverlayMaterial", PAUSE_MENU, "healthBarTexture");
 	node->SetScale(glm::vec3(2));//multiply by 17.72crosshairDefaultTexture
 
-	node = CreateButtonInstance("buttonTest", "FlatSurface", "ScreenMaterial", PAUSE_MENU, "buttonTexture");
-	node->SetScale(glm::vec3(0.2,0.4,1));//multiply by 17.72crosshairDefaultTexture
-	node->SetPosition(glm::vec3(0.0, -0.5, 0));
+	ButtonNode* btn = CreateButtonInstance("resumeButton", "FlatSurface", "ScreenMaterial", PAUSE_MENU, "pauseButton");
+	btn->SetScale(glm::vec3(0.25,0.25,1));//multiply by 17.72crosshairDefaultTexture
+	btn->SetPosition(glm::vec3(-0.8, 0.5, 0));
+	btn->SetText(new Text("Resume", glm::vec2(-1.0,-1.7), 0.3, glm::vec3(0,0.6,0.83)));
+
 }
 
 
@@ -700,6 +704,7 @@ ButtonNode *Game::CreateButtonInstance(std::string entity_name, std::string obje
 	NodeResources rsc = GetResources(object_name, material_name, texture_name, normal_name);
 
 	ButtonNode *btn = new ButtonNode(entity_name, rsc["geom"], rsc["mat"], rsc["tex"], rsc["norm"]);
+	btn->SetTextObj(&text);
 	scene_.AddButton(btn, type);
 	return btn;
 	

@@ -6,9 +6,12 @@
 
 namespace game {
 
-	Text::Text(void) {
+	Text::Text() : text(""), pos(glm::vec2(0)), scale(0), color(glm::vec3(0)), glow(glm::vec3(0)) {}
+	Text::Text(std::string t, glm::vec2 p, float s, glm::vec3 c) : text(t), pos(p), scale(s), color(c), glow(glm::vec3(0)) {}
+
+	TextRenderer::TextRenderer(void) {
 	}
-	Text::Text(std::string font, const Resource *material) {
+	TextRenderer::TextRenderer(std::string font, const Resource *material) {
 		// Set material (shader program)
 		if (material->GetType() != Material) {
 			throw(std::invalid_argument(std::string("Invalid type of material")));
@@ -22,11 +25,11 @@ namespace game {
 
 		// Don't do work in the constructor, leave it for the Init() function
 	}
-	Text::~Text() {
+	TextRenderer::~TextRenderer() {
 
 	}
 	
-	int Text::InitFont() {
+	int TextRenderer::InitFont() {
 		FT_Library ft;
 		// All functions return a value different than 0 whenever an error occurred
 		if (FT_Init_FreeType(&ft))
@@ -114,9 +117,12 @@ namespace game {
 		glBindVertexArray(0);
 
 	}
-	void Text::RenderText(std::string text, glm::vec2 pos, float scale, glm::vec3 color) {
+	void TextRenderer::RenderText(Text* text) {
 		
-		
+		glm::vec2 pos = text->pos;
+		std::string text_string = text->text;
+		float scale = text->scale;
+		glm::vec3 color = text->color;
 		pos.x = (pos.x/2 + 0.5)*800;
 		pos.y = (pos.y / 2 + 0.5)*450;
 
@@ -130,9 +136,14 @@ namespace game {
 		glUniform3f(glGetUniformLocation(material_, "textColor"), color.x, color.y, color.z);
 		glActiveTexture(GL_TEXTURE0);
 		glBindVertexArray(VAO);
+
+
+		GLint glow = glGetUniformLocation(material_, "glow");
+		glUniform3f(glow,text->glow.r, text->glow.g, text->glow.b);
+
 			// iterate through all characters
 			std::string::const_iterator c;
-			for (c = text.begin(); c != text.end(); c++)
+			for (c = text_string.begin(); c != text_string.end(); c++)
 			{
 				Character ch = Characters[*c];
 

@@ -20,8 +20,8 @@
 #include "asteroid_node.h"
 #include "button_node.h"
 #include "comet_node.h"
-
 #include "sound.h"
+#include "text.h"
 
 namespace game {
 
@@ -94,7 +94,7 @@ namespace game {
             // Update entire scene
             void Update(float deltaTime);
 
-			std::string ButtonClick(float x, float y);
+			std::string ButtonEvents(float x, float y);
 			void UpdateScreenSizeNodes(float x, float y);
 
 		private:
@@ -109,6 +109,9 @@ namespace game {
 			std::vector<AsteroidNode*> asteroid_;
 			std::vector<CometNode*> comet_;
 			std::vector<Enemy *> enemy_;
+
+
+			Text text;
 			
 			std::map <ScreenType, std::vector<ScreenNode *>> screen_;
 			ScreenType active_menu_;

@@ -34,21 +34,31 @@ namespace game {
 		glm::ivec2   Bearing;    // Offset from baseline to left/top of glyph
 		unsigned int Advance;    // Offset to advance to next glyph
 	};
-	class Text {
+
+	struct Text {
+		std::string text;
+		glm::vec2 pos;
+		float scale;
+		glm::vec3 color;
+		glm::vec3 glow;
+		Text();
+		Text(std::string t, glm::vec2 p, float s, glm::vec3 c);
+	};
+	class TextRenderer {
 
 	public:
-		Text(void);
-		Text(std::string font, const Resource *material);
-		~Text();
+		TextRenderer(void);
+		TextRenderer(std::string font, const Resource *material);
+		~TextRenderer();
 
-		void RenderText(std::string text, glm::vec2 pos, float scale, glm::vec3 color);
+		void RenderText(Text* text);
 
 	private:
 		unsigned int VAO, VBO;
 		std::string font_;
 
 		int InitFont();
-		
+			
 		std::map<char, Character> Characters;
 		GLuint material_; // Reference to shader program
 	}; // class Orientation

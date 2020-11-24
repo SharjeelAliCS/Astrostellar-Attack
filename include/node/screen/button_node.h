@@ -10,6 +10,7 @@
 #ifndef BUTTON_NODE_H_
 #define BUTTON_NODE_H_
 #include "screen_node.h"
+#include "text.h"
 
 namespace game {
 
@@ -24,15 +25,20 @@ namespace game {
 		~ButtonNode();
 		void Draw(Camera *camera);
 		void Update(float deltaTime);
+		void SetTextObj(TextRenderer* t);
+		void SetText(Text* t);
 		void SetupShader(GLuint program, Camera* camera);
-		bool Clicked(float x, float y);
+		bool WithinButton(float x, float y);
 		void UpdateScreenSize(float x, float y);
 		glm::mat4 CalculateFinalTransformation(Camera* camera);
 		
 
 	private:
+		TextRenderer* TextObj_;
+		Text* text_;
 		float screen_height_;
 		float screen_width_;
+
 	}; // class GameObj
 
 } // namespace game
