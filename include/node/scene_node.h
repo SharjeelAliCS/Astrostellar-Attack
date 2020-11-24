@@ -34,7 +34,11 @@ namespace game {
 		bool GetBlending(void) const;
 		const std::string GetName(void) const;
 
+		float getCurSpeed(void) { return movement_speed; }
 		
+		//Check if the object has been hit using a pos and a range.
+		bool Hit(glm::vec3 pos, float range);
+		bool HitTorus(glm::vec3 pos, float range);
 
 		// Set node attributes
 		void SetPosition(glm::vec3 position, bool newOrgPos = false);

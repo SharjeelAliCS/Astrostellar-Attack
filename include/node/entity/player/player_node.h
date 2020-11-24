@@ -12,9 +12,9 @@
 #include "projectile_node.h"
 #include "entity_node.h"
 #include "resource_manager.h"
+#include "camera.h"
 class Game;
 class ResourceManager;
-
 
 namespace game {
 	extern ResourceManager resman_;
@@ -38,7 +38,7 @@ namespace game {
 		void Draw(Camera *camera);
 
 		//The collision function detects all collisions with the enemies. 
-		bool Collision(std::vector<Enemy*>* enemies);
+		bool Collision();
 		//Fires a single missile. 
 		void Fire();
 		void nextWeapon();
@@ -46,11 +46,19 @@ namespace game {
 		void SetBoosted(int i);
 		int GetBoosted(void) const;
 		float GetBoostSpeed(void) const;
-		std::string GetCurrentWeapon(void) const;
+		std::map<std::string, int> getUpgrades(void) const {return upgrades;}
+
+		float getCurSpeed() const;
+
 		// Update the node
 		void Update(float deltaTime);
-		
-			
+
+		void setCam(Camera* c);
+
+		void setAsteroids(std::vector<SceneNode*>* a);
+		void setEnemies(std::vector<Enemy*>* e);
+		std::string GetCurrentWeapon(void) const;
+		// Update the node
 
 
 	private:
@@ -76,6 +84,10 @@ namespace game {
 		const Resource *mat;
 		const Resource *tex;
 
+		std::vector<SceneNode*>* asteroids;
+		std::vector<Enemy*>* enemies;
+
+		Camera* c_;
 
 
 		float shields_;

@@ -98,6 +98,7 @@ void Game::InitView(void){
 
     // Set up camera
     // Set current view
+
     camera_.SetView(camera_position_1st_g, camera_look_at_g, camera_up_g);
     // Set projection
     camera_.SetProjection(camera_fov_g, camera_near_clip_distance_g, camera_far_clip_distance_g, width, height);
@@ -140,6 +141,9 @@ void Game::SetupResources(void){
 	resman_.LoadResource(Save, "assetList", filename.c_str());
 
 	json assets = resman_.GetResource("assetList")->GetJSON();
+
+	//todo David  
+	json saveData = resman_.GetResource("save")->GetJSON();
 	
 	//load shaders
 	for (auto& asset : assets["Shader"].items()) {
@@ -253,7 +257,6 @@ void Game::SetSaveState(void) {
 void Game::MainLoop(void){
 
     // Loop while the user did not close the window
-	float player_speed = 0.5;
 	float t = 0;
 	int frames = 0;
 	float second = glfwGetTime();
@@ -268,6 +271,11 @@ void Game::MainLoop(void){
 		double deltaTime = current_time - last_time;
 		last_time = current_time;
 		// Animate the scene
+		Player* player = scene_.GetPlayer();
+		player->setCam(&camera_);
+		player->setAsteroids(scene_.GetAsteroids());
+		player->setEnemies(scene_.GetEnemies());
+
 		GetUserInput(deltaTime);
 		if (animating_) {
 			static double last_time = 0;
@@ -275,10 +283,6 @@ void Game::MainLoop(void){
 			if ((current_time - last_update) > 0.05) {
 				scene_.Update(deltaTime);
 
-				glm::vec3 foward = camera_.GetForward();
-				camera_.Translate(foward * player_speed);
-				
-				player->Translate(foward * player_speed);
 				// Animate the scene
 				//player->SetHealth(sin(deltaTime*100*t) / 2 + 0.5);
 				//player->SetShields(sin(deltaTime* 100 *t) / 2 + 0.5);
@@ -371,12 +375,10 @@ void Game::GetUserInput(float deltaTime) {
 		//glm::vec3 pos = player->GetPosition();
 		glm::vec3 foward = camera_.GetForward();
 
-		//Translate player and camera by a given amount constantly. 
-		//camera_.Translate(foward * const_foward);
-		//player->Translate(foward * const_foward);
 
 		//Fire a missile
 		if (glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS) {
+			//std::cout << "\n\nFIRE\n\n";
 			player->Fire();
 			timeOfLastMove = glfwGetTime();
 		}
@@ -391,8 +393,7 @@ void Game::GetUserInput(float deltaTime) {
 			//glm::vec3 pos = player->GetPosition();
 			glm::vec3 foward = camera_.GetForward();
 
-			camera_.Translate(foward * player->GetBoostSpeed());
-			player->Translate(foward * player->GetBoostSpeed());
+			
 			if (player->GetBoosted() == 0) {
 				audio_->playRepeat("playerEngine");
 				player->SetBoosted(1);
@@ -404,32 +405,6 @@ void Game::GetUserInput(float deltaTime) {
 			audio_->stop("playerEngine");
 			player->GetChild("jetstream")->SetDraw(false);
 		}
-		/*
-		//move the player back as well as the camera
-		if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS) {
-
-			glm::vec3 foward = camera_.GetForward();
-
-			camera_.Translate(-foward * foward_factor);
-			player->Translate(-foward * foward_factor);
-		}
-
-		//move the player left as well as the camera
-		if (glfwGetKey(window_, GLFW_KEY_A) == GLFW_PRESS) {
-
-			glm::vec3 side = camera_.GetSide();
-
-			camera_.Translate(-side * side_factor);
-			player->Translate(-side * side_factor);
-		}
-		//move the player right as well as the camera
-		if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS) {
-
-			glm::vec3 side = camera_.GetSide();
-
-			camera_.Translate(side * side_factor);
-			player->Translate(side*side_factor);
-		}*/
 
 	}
 

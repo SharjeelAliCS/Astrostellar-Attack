@@ -94,6 +94,8 @@ namespace game {
             // Update entire scene
             void Update(float deltaTime);
 
+			std::vector<SceneNode*>* GetAsteroids()const { return node_; };
+			std::vector<Enemy*>* GetEnemies()const { return enemy_; };
 			std::string ButtonEvents(float x, float y);
 			void UpdateScreenSizeNodes(float x, float y);
 
@@ -105,14 +107,14 @@ namespace game {
 			Player* player_;
 			SkyBox* skybox_;
 			RadarNode* radar_;
+			std::vector<SceneNode*>* node_;
+			std::vector<Enemy *>* enemy_;
 			std::vector<SceneNode*> node_;
 			std::vector<AsteroidNode*> asteroid_;
 			std::vector<CometNode*> comet_;
 			std::vector<Enemy *> enemy_;
 
-
 			Text text;
-			
 			std::map <ScreenType, std::vector<ScreenNode *>> screen_;
 			ScreenType active_menu_;
 			std::map<ScreenType, std::vector<ButtonNode *>> button_;

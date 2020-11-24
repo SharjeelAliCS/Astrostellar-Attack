@@ -34,7 +34,9 @@ namespace game {
 		max_shields_ = 100;
 		shields_ = max_shields_;
 		boosted_ = 0;
-		boost_speed_ = 20;
+		movement_speed = 20;
+		boost_speed_ = 4*movement_speed;
+
 
 		//resman_ refuses to be global, likely because I'm being dumbass.
 
@@ -85,7 +87,7 @@ namespace game {
 		upgrades["sniperRangeLevel"] = 0;
 
 		upgrades["shotgunDamageLevel"] = 0;
-		upgrades["shotgunNumLevel"] = 5; // how many are fired, +6 per level
+		upgrades["shotgun_NumShots_Level"] = 5; // how many are fired, +6 per level
 
 		upgrades["naniteTorpedoDamageLevel"] = 0;   //dot dmg
 		upgrades["naniteTorpedoDurationLevel"] = 0; //dot duration
@@ -143,17 +145,16 @@ namespace game {
 		double shotTime = lastShotTime + rof[projType] * ((projectileTypes[projType].compare("pursuer") == 0) ? (2 - pow(1.1, upgrades["pursuerROFLevel"])) : 1);
 		if (glfwGetTime() > shotTime) {
 			Projectile* missile;
+			int numShots = 1;
 			if (weapon.compare("shotgun") == 0) {
-				int numShots = 15 + 6 * upgrades["shotgunNumLevel"];
-				for (int i = 0; i < numShots; i++) {
-					missile = new Projectile("missile", weapon, upgrades, orientation_->GetOrientation(), geo, mat, tex);
-					missile->SetPosition(position_);
-					missiles.push_back(missile);
-				}
+				numShots = 15 + 6 * upgrades["shotgun_NumShots_Level"];
+
 			}
-			else {
-				glm::vec3 fo = orientation_->GetForward();
-				missile = new Projectile("missile", weapon, upgrades, orientation_->GetOrientation(), geo, mat, tex);
+			for (int i = 0; i < numShots; i++) {
+				missile = new Projectile("missile", weapon, upgrades, asteroids, enemies, geo, mat, tex);
+				missile->SetOrientation(this->GetOrientation());
+				missile->setSpeed(this->getCurSpeed());
+				missile->init();
 				missile->SetPosition(position_);
 				missiles.push_back(missile);
 			}
@@ -183,16 +184,25 @@ namespace game {
 
 	}
 
-	bool Player::Collision(std::vector<Enemy*>* enemies) {
+	bool Player::Collision() {
 		//check for collisions with player, set collide to true/false depending/ 
 		bool collide = false;
 		for (auto en = enemies->begin(); en != enemies->end(); ) {
-			if ((*en)->Hit(position_, glm::length((*en)->GetScale())*1.2)) {
+			if ((*en)->Hit(position_, glm::length((*en)->GetScale()) * 1.0)) {
 				en = enemies->erase(en);
 				collide = true;
 			}
 			else {
 				++en;
+			}
+		}
+		for (auto ast = asteroids->begin(); ast != asteroids->end(); ) {
+			if ((*ast)->Hit(position_, glm::length((*ast)->GetScale()) * 0.9)) {
+				ast = asteroids->erase(ast);
+				collide = true;
+			}
+			else {
+				++ast;
 			}
 		}
 
@@ -212,6 +222,20 @@ namespace game {
 					++en;
 				}
 			}
+			for (auto ast = asteroids->begin(); ast != asteroids->end(); ) {
+			
+				if ((*ast)->Hit((*it)->GetPosition(), glm::length((*ast)->GetScale()) * 1.2)) {
+					std::cout << "\nHIT\n";
+					it = missiles.erase(it);
+					asteroids->erase(ast);
+					removed = true;
+					break;
+
+				}
+				else {
+					++ast;
+				}
+			}
 			if (!removed) {
 				++it;
 			}
@@ -225,6 +249,10 @@ namespace game {
 		return projectileTypes[projType];
 	}
 	void Player::Update(float deltaTime) {
+		Translate(c_->GetForward() * getCurSpeed() *deltaTime);
+		c_->Translate(c_->GetForward() * getCurSpeed() *deltaTime);
+		Collision();
+
 		//update the missiles and check if they exist or not. 
 		//std::cout << "mypos is " << position_.x << " "<< position_.y << " "<< position_.z << std::endl;
 		
@@ -236,6 +264,8 @@ namespace game {
 			}
 			else {
 				int a;
+				*it = NULL;
+				std::cout << "DEAD";
 				it = missiles.erase(it);
 			}
 
@@ -246,5 +276,26 @@ namespace game {
 			//particles_->Rotate(-90, glm::vec3(0, 1, 0));
 		}
 
+	}
+
+
+	float Player::getCurSpeed() const {
+		if (boosted_) {
+			return boost_speed_+movement_speed;
+		}
+		else {
+			return movement_speed;
+		}
+	}
+
+	void Player::setCam(Camera* c) {
+		c_ = c;
+	}
+
+	void Player::setAsteroids(std::vector<SceneNode*>* a) {
+		asteroids = a;
+	}
+	void Player::setEnemies(std::vector<Enemy*>* e) {
+		enemies = e;
 	}
 }
