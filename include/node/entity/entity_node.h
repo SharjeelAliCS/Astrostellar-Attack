@@ -10,7 +10,6 @@
 #define ENTITY_NODE_H_
 #include "scene_node.h"
 #include "particle_node.h"
-
 namespace game {
 
 	// Stores the enemy object, which for the demo is simply a "planet". It is a child of the GameObj class. 
@@ -36,9 +35,9 @@ namespace game {
 		void SetParticleSystem(ParticleNode* particles);
 		ParticleNode* GetParticle(void);
 		void Update(float deltaTime);
-		void Draw(Camera *camera);
 
 	protected:
+
 		float health_;
 		float max_health_;
 		//float speed_;

@@ -46,7 +46,6 @@ namespace game {
 		void SetBoosted(int i);
 		int GetBoosted(void) const;
 		float GetBoostSpeed(void) const;
-		
 		std::map<std::string, int> getUpgrades(void) const {return upgrades;}
 
 		float getCurSpeed() const;
@@ -58,6 +57,8 @@ namespace game {
 
 		void setAsteroids(std::vector<SceneNode*>* a);
 		void setEnemies(std::vector<Enemy*>* e);
+		std::string GetCurrentWeapon(void) const;
+		// Update the node
 
 
 	private:

@@ -68,14 +68,5 @@ namespace game {
 		particles_ = particles;
 	}
 
-	void Entity::Draw(Camera *camera) {
-		
-		if (particles_ != NULL) {
-			int a = 4;
-			particles_->Draw(camera);
-		}
-		SceneNode::Draw(camera);
-	}
-
 
 }

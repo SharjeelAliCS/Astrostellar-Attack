@@ -13,7 +13,7 @@ void main (void)
    // Get pixel from texture
     vec4 outval = texture(tex_samp, tex_coord);
     // Adjust specified object color according to the grayscale texture value
-    outval = vec4(outval.r*color.r, outval.g*color.g, outval.b*color.b, frag_color.a*0.7);
+    outval = vec4(outval.r*color.r, outval.g*color.g, outval.b*color.b, frag_color.a*0.5);
     // Set output fragment color
     gl_FragColor = outval;
 }

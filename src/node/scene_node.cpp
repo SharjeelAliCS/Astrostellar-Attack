@@ -52,6 +52,8 @@ SceneNode::SceneNode(const std::string name, const Resource *geometry, const Res
 	orientation_->SetView(glm::vec3(0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
 	joint_ = glm::vec3(0);
 	parentTransform_ = glm::mat4(1);
+	blending_ = false;
+	color_ = glm::vec3(1);
 }
 
 
@@ -64,6 +66,9 @@ const std::string SceneNode::GetName(void) const {
 }
 
 
+bool SceneNode::GetBlending(void) const {
+	return blending_;
+}
 glm::vec3 SceneNode::GetPosition(void) const {
     return position_;
 }
@@ -89,6 +94,9 @@ void SceneNode::SetPosition(glm::vec3 position,bool newOrgPos){
 	org_pos_ = position;
 }
 
+void SceneNode::SetColor(glm::vec3 c) {
+	color_ = c;
+}
 SceneNode* SceneNode::GetChild(std::string child) {
 	for (std::vector<SceneNode*>::iterator it = children_.begin(); it != children_.end(); ++it) {
 		return (*it);
@@ -96,9 +104,19 @@ SceneNode* SceneNode::GetChild(std::string child) {
 	return NULL;
 }
 
+
+void SceneNode::SetAudio(Audio* audio) {
+	audio_ = audio;
+}
+void SceneNode::SetTexture(Resource* texture) {
+	texture_ = texture->GetResource();
+}
 void SceneNode::SetOrientation(float angle, glm::vec3 normal) {
 	
 	orientation_->SetOrientation(glm::angleAxis(angle*glm::pi<float>() / 180.0f, normal));
+}
+void SceneNode::SetBlending(bool blending) {
+	blending_ = blending;
 }
 
 void SceneNode::SetOrientation(glm::quat orientation) {
@@ -226,12 +244,49 @@ GLuint SceneNode::GetMaterial(void) const {
     return material_;
 }
 
+void SceneNode::SetupBlending(void) {
+	if (blending_) {
+		// Disable z-buffer
+		glDisable(GL_DEPTH_TEST);
+
+		// Enable blending
+		glEnable(GL_BLEND);
+		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // Simpler form
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
+	}
+	else {
+		// Enable z-buffer
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
+		glDisable(GL_BLEND);
+	}
+}
 void SceneNode::Draw(Camera *camera){
 	if (!draw_)return;
+	SetupBlending();
+	/*
+	//https://stackoverflow.com/questions/6301085/how-to-check-if-an-object-lies-outside-the-clipping-volume-in-opengl
+	glm::mat4 view_mat = camera->GetView();
+	glm::vec4 Pclip = view_mat * glm::vec4(position_, 1.);
+	if(not( abs(Pclip.x) < Pclip.w &&
+		abs(Pclip.y) < Pclip.w &&
+		abs(Pclip.z) < Pclip.w)){
+		return;
+		}
+	else {
+	}
+	*/
+	
+	glm::vec3 view_plane = camera->GetForward();
+	if (glm::dot(view_plane, (position_-camera->GetPosition())) < 0 &&
+		glm::distance(camera->GetPosition(), position_)< camera->GetFarDistance()) {
+		return;
+	}
     // Select proper material (shader program)
     glUseProgram(material_);
 
-	glEnable(GL_BLEND);
+	//glEnable(GL_BLEND);
 
     // Set geometry to draw
     glBindBuffer(GL_ARRAY_BUFFER, array_buffer_);
@@ -334,6 +389,10 @@ void SceneNode::SetupShader(GLuint program, Camera* camera){
 		glBindTexture(GL_TEXTURE_2D, normal_map_); // normal texture we bind
 	}
 
+
+	//color
+	GLint color = glGetUniformLocation(program, "color");
+	glUniform3f(color, color_.x, color_.y, color_.z);
 
     // Timer
     GLint timer_var = glGetUniformLocation(program, "timer");
