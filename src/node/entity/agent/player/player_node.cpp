@@ -36,6 +36,7 @@ namespace game {
 		boosted_ = 0;
 		movement_speed = 20;
 		boost_speed_ = 4*movement_speed;
+		first_person_ = true;
 
 
 		//resman_ refuses to be global, likely because I'm being dumbass.
@@ -147,6 +148,7 @@ namespace game {
 
 		double shotTime = lastShotTime + rof[projType] * ((projectileTypes[projType].compare("pursuer") == 0) ? (2 - pow(1.1, upgrades["pursuerROFLevel"])) : 1);
 		if (glfwGetTime() > shotTime) {
+			audio_->playAgain("missileShot");
 			Projectile* missile;
 			int numShots = 1;
 			if (weapon.compare("shotgun") == 0) {
@@ -155,8 +157,16 @@ namespace game {
 			}
 			for (int i = 0; i < numShots; i++) {
 				missile = new Projectile("missile", weapon, upgrades, asteroids, comets, enemies, geo, mat, tex);
-				missile->SetOrientation(this->GetOrientation());
-				missile->setSpeed(this->getCurSpeed());
+
+				missile->SetOrientation(GetOrientation());
+				if (!first_person_) {
+					glm::vec3 objPos = (float)300 * c_->GetForward() + c_->GetPosition();
+					//missile->GetOrientationObj()->SetView(objPos, position_, glm::vec3(0, 1, 0));
+					missile->GetOrientationObj()->RotateTowards(position_, objPos);
+
+				}
+
+				missile->setSpeed(this->getCurSpeed()*3);
 				missile->init();
 				missile->SetPosition(position_);
 				missiles.push_back(missile);

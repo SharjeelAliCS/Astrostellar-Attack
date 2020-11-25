@@ -37,6 +37,7 @@ namespace game {
 
 		//Set the max range it can be as a function of time
 		void SetTTL(double t);
+		double GetTTL(void) const { return ttl; }
 		void displayStats();
 
 	private:

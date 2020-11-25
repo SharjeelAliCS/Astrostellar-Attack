@@ -44,7 +44,7 @@ namespace game {
 		void Roll(float angle);
 
 		void SetView(glm::vec3 position, glm::vec3 look_at, glm::vec3 up);
-
+		void RotateTowards(glm::vec3 cur_pos, glm::vec3 target_pos);
 	private:
 		glm::vec3 forward_; // Initial forward vector
 		glm::vec3 side_; // Initial side vector

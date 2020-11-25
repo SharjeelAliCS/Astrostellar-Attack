@@ -130,7 +130,6 @@ namespace game {
 		if (start_time_ == -1)start_time_ = current_time;
 		glUniform1f(timer_var, (float)current_time);
 
-
 		GLint start_var = glGetUniformLocation(program, "start_time");
 		glUniform1f(start_var, (float)start_time_);
 

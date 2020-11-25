@@ -110,10 +110,12 @@ namespace game {
 			void UpdateScreenSizeNodes(float x, float y);
 
 			void SetDeathAnimation(DeathAnimation dm);
+			void SetAudio(Audio* a) { audio_ = a; }
 		private:
 			// Background color
 			glm::vec3 background_color_;
 
+			Audio* audio_;
 			// Scene nodes to render
 			Player* player_;
 			SkyBox* skybox_;

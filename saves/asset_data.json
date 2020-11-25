@@ -79,6 +79,8 @@
 
     },
     "SoundEffects": {
-      "playerEngine": "46504_phreaksaccount_shipengine.mp3"
+      "playerEngine": "46504_phreaksaccount_shipengine.mp3",
+      "asteroidExplosion": "smartsound-cinematic-impact-eruption-01_EDfmymnR.mp3",
+      "missileShot": "36847__ecodtr__laserrocket2.mp3"
     }
 }

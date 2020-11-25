@@ -20,7 +20,7 @@ float camera_far_clip_distance_g = 3000.0;
 float camera_fov_g = 40.0; // Field-of-view of camera
 const glm::vec3 viewport_background_color_g(0.0, 0.0, 0.0);
 glm::vec3 camera_position_1st_g(0, 0, 1);
-glm::vec3 camera_position_3rd_g(0, -1.5, 10);
+glm::vec3 camera_position_3rd_g(0, -1.5, 8);
 glm::vec3 camera_look_at_g(-0.0, -0, 0);
 glm::vec3 camera_up_g(0.0, 1.0, 0.0);
 
@@ -128,7 +128,6 @@ void Game::SetupResources(void){
 	resman_.CreateTorus("SimpleTorusMesh");
 	resman_.CreateCube("c",3,3,3);
 	
-
 	resman_.CreateSphereParticles("particleExplosion", 2000);
 	resman_.CreateJetParticles("particleStream", 20000);
 	resman_.CreateCometParticles("cometParticles", 3000);
@@ -191,12 +190,14 @@ void Game::SetupResources(void){
 
 	audio_->volume("ambience", 100);
 	audio_->volume("playerEngine", 300);
+	audio_->volume("asteroidExplosion", 200);
+	audio_->volume("missileShot", 30);
 	audio_->playRepeat("ambience");
 	
 }
 
 void Game::SetupScene(void){
-
+	scene_.SetAudio(audio_);
 	NodeResources rsc = GetResources("particleExplosion", "ExplosionParticleMaterial", "jetParticleTexture", "");
 	DeathAnimation da;
 	da.obj = rsc["geom"];
@@ -239,11 +240,15 @@ void Game::SetupScene(void){
 	pn->SetColor(glm::vec3(0, 0.749, 1));
 	//pn->SetJoint(glm::vec3(0, 0, -1));
 	//scene_.GetPlayer()->SetParticleSystem(pn);
+
 	scene_.GetPlayer()->AddChild(pn);
+	//scene_.GetPlayer()->AddChild(test);
 	scene_.GetScreen("cockpit")->SetDraw(true);
 	scene_.GetPlayer()->SetDraw(false);
 	camera_.SetZoom(0);
 	SetSaveState();
+
+
 
 
 	scene_.UpdateScreenSizeNodes(window_width, window_height);
@@ -277,6 +282,7 @@ void Game::MainLoop(void){
 	player->setEnemies(scene_.GetEnemies());
 	player->setDeathAnimations(scene_.GetDeathAnimations());
 	player->setCam(&camera_);
+
     while (!glfwWindowShouldClose(window_)){
 
 		static double last_time = glfwGetTime();
@@ -299,7 +305,6 @@ void Game::MainLoop(void){
 				//player->SetShields(sin(deltaTime* 100 *t) / 2 + 0.5);
 
 				float s = player->GetShields();
-				std::cout << "shields is " << s << std::endl;
 				scene_.GetScreen("healthBar")->SetProgress(player->getHealthPercent());
 				scene_.GetScreen("shieldBar")->SetProgress(player->GetShieldPercent());
 
@@ -376,7 +381,6 @@ void Game::GetUserInput(float deltaTime) {
 			}
 		
 	}
-	
 
 	
 	if (animating_) {
@@ -399,7 +403,6 @@ void Game::GetUserInput(float deltaTime) {
 			player->nextWeapon();
 			timeOfLastMove = glfwGetTime();
 		}
-
 		//move the player forward as well as the camera
 		if (glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
 		//if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS) {
@@ -500,6 +503,7 @@ void Game::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	if (curr_zoom < 5) {
 		if (yoffset > 0) {
 			game->first_person_ = false;
+			game->scene_.GetPlayer()->SetFirstPerson(false);
 			game->scene_.GetScreen("cockpit")->SetDraw(false);
 			game->scene_.GetPlayer()->SetDraw(true);
 			game->camera_.Zoom(5 + yoffset);
@@ -507,6 +511,7 @@ void Game::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 		}
 		else {
 			game->first_person_ = true;
+			game->scene_.GetPlayer()->SetFirstPerson(true);
 			game->scene_.GetScreen("cockpit")->SetDraw(true);
 			game->scene_.GetPlayer()->SetDraw(false);
 			game->camera_.SetZoom(0);
@@ -552,7 +557,7 @@ void Game::CreateAsteroids(int num_asteroids){
 }
 
 void Game::CreateComets(int num_comets) {
-	float radius = 100;
+	float radius = 4000;
 	for (int i = 0; i < num_comets; i++) {
 		// Create instance name
 		std::stringstream ss;

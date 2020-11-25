@@ -65,10 +65,10 @@ namespace game {
 		std::string GetCurrentWeapon(void) const;
 		void damage(float dmg);
 		// Update the node
-
+		void SetFirstPerson(bool f) { first_person_ = f; }
 
 	private:
-
+		bool first_person_;
 		int projType;
 		const int numWeapons = 6;
 		std::string projectileTypes[6] = { "laserBattery", "pursuer", "chargeBlast", "sniperShot", "shotgun", "naniteTorpedo"};

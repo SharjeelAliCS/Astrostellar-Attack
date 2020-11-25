@@ -37,6 +37,7 @@
     "player_stats": {
         "kills": 0,
         "level": 1,
+        "shield_recharge_time": 30,
         "ship_base_health": 100,
         "ship_base_shield": 100
     },

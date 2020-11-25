@@ -30,6 +30,7 @@ SceneGraph::SceneGraph(void){
 	active_menu_ = HUD_MENU;
 
 	radar_distance_ = 1000;
+	audio_ = NULL;
 
 }
 
@@ -288,6 +289,7 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 			ast = asteroid_->erase(ast);
 			node->damage(20);
 			collided = true;
+			if (player)audio_->playAgain("asteroidExplosion");
 		}
 		else {
 			++ast;
@@ -300,6 +302,7 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 			ast = enemy_->erase(ast);
 			node->damage(20);
 			collided = true;
+			if (player)audio_->playAgain("asteroidExplosion");
 		}
 		else {
 			++ast;
@@ -312,6 +315,7 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 			ast = comet_->erase(ast);
 			node->damage(20);
 			collided = true;
+			if (player)audio_->playAgain("asteroidExplosion");
 		}
 		else {
 			++ast;

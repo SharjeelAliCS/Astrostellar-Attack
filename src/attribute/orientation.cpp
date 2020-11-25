@@ -94,6 +94,21 @@ namespace game {
 		orientation_ = glm::normalize(orientation_);
 	}
 
+	//taken from https://gamedev.net/forums/topic/493428-rotate-an-object-to-face-a-target-in-3d-space/4218536/
+	void Orientation::RotateTowards(glm::vec3 cur_pos, glm::vec3 target_pos) {
+		glm::vec3 forw = GetForward();
+		glm::vec3 distance = target_pos - cur_pos;
+		glm::vec3 dis = glm::normalize(distance);
+		glm::vec3 axis = glm::cross(forw, dis);
+		axis = glm::normalize(axis);
+
+		float cosa = glm::dot(forw, dis);
+		float angle = acos(cosa);
+		glm::quat qu = glm::angleAxis(angle, axis);
+
+
+		Rotate(qu);
+	}
 	void Orientation::SetView(glm::vec3 position, glm::vec3 look_at, glm::vec3 up) {
 		// Store initial forward and side vectors
 		// See slide in "Camera control" for details
