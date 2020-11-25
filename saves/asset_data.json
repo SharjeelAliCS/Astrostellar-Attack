@@ -9,6 +9,7 @@
       "NormalMaterial": "/textured_normal_material",
       "RadarMaterial": "/radar",
       "ParticleMaterial": "/particle_stream",
+      "ExplosionParticleMaterial": "/particle_explosion",
       "CometParticleMaterial": "/particle_comet",
       "SkyBoxMaterial": "/skybox"
     },

@@ -10,15 +10,17 @@ include_directories(${PROJECT_SOURCE_DIR}/include/node)
 include_directories(${PROJECT_SOURCE_DIR}/src/node)
 include_directories(${PROJECT_SOURCE_DIR}/include/node/entity)
 include_directories(${PROJECT_SOURCE_DIR}/include/node/screen)
-include_directories(${PROJECT_SOURCE_DIR}/include/node/entity/enemy)
+include_directories(${PROJECT_SOURCE_DIR}/include/node/entity/agent)
+include_directories(${PROJECT_SOURCE_DIR}/include/node/entity/agent/enemy)
+include_directories(${PROJECT_SOURCE_DIR}/include/node/entity/agent/player)
 include_directories(${PROJECT_SOURCE_DIR}/include/node/entity/obstacle)
-include_directories(${PROJECT_SOURCE_DIR}/include/node/entity/player)
 
 include_directories(${PROJECT_SOURCE_DIR}/src/node/entity)
 include_directories(${PROJECT_SOURCE_DIR}/src/node/screen)
-include_directories(${PROJECT_SOURCE_DIR}/src/node/entity/enemy)
+include_directories(${PROJECT_SOURCE_DIR}/src/node/entity/agent)
+include_directories(${PROJECT_SOURCE_DIR}/src/node/entity/agent/enemy)
+include_directories(${PROJECT_SOURCE_DIR}/src/node/entity/agent/player)
 include_directories(${PROJECT_SOURCE_DIR}/src/node/entity/obstacle)
-include_directories(${PROJECT_SOURCE_DIR}/src/node/entity/player)
 include_directories(${PROJECT_SOURCE_DIR}/include/world)
 include_directories(${PROJECT_SOURCE_DIR}/src/world)
 include_directories(${PROJECT_SOURCE_DIR}/include/setup)
@@ -42,8 +44,11 @@ set(HDRS
 
     ${PROJECT_SOURCE_DIR}/include/node/entity/entity_node.h
 
-    ${PROJECT_SOURCE_DIR}/include/node/entity/enemy/enemy_node.h
-    ${PROJECT_SOURCE_DIR}/include/node/entity/enemy/boss_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/entity/agent/agent_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/entity/agent/player/player_node.h
+
+    ${PROJECT_SOURCE_DIR}/include/node/entity/agent/enemy/enemy_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/entity/agent/enemy/boss_node.h
 
     ${PROJECT_SOURCE_DIR}/include/node/entity/obstacle/obstacle_node.h
     ${PROJECT_SOURCE_DIR}/include/node/entity/obstacle/comet_node.h
@@ -51,7 +56,6 @@ set(HDRS
     ${PROJECT_SOURCE_DIR}/include/node/entity/obstacle/satellite_node.h
     ${PROJECT_SOURCE_DIR}/include/node/entity/obstacle/sun_node.h
 
-    ${PROJECT_SOURCE_DIR}/include/node/entity/player/player_node.h
 
     ${PROJECT_SOURCE_DIR}/include/node/entity/projectile_node.h
 
@@ -82,16 +86,18 @@ set(SRCS
 
     ${PROJECT_SOURCE_DIR}/src/node/entity/entity_node.cpp
 
-    ${PROJECT_SOURCE_DIR}/src/node/entity/enemy/enemy_node.cpp
-    ${PROJECT_SOURCE_DIR}/src/node/entity/enemy/boss_node.cpp
+
+    ${PROJECT_SOURCE_DIR}/src/node/entity/agent/agent_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/node/entity/agent/player/player_node.cpp
+
+    ${PROJECT_SOURCE_DIR}/src/node/entity/agent/enemy/enemy_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/node/entity/agent/enemy/boss_node.cpp
 
     ${PROJECT_SOURCE_DIR}/src/node/entity/obstacle/obstacle_node.cpp
     ${PROJECT_SOURCE_DIR}/src/node/entity/obstacle/comet_node.cpp
     ${PROJECT_SOURCE_DIR}/src/node/entity/obstacle/asteroid_node.cpp
     ${PROJECT_SOURCE_DIR}/src/node/entity/obstacle/satellite_node.cpp
     ${PROJECT_SOURCE_DIR}/src/node/entity/obstacle/sun_node.cpp
-
-    ${PROJECT_SOURCE_DIR}/src/node/entity/player/player_node.cpp
 
     ${PROJECT_SOURCE_DIR}/src/node/entity/projectile_node.cpp
 
@@ -138,6 +144,9 @@ set(RCRS
     ${PROJECT_SOURCE_DIR}/resource/particle_comet_fp.glsl
     ${PROJECT_SOURCE_DIR}/resource/particle_comet_vp.glsl
     ${PROJECT_SOURCE_DIR}/resource/particle_comet_gp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle_explosion_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle_explosion_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle_explosion_gp.glsl
     ${PROJECT_SOURCE_DIR}/resource/skybox_vp.glsl
     ${PROJECT_SOURCE_DIR}/resource/skybox_fp.glsl
 )

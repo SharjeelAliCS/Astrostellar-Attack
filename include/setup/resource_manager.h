@@ -49,6 +49,7 @@ namespace game {
 			void CreateCube(std::string object_name, float = 1, float h = 1, float d = 1);
 			// "Wall", a flat object
             void CreateWall(std::string object_name);
+			void CreateJetParticles(std::string object_name, int num_particles = 1000);
 			void CreateSphereParticles(std::string object_name, int num_particles = 1000);
 			void CreateCometParticles(std::string object_name, int num_particles = 1000);
 

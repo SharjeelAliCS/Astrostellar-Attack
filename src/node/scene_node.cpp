@@ -54,6 +54,7 @@ SceneNode::SceneNode(const std::string name, const Resource *geometry, const Res
 	parentTransform_ = glm::mat4(1);
 	blending_ = false;
 	color_ = glm::vec3(1);
+	exists_ = true;
 }
 
 

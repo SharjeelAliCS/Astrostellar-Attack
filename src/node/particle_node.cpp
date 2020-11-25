@@ -19,17 +19,27 @@
 namespace game {
 
 	ParticleNode::ParticleNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : SceneNode(name, geometry, material, texture, normal) {
+		duration_ = -1;
+		max_duration_ = -1;
+		start_time_ = -1;
 	}
 
 	ParticleNode::~ParticleNode() {
 	}
-
+	void ParticleNode::Update(float deltaTime) {
+		if (duration_ > 0) {
+			duration_ -= deltaTime;
+		}
+		else if(max_duration_!=-1){
+			exists_ = false;
+		}
+	}
 	void ParticleNode::Draw(Camera *camera) {
 	
-		if (!draw_)return;
+		if (!draw_ || !exists_)return;
 		SetupBlending();
-		// Select particle blending or not
 		
+		// Select particle blending or not
 		// Select proper material (shader program)
 		glUseProgram(material_);
 
@@ -117,7 +127,17 @@ namespace game {
 		// Timer
 		GLint timer_var = glGetUniformLocation(program, "timer");
 		double current_time = glfwGetTime();
+		if (start_time_ == -1)start_time_ = current_time;
 		glUniform1f(timer_var, (float)current_time);
+
+
+		GLint start_var = glGetUniformLocation(program, "start_time");
+		glUniform1f(start_var, (float)start_time_);
+
+		if (max_duration_ != -1) {
+			GLint duration_var = glGetUniformLocation(program, "duration");
+			glUniform1f(duration_var, (float)max_duration_);
+		}
 	}
 
 }

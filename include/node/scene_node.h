@@ -80,6 +80,9 @@ namespace game {
 		GLsizei GetSize(void) const;
 		GLuint GetMaterial(void) const;
 
+		void SetExists(bool e) {exists_ = e;}
+		bool GetExists(void) const { return exists_; }
+
 	protected:
 		Audio* audio_;
 		//Parent of a node

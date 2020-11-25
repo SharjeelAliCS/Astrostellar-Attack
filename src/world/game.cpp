@@ -128,7 +128,9 @@ void Game::SetupResources(void){
 	resman_.CreateTorus("SimpleTorusMesh");
 	resman_.CreateCube("c",3,3,3);
 	
-	resman_.CreateSphereParticles("particleStream", 20000);
+
+	resman_.CreateSphereParticles("particleExplosion", 2000);
+	resman_.CreateJetParticles("particleStream", 20000);
 	resman_.CreateCometParticles("cometParticles", 3000);
 
 	std::string filename;
@@ -194,6 +196,15 @@ void Game::SetupResources(void){
 }
 
 void Game::SetupScene(void){
+
+	NodeResources rsc = GetResources("particleExplosion", "ExplosionParticleMaterial", "jetParticleTexture", "");
+	DeathAnimation da;
+	da.obj = rsc["geom"];
+	da.mat = rsc["mat"];
+	da.tex = rsc["tex"];
+
+	scene_.SetDeathAnimation(da);
+
     // Set background color for the scene
     scene_.SetBackgroundColor(viewport_background_color_g);
 	
@@ -236,6 +247,7 @@ void Game::SetupScene(void){
 
 
 	scene_.UpdateScreenSizeNodes(window_width, window_height);
+
 }
 
 void Game::SetSaveState(void) {
@@ -243,9 +255,6 @@ void Game::SetSaveState(void) {
 	//access save data
 	Resource* dataResource = resman_.GetResource("save");
 	json data = dataResource->GetJSON();
-
-	//modify save data
-	data["fruit"] = "ace";
 
 	//output save data
 	dataResource->SetJSON(data);
@@ -262,6 +271,12 @@ void Game::MainLoop(void){
 	float second = glfwGetTime();
 	int fps = 0.0;
 	Player* player = scene_.GetPlayer();
+
+	player->setAsteroids(scene_.GetAsteroids());
+	player->setComets(scene_.GetComets());
+	player->setEnemies(scene_.GetEnemies());
+	player->setDeathAnimations(scene_.GetDeathAnimations());
+	player->setCam(&camera_);
     while (!glfwWindowShouldClose(window_)){
 
 		static double last_time = glfwGetTime();
@@ -271,10 +286,6 @@ void Game::MainLoop(void){
 		double deltaTime = current_time - last_time;
 		last_time = current_time;
 		// Animate the scene
-		Player* player = scene_.GetPlayer();
-		player->setCam(&camera_);
-		player->setAsteroids(scene_.GetAsteroids());
-		player->setEnemies(scene_.GetEnemies());
 
 		GetUserInput(deltaTime);
 		if (animating_) {
@@ -287,8 +298,10 @@ void Game::MainLoop(void){
 				//player->SetHealth(sin(deltaTime*100*t) / 2 + 0.5);
 				//player->SetShields(sin(deltaTime* 100 *t) / 2 + 0.5);
 
-				scene_.GetScreen("healthBar")->SetProgress(player->GetHealth());
-				scene_.GetScreen("shieldBar")->SetProgress(player->GetShields());
+				float s = player->GetShields();
+				std::cout << "shields is " << s << std::endl;
+				scene_.GetScreen("healthBar")->SetProgress(player->getHealthPercent());
+				scene_.GetScreen("shieldBar")->SetProgress(player->GetShieldPercent());
 
 				last_time = current_time;
 				t += 0.01;
@@ -540,7 +553,7 @@ void Game::CreateAsteroids(int num_asteroids){
 
 void Game::CreateComets(int num_comets) {
 	float radius = 100;
-	for (int i = 0; i < 1; i++) {
+	for (int i = 0; i < num_comets; i++) {
 		// Create instance name
 		std::stringstream ss;
 		ss << i;
@@ -553,7 +566,7 @@ void Game::CreateComets(int num_comets) {
 		// Set attributes of asteroid: random position, orientation, and
 		// angular momentum
 
-		//cmt->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
+		cmt->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
 		cmt->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float)rand() / RAND_MAX), glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX)))));
 		float scale = 3;
 		cmt->SetScale(glm::vec3(scale));

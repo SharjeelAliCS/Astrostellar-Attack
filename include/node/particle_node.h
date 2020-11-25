@@ -19,7 +19,15 @@ namespace game {
 		ParticleNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture = NULL, const Resource *normal = NULL);
 		~ParticleNode();
 		void Draw(Camera *camera);
+
+		void Update(float deltaTime);
+		void SetDuration(float d) { duration_ = d; max_duration_ = d; }
+		float GetDuration(void) const { return duration_; }
+		void SetStartTime(float t) { start_time_ = t; }
 	private:
+		float duration_;
+		float max_duration_;
+		float start_time_;
 		void SetupShader(GLuint program, Camera* camera);
 	}; // class GameObj
 

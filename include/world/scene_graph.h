@@ -20,6 +20,8 @@
 #include "asteroid_node.h"
 #include "button_node.h"
 #include "comet_node.h"
+#include "particle_node.h"
+#include "agent_node.h"
 #include "sound.h"
 #include "text.h"
 
@@ -45,6 +47,11 @@ namespace game {
 		NONE
 	};
 
+	struct DeathAnimation {
+		Resource* obj;
+		Resource* mat;
+		Resource* tex;
+	};
     // Class that manages all the objects in a scene
     class SceneGraph {
 
@@ -94,11 +101,15 @@ namespace game {
             // Update entire scene
             void Update(float deltaTime);
 
-			std::vector<SceneNode*>* GetAsteroids()const { return node_; };
+			std::vector<AsteroidNode*>* GetAsteroids()const { return asteroid_; };
+			std::vector<CometNode*>* GetComets()const { return comet_; };
 			std::vector<Enemy*>* GetEnemies()const { return enemy_; };
+			std::vector<ParticleNode*>* GetDeathAnimations()const { return death_animations_; };
+
 			std::string ButtonEvents(float x, float y);
 			void UpdateScreenSizeNodes(float x, float y);
 
+			void SetDeathAnimation(DeathAnimation dm);
 		private:
 			// Background color
 			glm::vec3 background_color_;
@@ -109,15 +120,18 @@ namespace game {
 			RadarNode* radar_;
 			std::vector<SceneNode*>* node_;
 			std::vector<Enemy *>* enemy_;
-			std::vector<SceneNode*> node_;
-			std::vector<AsteroidNode*> asteroid_;
-			std::vector<CometNode*> comet_;
-			std::vector<Enemy *> enemy_;
-
+			std::vector<AsteroidNode*>* asteroid_;
+			std::vector<CometNode*>* comet_;
+			std::vector<ParticleNode*>* death_animations_;
+			DeathAnimation death_animation_param_;
 			Text text;
 			std::map <ScreenType, std::vector<ScreenNode *>> screen_;
 			ScreenType active_menu_;
 			std::map<ScreenType, std::vector<ButtonNode *>> button_;
+
+			void CreateDeathAnimation(SceneNode* node);
+			bool Collision(Entity* node, bool player);
+			bool ProjectileCollision(AgentNode* node, bool player);
 
 			void UpdateRadar();
 			void UpdateRadarNode(glm::vec3 direction, glm::vec3 pos,glm::vec3 color);

@@ -33,7 +33,9 @@ namespace game {
 	void Entity::SetMovementSpeed(float s) {
 		movement_speed = s;
 	}
-
+	void Entity::damage(float dmg) {
+		if (health_ > 0)health_ -= dmg;
+	}
 	ParticleNode* Entity::GetParticle(void) {
 		return particles_;
 	}
@@ -44,6 +46,9 @@ namespace game {
 		return health_;
 	}
 
+	float Entity::getHealthPercent(void) const {
+		return health_ / max_health_;
+	}
 	void Entity::RotateOverTime(float rotation_speed, glm::vec3 rotation_normal) {
 		rotation_normal_ = rotation_normal;
 		rotation_speed_ = rotation_speed;

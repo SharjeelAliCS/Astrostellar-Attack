@@ -17,6 +17,9 @@ SceneGraph::SceneGraph(void){
 	skybox_ = NULL;
 	node_ = new std::vector<SceneNode*>;
 	enemy_ = new std::vector<Enemy*>;
+	comet_ = new std::vector<CometNode*>;
+	asteroid_ = new std::vector<AsteroidNode*>;
+	death_animations_ = new std::vector<ParticleNode*>;
 
 	for (int i = HUD_MENU; i != NONE+1; i++){
 		std::vector<ScreenNode*> screen;
@@ -83,7 +86,6 @@ SceneNode *SceneGraph::CreateNode(std::string node_name, Resource *geometry, Res
 	return scn;
 }
 
-
 void SceneGraph::AddNode(SceneNode *node){
     node_->push_back(node);
 }
@@ -124,37 +126,37 @@ void SceneGraph::AddEnemy(Enemy *node) {
 
 Enemy *SceneGraph::GetEnemy(std::string node_name) const {
 	// Find node with the specified name
-	for (int i = 0; i < enemy_.size(); i++) {
-		if (enemy_[i]->GetName() == node_name) {
-			return enemy_[i];
+	for (int i = 0; i < enemy_->size(); i++) {
+		if (enemy_->at(i)->GetName() == node_name) {
+			return enemy_->at(i);
 		}
 	}
 	return NULL;
 }
 
 void SceneGraph::AddAsteroid(AsteroidNode *node) {
-	asteroid_.push_back(node);
+	asteroid_->push_back(node);
 }
 
 AsteroidNode *SceneGraph::GetAsteroid(std::string node_name) const {
 	// Find node with the specified name
-	for (int i = 0; i < enemy_.size(); i++) {
-		if (asteroid_[i]->GetName() == node_name) {
-			return asteroid_[i];
+	for (int i = 0; i < asteroid_->size(); i++) {
+		if (asteroid_->at(i)->GetName() == node_name) {
+			return asteroid_->at(i);
 		}
 	}
 	return NULL;
 }
 
 void SceneGraph::AddComet(CometNode *node) {
-	comet_.push_back(node);
+	comet_->push_back(node);
 }
 
 CometNode *SceneGraph::GetComet(std::string node_name) const {
 	// Find node with the specified name
-	for (int i = 0; i < enemy_.size(); i++) {
-		if (comet_[i]->GetName() == node_name) {
-			return comet_[i];
+	for (int i = 0; i < comet_->size(); i++) {
+		if (comet_->at(i)->GetName() == node_name) {
+			return comet_->at(i);
 		}
 	}
 	return NULL;
@@ -214,11 +216,14 @@ void SceneGraph::Draw(Camera *camera){
 	for (int i = 0; i < enemy_->size(); i++) {
 		(*enemy_)[i]->Draw(camera);
 	}
-	for (int i = 0; i < asteroid_.size(); i++) {
-		asteroid_[i]->Draw(camera);
+	for (int i = 0; i < asteroid_->size(); i++) {
+		asteroid_->at(i)->Draw(camera);
 	}
-	for (int i = 0; i < comet_.size(); i++) {
-		comet_[i]->Draw(camera);
+	for (int i = 0; i < comet_->size(); i++) {
+		comet_->at(i)->Draw(camera);
+	}
+	for (int i = 0; i < death_animations_->size(); i++) {
+		death_animations_->at(i)->Draw(camera);
 	}
 	if(player_!=NULL)player_->Draw(camera);
 
@@ -246,8 +251,81 @@ void SceneGraph::Draw(Camera *camera){
 	
 }
 
+void SceneGraph::CreateDeathAnimation(SceneNode* node) {
+	std::string name = node->GetName() + "_death";
+	ParticleNode* pn = new ParticleNode(name,death_animation_param_.obj, death_animation_param_.mat, death_animation_param_.tex);
+	glm::vec3 scale = node->GetScale()*(float)0.1;
+	pn->SetScale(scale);
+	pn->SetPosition(node->GetPosition());
+	pn->SetBlending(true);
+	pn->SetColor(glm::vec3(0.58,0.29,0));
+	pn->SetDuration(0.5);
+	death_animations_->push_back(pn);
+}
+bool SceneGraph::ProjectileCollision(AgentNode* node, bool player) {
+	std::vector<Projectile*>* missiles = node->GetMissiles();
 
+	for (auto it = missiles->begin(); it != missiles->end(); ) {
+		bool removed = false;
+
+		removed = Collision((*it), player);
+		if (removed) {
+			it = missiles->erase(it);
+		}
+		else{
+			++it;
+		}
+	}
+	return true;
+
+
+}
+bool SceneGraph::Collision(Entity* node, bool player) {
+	bool collided = false;
+	for (auto ast = asteroid_->begin(); ast != asteroid_->end(); ) {
+		if ((*ast)->Hit(node->GetPosition(), glm::length((*ast)->GetScale()) * 0.9)) {
+			CreateDeathAnimation((*ast));
+			ast = asteroid_->erase(ast);
+			node->damage(20);
+			collided = true;
+		}
+		else {
+			++ast;
+		}
+	}
+
+	for (auto ast = enemy_->begin(); ast != enemy_->end(); ) {
+		if ((*ast)->Hit(node->GetPosition(), glm::length((*ast)->GetScale()) * 0.9)) {
+			CreateDeathAnimation((*ast));
+			ast = enemy_->erase(ast);
+			node->damage(20);
+			collided = true;
+		}
+		else {
+			++ast;
+		}
+	}
+
+	for (auto ast = comet_->begin(); ast != comet_->end(); ) {
+		if ((*ast)->Hit(node->GetPosition(), glm::length((*ast)->GetScale()) * 0.9)) {
+			CreateDeathAnimation((*ast));
+			ast = comet_->erase(ast);
+			node->damage(20);
+			collided = true;
+		}
+		else {
+			++ast;
+		}
+	}
+	return collided;
+}
+
+void SceneGraph::SetDeathAnimation(DeathAnimation dm) {
+	death_animation_param_ = dm;
+}
 void SceneGraph::Update(float deltaTime){
+	Collision(player_, true);
+	ProjectileCollision(player_, true);
 
 	if (player_ != NULL)player_->Update(deltaTime);
 	if (skybox_ != NULL)skybox_->Update(deltaTime);
@@ -258,11 +336,11 @@ void SceneGraph::Update(float deltaTime){
 	for (int i = 0; i < enemy_->size(); i++) {
 		(*enemy_)[i]->Update(deltaTime);
 	}
-	for (int i = 0; i < asteroid_.size(); i++) {
-		asteroid_[i]->Update(deltaTime);
+	for (int i = 0; i < asteroid_->size(); i++) {
+		asteroid_->at(i)->Update(deltaTime);
 	}
-	for (int i = 0; i < comet_.size(); i++) {
-		comet_[i]->Update(deltaTime);
+	for (int i = 0; i < comet_->size(); i++) {
+		comet_->at(i)->Update(deltaTime);
 	}
 	for (int i = 0; i < screen_.at(NONE).size(); i++) {
 		screen_.at(NONE)[i]->Update(deltaTime);
@@ -282,16 +360,25 @@ void SceneGraph::Update(float deltaTime){
 			screen_.at(NONE)[i]->Update(deltaTime);
 		}
 	}
+	for (auto ast = death_animations_->begin(); ast != death_animations_->end(); ) {
+		(*ast)->Update(deltaTime);
+		if (!(*ast)->GetExists()) {
+			ast = death_animations_->erase(ast);
+		}
+		else {
+			++ast;
+		}
+	}
 	UpdateRadar();
 }
 
 void SceneGraph::UpdateRadar() {
 	glm::vec3 direction = player_->GetOrientationObj()->GetForward();
-	for (int i = 0; i < asteroid_.size(); i++) {
-		UpdateRadarNode(direction, asteroid_[i]->GetPosition(),glm::vec3(1,1,0));
+	for (int i = 0; i < asteroid_->size(); i++) {
+		UpdateRadarNode(direction, asteroid_->at(i)->GetPosition(),glm::vec3(1,1,0));
 	}
-	for (int i = 0; i < comet_.size(); i++) {
-		UpdateRadarNode(direction, comet_[i]->GetPosition(), glm::vec3(1, 1, 0));
+	for (int i = 0; i < comet_->size(); i++) {
+		UpdateRadarNode(direction, comet_->at(i)->GetPosition(), glm::vec3(1, 1, 0));
 	}
 	for (int i = 0; i < enemy_->size(); i++) {
 		UpdateRadarNode(direction, (*enemy_)[i]->GetPosition(), glm::vec3(1, 0, 0));
