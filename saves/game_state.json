@@ -16,8 +16,6 @@
         "stellaranite_Fragments": 0,
         "stellaranite_Slabs": 0
     },
-    "kills": 0,
-    "level": 1,
     "loadout": {
         "barrier": 1,
         "battery_Overcharge": 1,
@@ -32,6 +30,16 @@
         "release_Interceptors": 1,
         "shotgun": 1,
         "sniper": 1
+    },
+    "obstacle_stats": {
+        "damage": 20
+    },
+    "player_stats": {
+        "kills": 0,
+        "level": 1,
+        "shield_recharge_time": 30,
+        "ship_base_health": 100,
+        "ship_base_shield": 100
     },
     "playtime": 0,
     "size": "Large",

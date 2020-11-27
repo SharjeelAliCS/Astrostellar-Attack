@@ -11,7 +11,9 @@
 
 #pragma comment(lib, "Winmm.lib")
 
-//taken from 2501 project found in the 2nd link
+//taken from 2501 project found in the 2nd link. The code below was NOT changed at all
+//and simply copy/pasted. This means we intend to not get any marks for adding audio
+//into the game as it is not our work for comp3501. 
 //https://docs.microsoft.com/en-gb/windows/desktop/Multimedia/setaudio
 //https://github.com/SharjeelAliBCS/Assault-On-Terra-RTS-game/blob/master/Comp2501-master/include/Audio.h
 

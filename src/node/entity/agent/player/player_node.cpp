@@ -25,7 +25,7 @@
 
 namespace game {
 
-	Player::Player(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : Entity(name, geometry, material, texture,normal) {
+	Player::Player(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : AgentNode(name, geometry, material, texture,normal) {
 
 		geo = geometry;
 		mat = material;
@@ -36,6 +36,7 @@ namespace game {
 		boosted_ = 0;
 		movement_speed = 20;
 		boost_speed_ = 4*movement_speed;
+		first_person_ = true;
 
 
 		//resman_ refuses to be global, likely because I'm being dumbass.
@@ -125,6 +126,9 @@ namespace game {
 		return shields_;
 	}
 
+	float Player::GetShieldPercent(void) const {
+		return shields_ / max_shields_;
+	}
 
 	//tab to change weapon
 	void Player::nextWeapon() {
@@ -144,6 +148,7 @@ namespace game {
 
 		double shotTime = lastShotTime + rof[projType] * ((projectileTypes[projType].compare("pursuer") == 0) ? (2 - pow(1.1, upgrades["pursuerROFLevel"])) : 1);
 		if (glfwGetTime() > shotTime) {
+			audio_->playAgain("missileShot");
 			Projectile* missile;
 			int numShots = 1;
 			if (weapon.compare("shotgun") == 0) {
@@ -151,9 +156,17 @@ namespace game {
 
 			}
 			for (int i = 0; i < numShots; i++) {
-				missile = new Projectile("missile", weapon, upgrades, asteroids, enemies, geo, mat, tex);
-				missile->SetOrientation(this->GetOrientation());
-				missile->setSpeed(this->getCurSpeed());
+				missile = new Projectile("missile", weapon, upgrades, asteroids, comets, enemies, geo, mat, tex);
+
+				missile->SetOrientation(GetOrientation());
+				if (!first_person_) {
+					glm::vec3 objPos = (float)300 * c_->GetForward() + c_->GetPosition();
+					//missile->GetOrientationObj()->SetView(objPos, position_, glm::vec3(0, 1, 0));
+					missile->GetOrientationObj()->RotateTowards(position_, objPos);
+
+				}
+
+				missile->setSpeed(this->getCurSpeed()*3);
 				missile->init();
 				missile->SetPosition(position_);
 				missiles.push_back(missile);
@@ -184,13 +197,24 @@ namespace game {
 
 	}
 
+	void Player::damage(float dmg) {
+		if (shields_ > 0) {
+			shields_ -= dmg;
+		}
+		else if (health_ > 0) {
+			health_ -= dmg;
+		}
+		int a = 45;
+	}
 	bool Player::Collision() {
 		//check for collisions with player, set collide to true/false depending/ 
 		bool collide = false;
+		/*
 		for (auto en = enemies->begin(); en != enemies->end(); ) {
 			if ((*en)->Hit(position_, glm::length((*en)->GetScale()) * 1.0)) {
 				en = enemies->erase(en);
 				collide = true;
+				damage(20);
 			}
 			else {
 				++en;
@@ -200,12 +224,24 @@ namespace game {
 			if ((*ast)->Hit(position_, glm::length((*ast)->GetScale()) * 0.9)) {
 				ast = asteroids->erase(ast);
 				collide = true;
+				damage(20);
 			}
 			else {
 				++ast;
 			}
 		}
 
+		for (auto ast = comets->begin(); ast != comets->end(); ) {
+			if ((*ast)->Hit(position_, glm::length((*ast)->GetScale()) * 0.9)) {
+				ast = comets->erase(ast);
+				collide = true;
+				damage(20);
+			}
+			else {
+				++ast;
+			}
+		}
+		
 		//Check for collisions with missiles and remove both fromo their vectors. 
 		for (auto it = missiles.begin(); it != missiles.end(); ) {
 			bool removed = false;
@@ -243,6 +279,8 @@ namespace game {
 			
 		}
 		return collide;
+		*/
+		return true;
 	}
 
 	std::string Player::GetCurrentWeapon(void) const {
@@ -272,9 +310,6 @@ namespace game {
 		}
 	
 		Entity::Update(deltaTime);
-		if (particles_ != NULL) {
-			//particles_->Rotate(-90, glm::vec3(0, 1, 0));
-		}
 
 	}
 
@@ -292,10 +327,15 @@ namespace game {
 		c_ = c;
 	}
 
-	void Player::setAsteroids(std::vector<SceneNode*>* a) {
+	void Player::setAsteroids(std::vector<AsteroidNode*>* a) {
 		asteroids = a;
+	}void Player::setComets(std::vector<CometNode*>* a) {
+		comets = a;
 	}
 	void Player::setEnemies(std::vector<Enemy*>* e) {
 		enemies = e;
+	}
+	void Player::setDeathAnimations(std::vector<ParticleNode*>* p) {
+		death_animations_ = p;
 	}
 }

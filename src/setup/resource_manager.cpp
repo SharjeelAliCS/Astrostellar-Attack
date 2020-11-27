@@ -1175,7 +1175,7 @@ void ResourceManager::CreateWall(std::string object_name){
     AddResource(Mesh, object_name, vbo, ebo, 2 * 3);
 }
 
-void ResourceManager::CreateSphereParticles(std::string object_name, int num_particles) {
+void ResourceManager::CreateJetParticles(std::string object_name, int num_particles) {
 
 	// Create a set of points which will be the particles
 	// This is similar to drawing a sphere: we will sample points on a sphere, but will allow them to also deviate a bit from the sphere along the normal (change of radius)
@@ -1284,6 +1284,76 @@ void ResourceManager::CreateCometParticles(std::string object_name, int num_part
 		// Define the normal and point based on theta, phi and the spray; normal will be used as velocity
 		//glm::vec3 normal(0.2*spray*cos(theta)*sin(phi), spray*tmod * 1, 0.2*spray*cos(phi));
 		glm::vec3 normal(spray*cos(theta)*sin(phi), 0, spray*cos(phi));
+		glm::vec3 position(normal.x*trad, normal.y*trad, normal.z*trad);
+		glm::vec3 color(i / (float)num_particles, 0.0, 1.0 - (i / (float)num_particles)); // The red channel of the color stores the particle id
+
+		// Add vectors to the data buffer
+		for (int k = 0; k < 3; k++) {
+			particle[i*particle_att + k] = position[k];
+			particle[i*particle_att + k + 3] = normal[k];
+			particle[i*particle_att + k + 6] = color[k];
+		}
+
+		//time
+		particle[i*particle_att + 9] = 0.2;
+		particle[i*particle_att + 10] = 0.2;
+		particle[i*particle_att + 11] = tmod;
+
+	}
+	// Create OpenGL buffer and copy data
+	GLuint vbo;
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, num_particles * particle_att * sizeof(GLfloat), particle, GL_STATIC_DRAW);
+
+	// Free data buffers
+	delete[] particle;
+
+	// Create resource
+	AddResource(PointSet, object_name, vbo, 0, num_particles);
+}
+
+
+void ResourceManager::CreateSphereParticles(std::string object_name, int num_particles) {
+
+	// Create a set of points which will be the particles
+	// This is similar to drawing a sphere: we will sample points on a sphere, but will allow them to also deviate a bit from the sphere along the normal (change of radius)
+
+	// Data buffer
+	GLfloat *particle = NULL;
+	// Number of attributes per particle: position (3), normal (3), color (3), texture coordinates (2), time (1)
+	const int particle_att = 12;
+
+	// Allocate memory for buffer
+	try {
+		particle = new GLfloat[num_particles * particle_att];
+	}
+	catch (std::exception &e) {
+		throw e;
+	}
+
+	float trad = 0.2; // Defines the starting point of the particles along the normal
+	float maxspray = 1; // This is how much we allow the points to deviate from the sphere
+	float u, v, w, theta, phi, spray, tmod; // Work variables
+
+	for (int i = 0; i < num_particles; i++) {
+
+		// Get three random numbers
+		u = ((double)rand() / (RAND_MAX));
+		v = ((double)rand() / (RAND_MAX));
+		w = ((double)rand() / (RAND_MAX));
+		tmod = ((double)rand() / (RAND_MAX));
+
+		// Use u to define the angle theta along one direction of the sphere
+		theta = u * 2.0*glm::pi<float>();
+		// Use v to define the angle phi along the other direction of the sphere
+		phi = acos(2.0*v - 1.0);
+		// Use w to define how much we can deviate from the surface of the sphere (change of radius)
+		spray = maxspray * pow((float)w, (float)(1.0 / 3.0)); // Cubic root of w
+
+		// Define the normal and point based on theta, phi and the spray; normal will be used as velocity
+		//glm::vec3 normal(0.2*spray*cos(theta)*sin(phi), spray*tmod * 1, 0.2*spray*cos(phi));
+		glm::vec3 normal(spray*cos(theta)*sin(phi), spray*sin(theta)*sin(phi), spray*cos(phi));
 		glm::vec3 position(normal.x*trad, normal.y*trad, normal.z*trad);
 		glm::vec3 color(i / (float)num_particles, 0.0, 1.0 - (i / (float)num_particles)); // The red channel of the color stores the particle id
 

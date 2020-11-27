@@ -1,16 +1,20 @@
 {
     "Shader": {
-      "TextureShader": "/textured_material",
-      "Procedural": "/procedural",
-      "ObjectMaterial": "/procedural",
-      "textMaterial": "/text",
-      "ScreenMaterial": "/screen",
-      "OverlayMaterial": "/overlay",
-      "NormalMaterial": "/textured_normal_material",
-      "RadarMaterial": "/radar",
-      "ParticleMaterial": "/particle_stream",
-      "CometParticleMaterial": "/particle_comet",
-      "SkyBoxMaterial": "/skybox"
+      "TextureShader": "/shader/textured_material",
+      "Procedural": "/shader/procedural",
+      "ObjectMaterial": "/shader/procedural",
+      "textMaterial": "/shader/text",
+      "ScreenMaterial": "/shader/screen",
+      "OverlayMaterial": "/shader/overlay",
+      "NormalMaterial": "/shader/textured_normal_material",
+      "RadarMaterial": "/shader/radar",
+      "SkyBoxMaterial": "/shader/skybox",
+      "ParticleMaterial": "/particle/particle_stream",
+      "ExplosionParticleMaterial": "/particle/particle_explosion",
+      "CometParticleMaterial": "/particle/particle_comet",
+      "ScreenBoostMaterial": "/screen/screen_space_boost",
+      "ScreenHealthMaterial": "/screen/screen_space_health",
+      "ScreenBloomMaterial": "/screen/screen_space_bloom"
     },
     "Mesh": {
       "pumpkin": "/Pumkin.obj",
@@ -78,6 +82,8 @@
 
     },
     "SoundEffects": {
-      "playerEngine": "46504_phreaksaccount_shipengine.mp3"
+      "playerEngine": "46504_phreaksaccount_shipengine.mp3",
+      "asteroidExplosion": "smartsound-cinematic-impact-eruption-01_EDfmymnR.mp3",
+      "missileShot": "36847__ecodtr__laserrocket2.mp3"
     }
 }

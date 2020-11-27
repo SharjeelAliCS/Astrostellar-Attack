@@ -21,8 +21,10 @@
 #include <glm/gtc/type_ptr.hpp>
 
 
-//This class and text was taken from the following link. The vast, vast majority (about 90%) of the 
+//This class and text was taken from the following link. The vast, vast majority (about 90%) of
 //code found in text.h and text.cpp is NOT MINE and belongs to the author of the link. 
+//this means we intend to NOT get any marks for adding in text as this code is not ours
+//for comp3501 and has a different author than us. 
 
 //Tutorial found here: https://learnopengl.com/In-Practice/Text-Rendering
 //Source code found here: https://learnopengl.com/code_viewer_gh.php?code=src/7.in_practice/2.text_rendering/text_rendering.cpp

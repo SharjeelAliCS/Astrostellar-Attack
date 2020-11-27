@@ -20,7 +20,7 @@ float camera_far_clip_distance_g = 3000.0;
 float camera_fov_g = 40.0; // Field-of-view of camera
 const glm::vec3 viewport_background_color_g(0.0, 0.0, 0.0);
 glm::vec3 camera_position_1st_g(0, 0, 1);
-glm::vec3 camera_position_3rd_g(0, -1.5, 10);
+glm::vec3 camera_position_3rd_g(0, -1.5, 8);
 glm::vec3 camera_look_at_g(-0.0, -0, 0);
 glm::vec3 camera_up_g(0.0, 1.0, 0.0);
 
@@ -128,7 +128,8 @@ void Game::SetupResources(void){
 	resman_.CreateTorus("SimpleTorusMesh");
 	resman_.CreateCube("c",3,3,3);
 	
-	resman_.CreateSphereParticles("particleStream", 20000);
+	resman_.CreateSphereParticles("particleExplosion", 2000);
+	resman_.CreateJetParticles("particleStream", 20000);
 	resman_.CreateCometParticles("cometParticles", 3000);
 
 	std::string filename;
@@ -189,11 +190,24 @@ void Game::SetupResources(void){
 
 	audio_->volume("ambience", 100);
 	audio_->volume("playerEngine", 300);
+	audio_->volume("asteroidExplosion", 200);
+	audio_->volume("missileShot", 30);
 	audio_->playRepeat("ambience");
 	
 }
 
 void Game::SetupScene(void){
+
+
+	scene_.SetAudio(audio_);
+	NodeResources rsc = GetResources("particleExplosion", "ExplosionParticleMaterial", "jetParticleTexture", "");
+	DeathAnimation da;
+	da.obj = rsc["geom"];
+	da.mat = rsc["mat"];
+	da.tex = rsc["tex"];
+
+	scene_.SetDeathAnimation(da);
+
     // Set background color for the scene
     scene_.SetBackgroundColor(viewport_background_color_g);
 	
@@ -228,14 +242,22 @@ void Game::SetupScene(void){
 	pn->SetColor(glm::vec3(0, 0.749, 1));
 	//pn->SetJoint(glm::vec3(0, 0, -1));
 	//scene_.GetPlayer()->SetParticleSystem(pn);
+
 	scene_.GetPlayer()->AddChild(pn);
+	//scene_.GetPlayer()->AddChild(test);
 	scene_.GetScreen("cockpit")->SetDraw(true);
 	scene_.GetPlayer()->SetDraw(false);
 	camera_.SetZoom(0);
 	SetSaveState();
 
 
+
+
 	scene_.UpdateScreenSizeNodes(window_width, window_height);
+
+	// Setup drawing to texture
+	scene_.SetupDrawToTexture(window_width, window_height);
+
 }
 
 void Game::SetSaveState(void) {
@@ -243,9 +265,6 @@ void Game::SetSaveState(void) {
 	//access save data
 	Resource* dataResource = resman_.GetResource("save");
 	json data = dataResource->GetJSON();
-
-	//modify save data
-	data["fruit"] = "ace";
 
 	//output save data
 	dataResource->SetJSON(data);
@@ -262,6 +281,13 @@ void Game::MainLoop(void){
 	float second = glfwGetTime();
 	int fps = 0.0;
 	Player* player = scene_.GetPlayer();
+
+	player->setAsteroids(scene_.GetAsteroids());
+	player->setComets(scene_.GetComets());
+	player->setEnemies(scene_.GetEnemies());
+	player->setDeathAnimations(scene_.GetDeathAnimations());
+	player->setCam(&camera_);
+
     while (!glfwWindowShouldClose(window_)){
 
 		static double last_time = glfwGetTime();
@@ -271,10 +297,6 @@ void Game::MainLoop(void){
 		double deltaTime = current_time - last_time;
 		last_time = current_time;
 		// Animate the scene
-		Player* player = scene_.GetPlayer();
-		player->setCam(&camera_);
-		player->setAsteroids(scene_.GetAsteroids());
-		player->setEnemies(scene_.GetEnemies());
 
 		GetUserInput(deltaTime);
 		if (animating_) {
@@ -287,8 +309,9 @@ void Game::MainLoop(void){
 				//player->SetHealth(sin(deltaTime*100*t) / 2 + 0.5);
 				//player->SetShields(sin(deltaTime* 100 *t) / 2 + 0.5);
 
-				scene_.GetScreen("healthBar")->SetProgress(player->GetHealth());
-				scene_.GetScreen("shieldBar")->SetProgress(player->GetShields());
+				float s = player->GetShields();
+				scene_.GetScreen("healthBar")->SetProgress(player->getHealthPercent());
+				scene_.GetScreen("shieldBar")->SetProgress(player->GetShieldPercent());
 
 				last_time = current_time;
 				t += 0.01;
@@ -306,13 +329,17 @@ void Game::MainLoop(void){
 			frames += 1;
 		}
 		
-		//text.RenderText("hello nmime", glm::vec2(0, 0), 1.0f, glm::vec3(1.0));
-        // Draw the scene
-        scene_.Draw(&camera_);
+		//gen the screen
+		bool genScreen = false;//change this value 
+		scene_.Draw(&camera_, genScreen, window_width, window_height);
 
-		text.RenderText(new Text(player->GetCurrentWeapon(), glm::vec2(0.6, -0.78), 0.4f, glm::vec3(0.0941,0.698,0.921)));
-		text.RenderText(new Text(std::to_string(fps), glm::vec2(-1, 0.9), 0.5f, glm::vec3(1.0,1.0,0)));
+		if (genScreen) {
+			scene_.DisplayTexture(resman_.GetResource("ScreenBoostMaterial")->GetResource());
+		}
 
+		text.RenderText(new Text(player->GetCurrentWeapon(), glm::vec2(0.6, -0.78), 0.4f, glm::vec3(0.0941, 0.698, 0.921)));
+		text.RenderText(new Text(std::to_string(fps), glm::vec2(-1, 0.9), 0.5f, glm::vec3(1.0, 1.0, 0)));
+		//
 		//text.RenderText("hello nmime", glm::vec2(0, 0), 1.0f, glm::vec3(1.0));
 		//text.RenderText("hello r", glm::vec2(400, 0), 1.0f, glm::vec3(1.0));
         // Push buffer drawn in the background onto the display
@@ -363,7 +390,6 @@ void Game::GetUserInput(float deltaTime) {
 			}
 		
 	}
-	
 
 	
 	if (animating_) {
@@ -386,7 +412,6 @@ void Game::GetUserInput(float deltaTime) {
 			player->nextWeapon();
 			timeOfLastMove = glfwGetTime();
 		}
-
 		//move the player forward as well as the camera
 		if (glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
 		//if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS) {
@@ -453,11 +478,7 @@ void Game::GetMouseCameraInput(float xpos, float ypos) {
 
 
 void Game::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods){
-
-    
 }
-
-
 
 void Game::ResizeCallback(GLFWwindow* window, int width, int height) {
 
@@ -470,6 +491,8 @@ void Game::ResizeCallback(GLFWwindow* window, int width, int height) {
 	game->window_width = width;
 	game->window_height = height;
 	game->scene_.UpdateScreenSizeNodes(width, height);
+
+	game->scene_.SetupDrawToTexture(width, height);
 
 
 
@@ -487,6 +510,7 @@ void Game::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	if (curr_zoom < 5) {
 		if (yoffset > 0) {
 			game->first_person_ = false;
+			game->scene_.GetPlayer()->SetFirstPerson(false);
 			game->scene_.GetScreen("cockpit")->SetDraw(false);
 			game->scene_.GetPlayer()->SetDraw(true);
 			game->camera_.Zoom(5 + yoffset);
@@ -494,6 +518,7 @@ void Game::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 		}
 		else {
 			game->first_person_ = true;
+			game->scene_.GetPlayer()->SetFirstPerson(true);
 			game->scene_.GetScreen("cockpit")->SetDraw(true);
 			game->scene_.GetPlayer()->SetDraw(false);
 			game->camera_.SetZoom(0);
@@ -539,8 +564,8 @@ void Game::CreateAsteroids(int num_asteroids){
 }
 
 void Game::CreateComets(int num_comets) {
-	float radius = 100;
-	for (int i = 0; i < 1; i++) {
+	float radius = 4000;
+	for (int i = 0; i < num_comets; i++) {
 		// Create instance name
 		std::stringstream ss;
 		ss << i;
@@ -553,7 +578,7 @@ void Game::CreateComets(int num_comets) {
 		// Set attributes of asteroid: random position, orientation, and
 		// angular momentum
 
-		//cmt->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
+		cmt->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
 		cmt->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float)rand() / RAND_MAX), glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX)))));
 		float scale = 3;
 		cmt->SetScale(glm::vec3(scale));

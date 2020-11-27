@@ -10,7 +10,9 @@
 #define PLAYER_OBJ_H_
 #include "enemy_node.h"
 #include "projectile_node.h"
-#include "entity_node.h"
+#include "agent_node.h"
+#include "asteroid_node.h"
+#include "comet_node.h"
 #include "resource_manager.h"
 #include "camera.h"
 class Game;
@@ -19,7 +21,7 @@ class ResourceManager;
 namespace game {
 	extern ResourceManager resman_;
 	// Class for a single player object 
-	class Player  : public Entity{
+	class Player  : public AgentNode{
 		
 
 	public:
@@ -30,6 +32,7 @@ namespace game {
 
 		void SetShields(float h);
 		float GetShields(void) const;
+		float GetShieldPercent(void) const;
 		//This lag behind function is essentially claculating the orientation with an input pitch and yaw,
 		//but does not save it. This is used for custom settings for the camera lagging behind the player object. 
 		glm::quat RotLagBehind(float pitch, float yaw);
@@ -55,16 +58,17 @@ namespace game {
 
 		void setCam(Camera* c);
 
-		void setAsteroids(std::vector<SceneNode*>* a);
+		void setAsteroids(std::vector<AsteroidNode*>* a);
+		void setComets(std::vector<CometNode*>* a);
 		void setEnemies(std::vector<Enemy*>* e);
+		void setDeathAnimations(std::vector<ParticleNode*>* p);
 		std::string GetCurrentWeapon(void) const;
+		void damage(float dmg);
 		// Update the node
-
+		void SetFirstPerson(bool f) { first_person_ = f; }
 
 	private:
-		//store all the missiles in here. 
-		std::vector<Projectile*> missiles;
-
+		bool first_person_;
 		int projType;
 		const int numWeapons = 6;
 		std::string projectileTypes[6] = { "laserBattery", "pursuer", "chargeBlast", "sniperShot", "shotgun", "naniteTorpedo"};
@@ -84,8 +88,10 @@ namespace game {
 		const Resource *mat;
 		const Resource *tex;
 
-		std::vector<SceneNode*>* asteroids;
+		std::vector<AsteroidNode*>* asteroids;
 		std::vector<Enemy*>* enemies;
+		std::vector<CometNode*>* comets;
+		std::vector<ParticleNode*>* death_animations_;
 
 		Camera* c_;
 

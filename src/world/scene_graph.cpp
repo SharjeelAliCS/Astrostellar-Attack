@@ -17,6 +17,9 @@ SceneGraph::SceneGraph(void){
 	skybox_ = NULL;
 	node_ = new std::vector<SceneNode*>;
 	enemy_ = new std::vector<Enemy*>;
+	comet_ = new std::vector<CometNode*>;
+	asteroid_ = new std::vector<AsteroidNode*>;
+	death_animations_ = new std::vector<ParticleNode*>;
 
 	for (int i = HUD_MENU; i != NONE+1; i++){
 		std::vector<ScreenNode*> screen;
@@ -27,6 +30,7 @@ SceneGraph::SceneGraph(void){
 	active_menu_ = HUD_MENU;
 
 	radar_distance_ = 1000;
+	audio_ = NULL;
 
 }
 
@@ -83,7 +87,6 @@ SceneNode *SceneGraph::CreateNode(std::string node_name, Resource *geometry, Res
 	return scn;
 }
 
-
 void SceneGraph::AddNode(SceneNode *node){
     node_->push_back(node);
 }
@@ -124,37 +127,37 @@ void SceneGraph::AddEnemy(Enemy *node) {
 
 Enemy *SceneGraph::GetEnemy(std::string node_name) const {
 	// Find node with the specified name
-	for (int i = 0; i < enemy_.size(); i++) {
-		if (enemy_[i]->GetName() == node_name) {
-			return enemy_[i];
+	for (int i = 0; i < enemy_->size(); i++) {
+		if (enemy_->at(i)->GetName() == node_name) {
+			return enemy_->at(i);
 		}
 	}
 	return NULL;
 }
 
 void SceneGraph::AddAsteroid(AsteroidNode *node) {
-	asteroid_.push_back(node);
+	asteroid_->push_back(node);
 }
 
 AsteroidNode *SceneGraph::GetAsteroid(std::string node_name) const {
 	// Find node with the specified name
-	for (int i = 0; i < enemy_.size(); i++) {
-		if (asteroid_[i]->GetName() == node_name) {
-			return asteroid_[i];
+	for (int i = 0; i < asteroid_->size(); i++) {
+		if (asteroid_->at(i)->GetName() == node_name) {
+			return asteroid_->at(i);
 		}
 	}
 	return NULL;
 }
 
 void SceneGraph::AddComet(CometNode *node) {
-	comet_.push_back(node);
+	comet_->push_back(node);
 }
 
 CometNode *SceneGraph::GetComet(std::string node_name) const {
 	// Find node with the specified name
-	for (int i = 0; i < enemy_.size(); i++) {
-		if (comet_[i]->GetName() == node_name) {
-			return comet_[i];
+	for (int i = 0; i < comet_->size(); i++) {
+		if (comet_->at(i)->GetName() == node_name) {
+			return comet_->at(i);
 		}
 	}
 	return NULL;
@@ -196,8 +199,69 @@ ButtonNode *SceneGraph::GetButton(std::string node_name) const {
 
 }
 
-void SceneGraph::Draw(Camera *camera){
 
+void SceneGraph::SetupDrawToTexture(float frame_width, float frame_height) {
+
+	// Set up frame buffer
+	glGenFramebuffers(1, &frame_buffer_);
+	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_);
+
+	// Set up target texture for rendering
+	glGenTextures(1, &texture_);
+	glBindTexture(GL_TEXTURE_2D, texture_);
+
+	// Set up an image for the texture
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frame_width, frame_height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	// Set up a depth buffer for rendering
+	glGenRenderbuffers(1, &depth_buffer_);
+	glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer_);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, frame_width, frame_height);
+
+	// Configure frame buffer (attach rendering buffers)
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer_);
+	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+	glDrawBuffers(1, DrawBuffers);
+
+	// Check if frame buffer was setup successfully 
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		throw(std::ios_base::failure(std::string("Error setting up frame buffer")));
+	}
+
+	// Reset frame buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Set up quad for drawing to the screen
+	static const GLfloat quad_vertex_data[] = {
+		-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+		 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+		-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+		 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+	};
+
+	// Create buffer for quad
+	glGenBuffers(1, &quad_array_buffer_);
+	glBindBuffer(GL_ARRAY_BUFFER, quad_array_buffer_);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertex_data), quad_vertex_data, GL_STATIC_DRAW);
+}
+
+
+void SceneGraph::Draw(Camera *camera, bool to_texture,float frame_width, float frame_height){
+	GLint viewport[4];
+	if (to_texture) {
+		// Save current viewport	
+		glGetIntegerv(GL_VIEWPORT, viewport);
+
+		// Enable frame buffer
+		glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_);
+		glViewport(0, 0, frame_width, frame_height);
+
+	}
     // Clear background
     glClearColor(background_color_[0], 
                  background_color_[1],
@@ -214,11 +278,14 @@ void SceneGraph::Draw(Camera *camera){
 	for (int i = 0; i < enemy_->size(); i++) {
 		(*enemy_)[i]->Draw(camera);
 	}
-	for (int i = 0; i < asteroid_.size(); i++) {
-		asteroid_[i]->Draw(camera);
+	for (int i = 0; i < asteroid_->size(); i++) {
+		asteroid_->at(i)->Draw(camera);
 	}
-	for (int i = 0; i < comet_.size(); i++) {
-		comet_[i]->Draw(camera);
+	for (int i = 0; i < comet_->size(); i++) {
+		comet_->at(i)->Draw(camera);
+	}
+	for (int i = 0; i < death_animations_->size(); i++) {
+		death_animations_->at(i)->Draw(camera);
 	}
 	if(player_!=NULL)player_->Draw(camera);
 
@@ -242,12 +309,133 @@ void SceneGraph::Draw(Camera *camera){
 	for (int i = 0; i < button_.at(active_menu_).size(); i++) {
 		button_.at(active_menu_)[i]->Draw(camera);
 	}
+	if (to_texture) {
+		// Reset frame buffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	
+		// Restore viewport
+		glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+	}
+
 }
 
 
+void SceneGraph::DisplayTexture(GLuint program) {
+
+	// Configure output to the screen
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_DEPTH_TEST);
+
+	// Set up quad geometry
+	glBindBuffer(GL_ARRAY_BUFFER, quad_array_buffer_);
+
+	// Select proper material (shader program)
+	glUseProgram(program);
+
+	// Setup attributes of screen-space shader
+	GLint pos_att = glGetAttribLocation(program, "position");
+	glEnableVertexAttribArray(pos_att);
+	glVertexAttribPointer(pos_att, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
+
+	GLint tex_att = glGetAttribLocation(program, "uv");
+	glEnableVertexAttribArray(tex_att);
+	glVertexAttribPointer(tex_att, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
+
+	// Timer
+	GLint timer_var = glGetUniformLocation(program, "timer");
+	float current_time = glfwGetTime();
+	glUniform1f(timer_var, current_time);
+
+	// Bind texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture_);
+
+	// Draw geometry
+	glDrawArrays(GL_TRIANGLES, 0, 6); // Quad: 6 coordinates
+
+	// Reset current geometry
+	glEnable(GL_DEPTH_TEST);
+}
+
+
+void SceneGraph::CreateDeathAnimation(SceneNode* node) {
+	std::string name = node->GetName() + "_death";
+	ParticleNode* pn = new ParticleNode(name,death_animation_param_.obj, death_animation_param_.mat, death_animation_param_.tex);
+	glm::vec3 scale = node->GetScale()*(float)0.1;
+	pn->SetScale(scale);
+	pn->SetPosition(node->GetPosition());
+	pn->SetBlending(true);
+	pn->SetColor(glm::vec3(0.58,0.29,0));
+	pn->SetDuration(0.5);
+	death_animations_->push_back(pn);
+}
+bool SceneGraph::ProjectileCollision(AgentNode* node, bool player) {
+	std::vector<Projectile*>* missiles = node->GetMissiles();
+
+	for (auto it = missiles->begin(); it != missiles->end(); ) {
+		bool removed = false;
+
+		removed = Collision((*it), player);
+		if (removed) {
+			it = missiles->erase(it);
+		}
+		else{
+			++it;
+		}
+	}
+	return true;
+
+
+}
+bool SceneGraph::Collision(Entity* node, bool player) {
+	bool collided = false;
+	for (auto ast = asteroid_->begin(); ast != asteroid_->end(); ) {
+		if ((*ast)->Hit(node->GetPosition(), glm::length((*ast)->GetScale()) * 0.9)) {
+			CreateDeathAnimation((*ast));
+			ast = asteroid_->erase(ast);
+			node->damage(20);
+			collided = true;
+			if (player)audio_->playAgain("asteroidExplosion");
+		}
+		else {
+			++ast;
+		}
+	}
+
+	for (auto ast = enemy_->begin(); ast != enemy_->end(); ) {
+		if ((*ast)->Hit(node->GetPosition(), glm::length((*ast)->GetScale()) * 0.9)) {
+			CreateDeathAnimation((*ast));
+			ast = enemy_->erase(ast);
+			node->damage(20);
+			collided = true;
+			if (player)audio_->playAgain("asteroidExplosion");
+		}
+		else {
+			++ast;
+		}
+	}
+
+	for (auto ast = comet_->begin(); ast != comet_->end(); ) {
+		if ((*ast)->Hit(node->GetPosition(), glm::length((*ast)->GetScale()) * 0.9)) {
+			CreateDeathAnimation((*ast));
+			ast = comet_->erase(ast);
+			node->damage(20);
+			collided = true;
+			if (player)audio_->playAgain("asteroidExplosion");
+		}
+		else {
+			++ast;
+		}
+	}
+	return collided;
+}
+
+void SceneGraph::SetDeathAnimation(DeathAnimation dm) {
+	death_animation_param_ = dm;
+}
 void SceneGraph::Update(float deltaTime){
+	Collision(player_, true);
+	ProjectileCollision(player_, true);
 
 	if (player_ != NULL)player_->Update(deltaTime);
 	if (skybox_ != NULL)skybox_->Update(deltaTime);
@@ -258,11 +446,11 @@ void SceneGraph::Update(float deltaTime){
 	for (int i = 0; i < enemy_->size(); i++) {
 		(*enemy_)[i]->Update(deltaTime);
 	}
-	for (int i = 0; i < asteroid_.size(); i++) {
-		asteroid_[i]->Update(deltaTime);
+	for (int i = 0; i < asteroid_->size(); i++) {
+		asteroid_->at(i)->Update(deltaTime);
 	}
-	for (int i = 0; i < comet_.size(); i++) {
-		comet_[i]->Update(deltaTime);
+	for (int i = 0; i < comet_->size(); i++) {
+		comet_->at(i)->Update(deltaTime);
 	}
 	for (int i = 0; i < screen_.at(NONE).size(); i++) {
 		screen_.at(NONE)[i]->Update(deltaTime);
@@ -282,16 +470,25 @@ void SceneGraph::Update(float deltaTime){
 			screen_.at(NONE)[i]->Update(deltaTime);
 		}
 	}
+	for (auto ast = death_animations_->begin(); ast != death_animations_->end(); ) {
+		(*ast)->Update(deltaTime);
+		if (!(*ast)->GetExists()) {
+			ast = death_animations_->erase(ast);
+		}
+		else {
+			++ast;
+		}
+	}
 	UpdateRadar();
 }
 
 void SceneGraph::UpdateRadar() {
 	glm::vec3 direction = player_->GetOrientationObj()->GetForward();
-	for (int i = 0; i < asteroid_.size(); i++) {
-		UpdateRadarNode(direction, asteroid_[i]->GetPosition(),glm::vec3(1,1,0));
+	for (int i = 0; i < asteroid_->size(); i++) {
+		UpdateRadarNode(direction, asteroid_->at(i)->GetPosition(),glm::vec3(1,1,0));
 	}
-	for (int i = 0; i < comet_.size(); i++) {
-		UpdateRadarNode(direction, comet_[i]->GetPosition(), glm::vec3(1, 1, 0));
+	for (int i = 0; i < comet_->size(); i++) {
+		UpdateRadarNode(direction, comet_->at(i)->GetPosition(), glm::vec3(1, 1, 0));
 	}
 	for (int i = 0; i < enemy_->size(); i++) {
 		UpdateRadarNode(direction, (*enemy_)[i]->GetPosition(), glm::vec3(1, 0, 0));
@@ -381,5 +578,6 @@ glm::vec3 SceneGraph::CalculateDistanceFromPlayer(glm::vec3 pos) {
 void SceneGraph::SetCurrentScreen(ScreenType t) {
 	active_menu_ = t;
 }
+
 
 } // namespace game

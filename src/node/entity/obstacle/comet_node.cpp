@@ -19,14 +19,14 @@
 namespace game {
 
 	CometNode::CometNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : ObstacleNode(name, geometry, material, texture, normal) {
-		speed_ = 2;
+		movement_speed = 2;
 	}
 
 	CometNode::~CometNode() {
 	}
 
 	void CometNode::Update(float deltaTime) {
-		position_ += speed_ * orientation_->GetForward();
+		position_ += movement_speed * orientation_->GetForward();
 	}
 
 }

@@ -54,6 +54,8 @@ SceneNode::SceneNode(const std::string name, const Resource *geometry, const Res
 	parentTransform_ = glm::mat4(1);
 	blending_ = false;
 	color_ = glm::vec3(1);
+	exists_ = true;
+	parent_ = NULL;
 }
 
 
@@ -280,7 +282,9 @@ void SceneNode::Draw(Camera *camera){
 	
 	glm::vec3 view_plane = camera->GetForward();
 	if (glm::dot(view_plane, (position_-camera->GetPosition())) < 0 &&
-		glm::distance(camera->GetPosition(), position_)< camera->GetFarDistance()) {
+		glm::distance(camera->GetPosition(), position_)< camera->GetFarDistance() &&
+		parent_!=NULL &&
+		parent_->GetName()!="player") {
 		return;
 	}
     // Select proper material (shader program)

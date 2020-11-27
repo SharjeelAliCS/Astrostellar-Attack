@@ -8,11 +8,11 @@
 
 #ifndef ENEMY_NODE_H_
 #define ENEMY_NODE_H_
-#include "entity_node.h"
+#include "agent_node.h"
 namespace game {
 
 	// Stores the enemy object, which for the demo is simply a "planet". It is a child of the GameObj class. 
-	class Enemy : public Entity {
+	class Enemy : public AgentNode {
 
 	public:
 		// Create game object

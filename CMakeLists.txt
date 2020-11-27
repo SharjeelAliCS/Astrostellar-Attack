@@ -10,15 +10,17 @@ include_directories(${PROJECT_SOURCE_DIR}/include/node)
 include_directories(${PROJECT_SOURCE_DIR}/src/node)
 include_directories(${PROJECT_SOURCE_DIR}/include/node/entity)
 include_directories(${PROJECT_SOURCE_DIR}/include/node/screen)
-include_directories(${PROJECT_SOURCE_DIR}/include/node/entity/enemy)
+include_directories(${PROJECT_SOURCE_DIR}/include/node/entity/agent)
+include_directories(${PROJECT_SOURCE_DIR}/include/node/entity/agent/enemy)
+include_directories(${PROJECT_SOURCE_DIR}/include/node/entity/agent/player)
 include_directories(${PROJECT_SOURCE_DIR}/include/node/entity/obstacle)
-include_directories(${PROJECT_SOURCE_DIR}/include/node/entity/player)
 
 include_directories(${PROJECT_SOURCE_DIR}/src/node/entity)
 include_directories(${PROJECT_SOURCE_DIR}/src/node/screen)
-include_directories(${PROJECT_SOURCE_DIR}/src/node/entity/enemy)
+include_directories(${PROJECT_SOURCE_DIR}/src/node/entity/agent)
+include_directories(${PROJECT_SOURCE_DIR}/src/node/entity/agent/enemy)
+include_directories(${PROJECT_SOURCE_DIR}/src/node/entity/agent/player)
 include_directories(${PROJECT_SOURCE_DIR}/src/node/entity/obstacle)
-include_directories(${PROJECT_SOURCE_DIR}/src/node/entity/player)
 include_directories(${PROJECT_SOURCE_DIR}/include/world)
 include_directories(${PROJECT_SOURCE_DIR}/src/world)
 include_directories(${PROJECT_SOURCE_DIR}/include/setup)
@@ -28,6 +30,9 @@ include_directories(${PROJECT_SOURCE_DIR}/src/attribute)
 include_directories(${PROJECT_SOURCE_DIR}/src/menu)
 
 include_directories(${PROJECT_SOURCE_DIR}/resource)
+include_directories(${PROJECT_SOURCE_DIR}/resource/shader)
+include_directories(${PROJECT_SOURCE_DIR}/resource/screen)
+include_directories(${PROJECT_SOURCE_DIR}/resource/particle)
 include_directories(${PROJECT_SOURCE_DIR}/libraries)
 
 #Used the following resource to do this:
@@ -42,8 +47,11 @@ set(HDRS
 
     ${PROJECT_SOURCE_DIR}/include/node/entity/entity_node.h
 
-    ${PROJECT_SOURCE_DIR}/include/node/entity/enemy/enemy_node.h
-    ${PROJECT_SOURCE_DIR}/include/node/entity/enemy/boss_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/entity/agent/agent_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/entity/agent/player/player_node.h
+
+    ${PROJECT_SOURCE_DIR}/include/node/entity/agent/enemy/enemy_node.h
+    ${PROJECT_SOURCE_DIR}/include/node/entity/agent/enemy/boss_node.h
 
     ${PROJECT_SOURCE_DIR}/include/node/entity/obstacle/obstacle_node.h
     ${PROJECT_SOURCE_DIR}/include/node/entity/obstacle/comet_node.h
@@ -51,7 +59,6 @@ set(HDRS
     ${PROJECT_SOURCE_DIR}/include/node/entity/obstacle/satellite_node.h
     ${PROJECT_SOURCE_DIR}/include/node/entity/obstacle/sun_node.h
 
-    ${PROJECT_SOURCE_DIR}/include/node/entity/player/player_node.h
 
     ${PROJECT_SOURCE_DIR}/include/node/entity/projectile_node.h
 
@@ -82,16 +89,18 @@ set(SRCS
 
     ${PROJECT_SOURCE_DIR}/src/node/entity/entity_node.cpp
 
-    ${PROJECT_SOURCE_DIR}/src/node/entity/enemy/enemy_node.cpp
-    ${PROJECT_SOURCE_DIR}/src/node/entity/enemy/boss_node.cpp
+
+    ${PROJECT_SOURCE_DIR}/src/node/entity/agent/agent_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/node/entity/agent/player/player_node.cpp
+
+    ${PROJECT_SOURCE_DIR}/src/node/entity/agent/enemy/enemy_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/node/entity/agent/enemy/boss_node.cpp
 
     ${PROJECT_SOURCE_DIR}/src/node/entity/obstacle/obstacle_node.cpp
     ${PROJECT_SOURCE_DIR}/src/node/entity/obstacle/comet_node.cpp
     ${PROJECT_SOURCE_DIR}/src/node/entity/obstacle/asteroid_node.cpp
     ${PROJECT_SOURCE_DIR}/src/node/entity/obstacle/satellite_node.cpp
     ${PROJECT_SOURCE_DIR}/src/node/entity/obstacle/sun_node.cpp
-
-    ${PROJECT_SOURCE_DIR}/src/node/entity/player/player_node.cpp
 
     ${PROJECT_SOURCE_DIR}/src/node/entity/projectile_node.cpp
 
@@ -116,30 +125,41 @@ set(SRCS
 )
 
 set(RCRS
-    ${PROJECT_SOURCE_DIR}/resource/material_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/material_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/procedural_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/procedural_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/textured_material_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/textured_material_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/screen_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/screen_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/overlay_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/overlay_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/radar_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/radar_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/text_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/text_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/textured_normal_material_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/textured_normal_material_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/particle_stream_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/particle_stream_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/particle_stream_gp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/particle_comet_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/particle_comet_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/particle_comet_gp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/skybox_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/skybox_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/material_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/material_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/procedural_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/procedural_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/textured_material_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/textured_material_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/screen_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/screen_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/overlay_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/overlay_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/radar_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/radar_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/text_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/text_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/textured_normal_material_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/textured_normal_material_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/skybox_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/skybox_fp.glsl
+
+    ${PROJECT_SOURCE_DIR}/resource/particle/particle_stream_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle/particle_stream_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle/particle_stream_gp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle/particle_comet_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle/particle_comet_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle/particle_comet_gp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle/particle_explosion_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle/particle_explosion_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle/particle_explosion_gp.glsl
+
+    ${PROJECT_SOURCE_DIR}/resource/screen/screen_space_health_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/screen/screen_space_health_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/screen/screen_space_boost_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/screen/screen_space_boost_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/screen/screen_space_bloom_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/screen/screen_space_bloom_fp.glsl
 )
 #https://stackoverflow.com/questions/31422680/how-to-set-visual-studio-filters-for-nested-sub-directory-using-cmake
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${HDRS})

@@ -19,13 +19,14 @@ namespace game {
 
 
 	Projectile::Projectile(const std::string name, const std::string t, std::map<std::string, int> upgrades,
-		std::vector<SceneNode*>* ast, std::vector<Enemy*>* enemy,
+		std::vector<AsteroidNode*>* ast, std::vector<CometNode*>* cmt, std::vector<Enemy*>* enemy,
 		const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal)
 		: Entity(name, geometry, material, texture,normal) {
 		//default all to zero
 		type = t;
 		upg = upgrades;
 		asteroids = ast;
+		comets = cmt;
 		enemies = enemy;
 		ttl    = 0;
 		pierce = 0;
@@ -45,8 +46,6 @@ namespace game {
 		//delete all sub-projectiles then self
 	}
 	
-
-
 	//TODO: make the movement speed a function of the player speed when fired
 	void Projectile::init() {
 		//damage upgrades are multiplictive 

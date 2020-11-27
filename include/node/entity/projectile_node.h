@@ -11,17 +11,17 @@
 #include "entity_node.h"
 #include <map>
 #include <functional>
-#include "enemy_node.h";
-
+#include "asteroid_node.h"
+#include "comet_node.h"
 
 namespace game {
-	
+	class Enemy;
 	// Class for a single projectile object 
 	class Projectile : public Entity {
 
 	public:
 		// Create game object
-		Projectile(const std::string name, const std::string type, std::map<std::string, int> upgrades, std::vector<SceneNode*>* ast, std::vector<Enemy*>* enemy,
+		Projectile(const std::string name, const std::string type, std::map<std::string, int> upgrades, std::vector<AsteroidNode*>* ast, std::vector<CometNode*>* cmt, std::vector<Enemy*>* enemy,
 			const Resource *geometry, const Resource *material,const Resource *texture = NULL, const Resource *normal = NULL);
 
 		// Destructor
@@ -37,6 +37,7 @@ namespace game {
 
 		//Set the max range it can be as a function of time
 		void SetTTL(double t);
+		double GetTTL(void) const { return ttl; }
 		void displayStats();
 
 	private:
@@ -61,7 +62,8 @@ namespace game {
 		//movement is a function because of the pursuer existing
 		std::function<void(float)> move;
 
-		std::vector<SceneNode*>* asteroids;
+		std::vector<AsteroidNode*>* asteroids;
+		std::vector<CometNode*>* comets;
 		std::vector<Enemy*>* enemies;
 
 	}; // class GameObj
