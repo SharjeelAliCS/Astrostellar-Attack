@@ -199,8 +199,69 @@ ButtonNode *SceneGraph::GetButton(std::string node_name) const {
 
 }
 
-void SceneGraph::Draw(Camera *camera){
 
+void SceneGraph::SetupDrawToTexture(float frame_width, float frame_height) {
+
+	// Set up frame buffer
+	glGenFramebuffers(1, &frame_buffer_);
+	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_);
+
+	// Set up target texture for rendering
+	glGenTextures(1, &texture_);
+	glBindTexture(GL_TEXTURE_2D, texture_);
+
+	// Set up an image for the texture
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frame_width, frame_height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	// Set up a depth buffer for rendering
+	glGenRenderbuffers(1, &depth_buffer_);
+	glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer_);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, frame_width, frame_height);
+
+	// Configure frame buffer (attach rendering buffers)
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer_);
+	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+	glDrawBuffers(1, DrawBuffers);
+
+	// Check if frame buffer was setup successfully 
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		throw(std::ios_base::failure(std::string("Error setting up frame buffer")));
+	}
+
+	// Reset frame buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Set up quad for drawing to the screen
+	static const GLfloat quad_vertex_data[] = {
+		-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+		 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+		-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+		 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+	};
+
+	// Create buffer for quad
+	glGenBuffers(1, &quad_array_buffer_);
+	glBindBuffer(GL_ARRAY_BUFFER, quad_array_buffer_);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertex_data), quad_vertex_data, GL_STATIC_DRAW);
+}
+
+
+void SceneGraph::Draw(Camera *camera, bool to_texture,float frame_width, float frame_height){
+	GLint viewport[4];
+	if (to_texture) {
+		// Save current viewport	
+		glGetIntegerv(GL_VIEWPORT, viewport);
+
+		// Enable frame buffer
+		glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_);
+		glViewport(0, 0, frame_width, frame_height);
+
+	}
     // Clear background
     glClearColor(background_color_[0], 
                  background_color_[1],
@@ -248,9 +309,54 @@ void SceneGraph::Draw(Camera *camera){
 	for (int i = 0; i < button_.at(active_menu_).size(); i++) {
 		button_.at(active_menu_)[i]->Draw(camera);
 	}
+	if (to_texture) {
+		// Reset frame buffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	
+		// Restore viewport
+		glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+	}
+
 }
+
+
+void SceneGraph::DisplayTexture(GLuint program) {
+
+	// Configure output to the screen
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_DEPTH_TEST);
+
+	// Set up quad geometry
+	glBindBuffer(GL_ARRAY_BUFFER, quad_array_buffer_);
+
+	// Select proper material (shader program)
+	glUseProgram(program);
+
+	// Setup attributes of screen-space shader
+	GLint pos_att = glGetAttribLocation(program, "position");
+	glEnableVertexAttribArray(pos_att);
+	glVertexAttribPointer(pos_att, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
+
+	GLint tex_att = glGetAttribLocation(program, "uv");
+	glEnableVertexAttribArray(tex_att);
+	glVertexAttribPointer(tex_att, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
+
+	// Timer
+	GLint timer_var = glGetUniformLocation(program, "timer");
+	float current_time = glfwGetTime();
+	glUniform1f(timer_var, current_time);
+
+	// Bind texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture_);
+
+	// Draw geometry
+	glDrawArrays(GL_TRIANGLES, 0, 6); // Quad: 6 coordinates
+
+	// Reset current geometry
+	glEnable(GL_DEPTH_TEST);
+}
+
 
 void SceneGraph::CreateDeathAnimation(SceneNode* node) {
 	std::string name = node->GetName() + "_death";
@@ -472,5 +578,6 @@ glm::vec3 SceneGraph::CalculateDistanceFromPlayer(glm::vec3 pos) {
 void SceneGraph::SetCurrentScreen(ScreenType t) {
 	active_menu_ = t;
 }
+
 
 } // namespace game

@@ -197,6 +197,8 @@ void Game::SetupResources(void){
 }
 
 void Game::SetupScene(void){
+
+
 	scene_.SetAudio(audio_);
 	NodeResources rsc = GetResources("particleExplosion", "ExplosionParticleMaterial", "jetParticleTexture", "");
 	DeathAnimation da;
@@ -252,6 +254,9 @@ void Game::SetupScene(void){
 
 
 	scene_.UpdateScreenSizeNodes(window_width, window_height);
+
+	// Setup drawing to texture
+	scene_.SetupDrawToTexture(window_width, window_height);
 
 }
 
@@ -324,13 +329,17 @@ void Game::MainLoop(void){
 			frames += 1;
 		}
 		
-		//text.RenderText("hello nmime", glm::vec2(0, 0), 1.0f, glm::vec3(1.0));
-        // Draw the scene
-        scene_.Draw(&camera_);
+		//gen the screen
+		bool genScreen = false;//change this value 
+		scene_.Draw(&camera_, genScreen, window_width, window_height);
 
-		text.RenderText(new Text(player->GetCurrentWeapon(), glm::vec2(0.6, -0.78), 0.4f, glm::vec3(0.0941,0.698,0.921)));
-		text.RenderText(new Text(std::to_string(fps), glm::vec2(-1, 0.9), 0.5f, glm::vec3(1.0,1.0,0)));
+		if (genScreen) {
+			scene_.DisplayTexture(resman_.GetResource("ScreenBoostMaterial")->GetResource());
+		}
 
+		text.RenderText(new Text(player->GetCurrentWeapon(), glm::vec2(0.6, -0.78), 0.4f, glm::vec3(0.0941, 0.698, 0.921)));
+		text.RenderText(new Text(std::to_string(fps), glm::vec2(-1, 0.9), 0.5f, glm::vec3(1.0, 1.0, 0)));
+		//
 		//text.RenderText("hello nmime", glm::vec2(0, 0), 1.0f, glm::vec3(1.0));
 		//text.RenderText("hello r", glm::vec2(400, 0), 1.0f, glm::vec3(1.0));
         // Push buffer drawn in the background onto the display
@@ -469,11 +478,7 @@ void Game::GetMouseCameraInput(float xpos, float ypos) {
 
 
 void Game::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods){
-
-    
 }
-
-
 
 void Game::ResizeCallback(GLFWwindow* window, int width, int height) {
 
@@ -486,6 +491,8 @@ void Game::ResizeCallback(GLFWwindow* window, int width, int height) {
 	game->window_width = width;
 	game->window_height = height;
 	game->scene_.UpdateScreenSizeNodes(width, height);
+
+	game->scene_.SetupDrawToTexture(width, height);
 
 
 

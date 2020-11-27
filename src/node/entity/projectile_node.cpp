@@ -46,8 +46,6 @@ namespace game {
 		//delete all sub-projectiles then self
 	}
 	
-
-
 	//TODO: make the movement speed a function of the player speed when fired
 	void Projectile::init() {
 		//damage upgrades are multiplictive 

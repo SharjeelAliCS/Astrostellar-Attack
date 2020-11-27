@@ -30,6 +30,9 @@ include_directories(${PROJECT_SOURCE_DIR}/src/attribute)
 include_directories(${PROJECT_SOURCE_DIR}/src/menu)
 
 include_directories(${PROJECT_SOURCE_DIR}/resource)
+include_directories(${PROJECT_SOURCE_DIR}/resource/shader)
+include_directories(${PROJECT_SOURCE_DIR}/resource/screen)
+include_directories(${PROJECT_SOURCE_DIR}/resource/particle)
 include_directories(${PROJECT_SOURCE_DIR}/libraries)
 
 #Used the following resource to do this:
@@ -122,33 +125,41 @@ set(SRCS
 )
 
 set(RCRS
-    ${PROJECT_SOURCE_DIR}/resource/material_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/material_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/procedural_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/procedural_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/textured_material_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/textured_material_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/screen_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/screen_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/overlay_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/overlay_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/radar_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/radar_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/text_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/text_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/textured_normal_material_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/textured_normal_material_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/particle_stream_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/particle_stream_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/particle_stream_gp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/particle_comet_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/particle_comet_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/particle_comet_gp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/particle_explosion_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/particle_explosion_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/particle_explosion_gp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/skybox_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/skybox_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/material_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/material_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/procedural_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/procedural_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/textured_material_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/textured_material_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/screen_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/screen_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/overlay_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/overlay_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/radar_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/radar_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/text_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/text_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/textured_normal_material_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/textured_normal_material_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/skybox_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/skybox_fp.glsl
+
+    ${PROJECT_SOURCE_DIR}/resource/particle/particle_stream_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle/particle_stream_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle/particle_stream_gp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle/particle_comet_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle/particle_comet_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle/particle_comet_gp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle/particle_explosion_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle/particle_explosion_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/particle/particle_explosion_gp.glsl
+
+    ${PROJECT_SOURCE_DIR}/resource/screen/screen_space_health_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/screen/screen_space_health_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/screen/screen_space_boost_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/screen/screen_space_boost_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/screen/screen_space_bloom_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/screen/screen_space_bloom_fp.glsl
 )
 #https://stackoverflow.com/questions/31422680/how-to-set-visual-studio-filters-for-nested-sub-directory-using-cmake
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${HDRS})

@@ -95,8 +95,11 @@ namespace game {
 			ButtonNode *GetButton(std::string node_name) const;
 
 			void SetCurrentScreen(ScreenType t);
+
+			// Setup the texture
+			void SetupDrawToTexture(float frame_width, float frame_height);
             // Draw the entire scene
-            void Draw(Camera *camera);
+            void Draw(Camera *camera,bool to_texture = false,float frame_width=0, float frame_height=0);
 
             // Update entire scene
             void Update(float deltaTime);
@@ -111,7 +114,19 @@ namespace game {
 
 			void SetDeathAnimation(DeathAnimation dm);
 			void SetAudio(Audio* a) { audio_ = a; }
+
+			// Process and draw the texture on the screen
+			void DisplayTexture(GLuint program);
 		private:
+
+			// Frame buffer for drawing to texture
+			GLuint frame_buffer_;
+			// Quad vertex array for drawing from texture
+			GLuint quad_array_buffer_;
+			// Render targets
+			GLuint texture_;
+			GLuint depth_buffer_;
+
 			// Background color
 			glm::vec3 background_color_;
 
