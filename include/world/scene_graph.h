@@ -101,6 +101,8 @@ namespace game {
             // Draw the entire scene
             void Draw(Camera *camera,bool to_texture = false,float frame_width=0, float frame_height=0);
 
+			// Process and draw the texture on the screen
+			void DisplayScreenSpace(GLuint program,std::string name, bool to_texture = false, float frame_width = 0, float frame_height = 0);
             // Update entire scene
             void Update(float deltaTime);
 
@@ -115,8 +117,6 @@ namespace game {
 			void SetDeathAnimation(DeathAnimation dm);
 			void SetAudio(Audio* a) { audio_ = a; }
 
-			// Process and draw the texture on the screen
-			void DisplayTexture(GLuint program);
 		private:
 
 			// Frame buffer for drawing to texture

@@ -25,10 +25,18 @@ namespace game {
 
 		std::vector<Projectile*>* GetMissiles(void)  { return &missiles; }
 
+		void Update(float deltaTime);
+		void Draw(Camera* camera);
+
 	protected:
-		
+
+		std::map<std::string, int> upgrades;
 		//store all the missiles in here. 
 		std::vector<Projectile*> missiles;
+
+		const Resource *geo;
+		const Resource *mat;
+		const Resource *tex;
 	}; // class GameObj
 
 } // namespace game

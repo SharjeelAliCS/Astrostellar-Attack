@@ -38,7 +38,7 @@ namespace game {
 		ParticleNode* GetParticle(void);
 		void Update(float deltaTime);
 
-		virtual void damage(float dmg);
+		virtual void damage(float dmg, bool health= true);
 
 	protected:
 

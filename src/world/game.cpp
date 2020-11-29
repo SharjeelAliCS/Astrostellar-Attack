@@ -221,6 +221,7 @@ void Game::SetupScene(void){
 	
 	//skybox->SetOrientation(180, glm::vec3(1, 0, 0));
 	//create enemies
+	CreateEnemies(100);
 	CreateAsteroids(500);
 	CreateComets();
 	//ame::SceneNode *wall = CreateInstance("Canvas", "FlatSurface", "Procedural", "RockyTexture"); // must supply a texture, even if not used
@@ -310,14 +311,16 @@ void Game::MainLoop(void){
 				//player->SetShields(sin(deltaTime* 100 *t) / 2 + 0.5);
 
 				float s = player->GetShields();
-				scene_.GetScreen("healthBar")->SetProgress(player->getHealthPercent());
-				scene_.GetScreen("shieldBar")->SetProgress(player->GetShieldPercent());
+				scene_.GetScreen("healthBar")->SetProgressX(player->getHealthPercent());
+				scene_.GetScreen("shieldBar")->SetProgressX(player->GetShieldPercent());
 
 				last_time = current_time;
 				t += 0.01;
 				
 				std::string currWeapon = player->GetCurrentWeapon() + "Texture";
 				scene_.GetScreen("weaponsHUD")->SetTexture(resman_.GetResource(currWeapon));
+				scene_.GetScreen("boostBar")->SetProgressY(player->getBoostPercent());
+
 
 			}
 			if (current_time - second >= 1.0) {
@@ -329,20 +332,23 @@ void Game::MainLoop(void){
 			frames += 1;
 		}
 		
-		//gen the screen
-		bool genScreen = false;//change this value 
+		
+		//the "nuclear" overload bool is used to check when to apply the screen effect or not. 
+		bool genScreen = player->NuclearOverload();
 		scene_.Draw(&camera_, genScreen, window_width, window_height);
 
+		//generate the bloom material screen material
+		//scene_.DisplayScreenSpace(resman_.GetResource("ScreenBloomMaterial")->GetResource(),"", genScreen,window_width, window_height);
+
 		if (genScreen) {
-			scene_.DisplayTexture(resman_.GetResource("ScreenBoostMaterial")->GetResource());
+
+			//generate the boost screen material (main part of the assignment)
+			scene_.DisplayScreenSpace(resman_.GetResource("ScreenBoostMaterial")->GetResource(),"boost");
 		}
 
 		text.RenderText(new Text(player->GetCurrentWeapon(), glm::vec2(0.6, -0.78), 0.4f, glm::vec3(0.0941, 0.698, 0.921)));
 		text.RenderText(new Text(std::to_string(fps), glm::vec2(-1, 0.9), 0.5f, glm::vec3(1.0, 1.0, 0)));
-		//
-		//text.RenderText("hello nmime", glm::vec2(0, 0), 1.0f, glm::vec3(1.0));
-		//text.RenderText("hello r", glm::vec2(400, 0), 1.0f, glm::vec3(1.0));
-        // Push buffer drawn in the background onto the display
+		
         glfwSwapBuffers(window_);
 
         // Update other events like input handling
@@ -536,6 +542,25 @@ Game::~Game(){
     glfwTerminate();
 }
 
+
+void Game::CreateEnemies(int num_enemies) {
+
+	float radius = 100;
+	// Create a number of asteroid instances
+	for (int i = 0; i < 1; i++) {
+		// Create instance name
+		std::stringstream ss;
+		ss << i;
+		std::string index = ss.str();
+		std::string name = "enemy" + index;
+		Enemy *en = CreateEnemyInstance(name, "ship", "TextureShader","shipTexture");
+
+		en->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
+		en->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float)rand() / RAND_MAX), glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX)))));
+		en->SetScale(glm::vec3(5));
+	}
+}
+
 void Game::CreateAsteroids(int num_asteroids){
 
 	float radius = 4000;
@@ -622,6 +647,15 @@ void Game::CreateHUD(void) {
 	node = CreateScreenInstance("healthBar", "FlatSurface", "ScreenMaterial", HUD_MENU, "healthBarTexture");
 	node->SetScale(glm::vec3(0.40, 0.02257, 1));//multiply by 17.72
 	node->SetPosition(glm::vec3(0, 0.86, 0));
+
+	//boost
+	node = CreateScreenInstance("boostBox", "FlatSurface", "ScreenMaterial", HUD_MENU, "boostBoxTexture");
+	node->SetScale(glm::vec3(0.07, 0.07*4, 1));//multiply by 3.3333
+	node->SetPosition(glm::vec3(-0.9, -0.0,0));
+
+	node = CreateScreenInstance("boostBar", "FlatSurface", "ScreenMaterial", HUD_MENU, "boostBarTexture");
+	node->SetScale(glm::vec3(0.063, 0.063 *3.6, 1));//multiply by 17.72
+	node->SetPosition(glm::vec3(-0.9, 0.045, 0));
 	
 	//crosshair
 	node = CreateScreenInstance("crosshair", "FlatSurface", "ScreenMaterial", HUD_MENU, "crosshairDefaultTexture");
@@ -630,8 +664,8 @@ void Game::CreateHUD(void) {
 	//radar
 	node = CreateScreenInstance("radar", "FlatSurface", "RadarMaterial", HUD_MENU, "radarTexture");
 	node->Rotate(30);
-	node->SetScale(glm::vec3(0.3));
-	node->SetPosition(glm::vec3(-0.75, -0.6, 0));
+	node->SetScale(glm::vec3(0.25));
+	node->SetPosition(glm::vec3(-0.85, -0.6, 0));
 
 	//WEAPONS
 	node = CreateScreenInstance("weaponsHUD", "FlatSurface", "ScreenMaterial", HUD_MENU, "laserBatteryTexture");
@@ -658,15 +692,14 @@ ParticleNode* Game::CreateParticleInstance(int count, std::string particle_name,
 	return pn;
 }
 Enemy *Game::CreateEnemyInstance(std::string entity_name, std::string object_name, std::string material_name, std::string normal_name) {
-	NodeResources rsc = GetResources(object_name, material_name, "", normal_name);
+	NodeResources rsc = GetResources(object_name, material_name, normal_name,"");
 	// Create asteroid instance
 	Enemy *en = new Enemy(entity_name, rsc["geom"], rsc["mat"], rsc["tex"], rsc["norm"]);
 	scene_.AddEnemy(en);
 	en->SetScale(glm::vec3(3));
+	en->SetPlayer(scene_.GetPlayer());
 	return en;
 }
-
-
 
 ScreenNode *Game::CreateScreenInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name, std::string normal_name) {
 	NodeResources rsc = GetResources(object_name, material_name, texture_name, normal_name);

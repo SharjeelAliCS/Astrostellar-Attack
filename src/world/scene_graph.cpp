@@ -320,8 +320,17 @@ void SceneGraph::Draw(Camera *camera, bool to_texture,float frame_width, float f
 }
 
 
-void SceneGraph::DisplayTexture(GLuint program) {
+void SceneGraph::DisplayScreenSpace(GLuint program, std::string name,bool to_texture, float frame_width, float frame_height) {
+	GLint viewport[4];
+	if (to_texture) {
+		// Save current viewport	
+		glGetIntegerv(GL_VIEWPORT, viewport);
 
+		// Enable frame buffer
+		glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_);
+		glViewport(0, 0, frame_width, frame_height);
+
+	}
 	// Configure output to the screen
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
@@ -341,10 +350,20 @@ void SceneGraph::DisplayTexture(GLuint program) {
 	glEnableVertexAttribArray(tex_att);
 	glVertexAttribPointer(tex_att, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
 
+	float current_time = glfwGetTime();
+	//get the time intensity (0 to 1) for the screen effect
+	float time_intensity = player_->getNuclearOverloadPercent();
+	
 	// Timer
 	GLint timer_var = glGetUniformLocation(program, "timer");
-	float current_time = glfwGetTime();
 	glUniform1f(timer_var, current_time);
+
+	GLint time_diff_var = glGetUniformLocation(program, "time_diff");
+	glUniform1f(time_diff_var, time_intensity);
+
+	//std::cout << "reduction start time is " << time_intensity << std::endl;
+
+	
 
 	// Bind texture
 	glActiveTexture(GL_TEXTURE0);
@@ -355,6 +374,14 @@ void SceneGraph::DisplayTexture(GLuint program) {
 
 	// Reset current geometry
 	glEnable(GL_DEPTH_TEST);
+
+	if (to_texture) {
+		// Reset frame buffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		// Restore viewport
+		glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+	}
 }
 
 

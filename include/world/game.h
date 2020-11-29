@@ -101,6 +101,7 @@ namespace game {
 
             // Create entire random asteroid field
 
+			void CreateEnemies(int num_enemies = 100);
 			void CreateAsteroids(int num_asteroids = 1500);
 			void CreateComets(int num_comets = 10);
 			// Create entire random asteroid field

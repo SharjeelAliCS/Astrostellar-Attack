@@ -12,6 +12,7 @@
 #include <iostream>
 #include <time.h>
 
+#include "player_node.h"
 #include "projectile_node.h"
 
 namespace game {
@@ -19,15 +20,11 @@ namespace game {
 
 
 	Projectile::Projectile(const std::string name, const std::string t, std::map<std::string, int> upgrades,
-		std::vector<AsteroidNode*>* ast, std::vector<CometNode*>* cmt, std::vector<Enemy*>* enemy,
 		const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal)
 		: Entity(name, geometry, material, texture,normal) {
 		//default all to zero
 		type = t;
 		upg = upgrades;
-		asteroids = ast;
-		comets = cmt;
-		enemies = enemy;
 		ttl    = 0;
 		pierce = 0;
 		dotDmg = 0;
@@ -46,10 +43,29 @@ namespace game {
 		//delete all sub-projectiles then self
 	}
 	
+	void Projectile::SetPlayer(Player* p) {
+		player_ = p;
+	}
+
 	//TODO: make the movement speed a function of the player speed when fired
 	void Projectile::init() {
 		//damage upgrades are multiplictive 
-		if (type.compare("laserBattery") == 0) {
+		if (type.compare("enemy") == 0) {
+			speed += 3.0f;
+			//travels  seconds +10% per level
+			ttl = glfwGetTime() + 5;// pow(1.1, upg["laserBatteryRangeLevel"]);
+			//pierces 0 to 5 targets (+1 per upgrade)
+			pierce = 0;//upg["laserBatteryPierceLevel"];
+			//deals 10 damage + 10% per level
+			dmg = [this]() {
+				return 10;// pow(1.1, upg["laserBatteryDamageLevel"]);
+			};
+			//moves forward at a speed of 10.0
+			move = [this](float deltaTime) {
+				position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
+			};
+		}
+		else if (type.compare("laserBattery") == 0) {
 			speed += 10.0f;
 			//travels  seconds +10% per level
 			ttl = glfwGetTime() + 5 * pow(1.1, upg["laserBatteryRangeLevel"]);

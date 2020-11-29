@@ -100,12 +100,15 @@ namespace game {
 		glm::vec3 distance = target_pos - cur_pos;
 		glm::vec3 dis = glm::normalize(distance);
 		glm::vec3 axis = glm::cross(forw, dis);
+
+		float length = glm::length(axis);
 		axis = glm::normalize(axis);
 
 		float cosa = glm::dot(forw, dis);
 		float angle = acos(cosa);
 		glm::quat qu = glm::angleAxis(angle, axis);
 
+		if (angle != angle)return;
 
 		Rotate(qu);
 	}

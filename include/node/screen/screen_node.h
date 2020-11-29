@@ -22,7 +22,9 @@ namespace game {
 		
 		// Destructor
 		~ScreenNode();
-		void SetProgress(float p);
+		void SetProgress(glm::vec2 p);
+		void SetProgressX(float p);
+		void SetProgressY(float p);
 
 		virtual void Draw(Camera *camera);
 		virtual void Update(float deltaTime);
@@ -35,7 +37,7 @@ namespace game {
 	protected:
 		glm::vec3 glow_amount_;
 		bool glow_ = false;
-		float progress_size_;
+		glm::vec2 progress_size_;
 		float rotation_;
 	}; // class GameObj
 

@@ -33,7 +33,7 @@ namespace game {
 	void Entity::SetMovementSpeed(float s) {
 		movement_speed = s;
 	}
-	void Entity::damage(float dmg) {
+	void Entity::damage(float dmg, bool health) {
 		if (health_ > 0)health_ -= dmg;
 	}
 	ParticleNode* Entity::GetParticle(void) {
