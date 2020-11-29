@@ -39,33 +39,6 @@ namespace game {
 		first_person_ = true;
 
 
-		//resman_ refuses to be global, likely because I'm being dumbass.
-
-		//Projectile::Projectile(const std::string name, const std::string type, const std::map<std::string, int> upgrades, const Resource * geometry,
-			//const Resource * material, const Resource * texture);
-		/*
-		 std::string object_name = "ship";
-		 std::string material_name = "TextureShader";
-		 std::string texture_name = "shipTexture";
-
-		 Resource* geom = resman_.GetResource(object_name);
-		 if (!geom) {
-			// throw((std::string("Could not find resource \"") + object_name + std::string("\"")));
-		 }
-
-		 Resource* mat = resman_.GetResource(material_name);
-		 if (!mat) {
-			// throw((std::string("Could not find resource \"") + material_name + std::string("\"")));
-		 }
-
-		 Resource* tex = NULL;
-		 if (texture_name != "") {
-			 tex = resman_.GetResource(texture_name);
-			 if (!tex) {
-				// throw((std::string("Could not find resource \"") + material_name + std::string("\"")));
-			 }
-		 }
-		 */
 
 		for (int i = 0; i < 6; i++) {
 			unlockedWeapons[i] = true; // usually false, true for testing

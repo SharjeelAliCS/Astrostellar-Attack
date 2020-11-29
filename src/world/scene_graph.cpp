@@ -346,6 +346,10 @@ void SceneGraph::DisplayTexture(GLuint program) {
 	float current_time = glfwGetTime();
 	glUniform1f(timer_var, current_time);
 
+	//Player health percent, used to determine how read the screen should be when the player loses health
+	GLint health_var = glGetUniformLocation(program, "healthPercent");
+	glUniform1f(health_var, player_->getHealthPercent());
+
 	// Bind texture
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_);
