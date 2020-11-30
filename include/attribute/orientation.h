@@ -29,7 +29,8 @@ namespace game {
 
 		void SetOrientation(glm::quat orientation);
 
-		void Rotate(glm::quat rot);
+		void Rotate(glm::quat rot); 
+		void Rotate(float angle, glm::vec3 normal);
 
 		// Get relative attributes of Orientation
 		glm::vec3 GetForward(void) const;
@@ -38,18 +39,24 @@ namespace game {
 		glm::vec3 GetInitForward(void) const;
 		glm::vec3 GetInitSide(void) const;
 
+		
 		// Perform relative transformations of Orientation
 		void Pitch(float angle);
 		void Yaw(float angle);
 		void Roll(float angle);
 
 		void SetView(glm::vec3 position, glm::vec3 look_at, glm::vec3 up);
-		void RotateTowards(glm::vec3 cur_pos, glm::vec3 target_pos);
+
+		void FaceTowards(glm::vec3 cur_pos, glm::vec3 target_pos, bool rotate=false);
+		void RotateTowards(float speed);
 	private:
 		glm::vec3 forward_; // Initial forward vector
 		glm::vec3 side_; // Initial side vector
 
 		glm::quat orientation_; // Orientation of Orientation
+		glm::vec3 rotate_axis_;
+		float rotate_cur_angle_;
+		float rotate_max_angle_;
 
 	}; // class Orientation
 

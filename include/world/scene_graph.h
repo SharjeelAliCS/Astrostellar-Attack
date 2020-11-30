@@ -47,11 +47,6 @@ namespace game {
 		NONE
 	};
 
-	struct DeathAnimation {
-		Resource* obj;
-		Resource* mat;
-		Resource* tex;
-	};
     // Class that manages all the objects in a scene
     class SceneGraph {
 
@@ -114,7 +109,7 @@ namespace game {
 			std::string ButtonEvents(float x, float y);
 			void UpdateScreenSizeNodes(float x, float y);
 
-			void SetDeathAnimation(DeathAnimation dm);
+			void SetDeathAnimation(NodeResources dm);
 			void SetAudio(Audio* a) { audio_ = a; }
 
 		private:
@@ -140,7 +135,8 @@ namespace game {
 			std::vector<AsteroidNode*>* asteroid_;
 			std::vector<CometNode*>* comet_;
 			std::vector<ParticleNode*>* death_animations_;
-			DeathAnimation death_animation_param_;
+
+			NodeResources death_animation_rsc;
 			Text text;
 			std::map <ScreenType, std::vector<ScreenNode *>> screen_;
 			ScreenType active_menu_;

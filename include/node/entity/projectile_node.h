@@ -38,7 +38,7 @@ namespace game {
 		void SetPlayer(Player* p);
 
 		void setSpeed(float s) { speed = s; }
-
+		float GetSpeed(void) { return speed; }
 		void Update(float deltaTime);
 
 		//Set the max range it can be as a function of time

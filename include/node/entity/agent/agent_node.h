@@ -11,6 +11,7 @@
 #include "entity_node.h"
 #include "projectile_node.h"
 #include "resource_manager.h"
+#include "resource.h"
 #include "camera.h"
 namespace game {
 	// Class for a single player object 
@@ -27,6 +28,7 @@ namespace game {
 
 		void Update(float deltaTime);
 		void Draw(Camera* camera);
+		void SetProjRsc(NodeResources* rsc) { proj_rsc_ = rsc; }
 
 	protected:
 
@@ -34,9 +36,7 @@ namespace game {
 		//store all the missiles in here. 
 		std::vector<Projectile*> missiles;
 
-		const Resource *geo;
-		const Resource *mat;
-		const Resource *tex;
+		NodeResources* proj_rsc_;
 	}; // class GameObj
 
 } // namespace game

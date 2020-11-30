@@ -82,6 +82,7 @@ namespace game {
 
 		void SetExists(bool e) {exists_ = e;}
 		bool GetExists(void) const { return exists_; }
+		Orientation* GetGeomOrientation() { return geom_orientation_; }
 
 	protected:
 		Audio* audio_;
@@ -106,6 +107,7 @@ namespace game {
 		glm::vec3 joint_;
 		glm::vec3 color_;
 		Orientation* orientation_; // Orientation of node
+		Orientation* geom_orientation_; // Orientation of node
 		glm::vec3 scale_; // Scale of node
 
 		float movement_speed;//movement speed over time

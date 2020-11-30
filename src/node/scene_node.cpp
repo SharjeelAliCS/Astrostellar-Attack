@@ -50,6 +50,8 @@ SceneNode::SceneNode(const std::string name, const Resource *geometry, const Res
     scale_ = glm::vec3(1.0, 1.0, 1.0);
 	orientation_ = new Orientation();
 	orientation_->SetView(glm::vec3(0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
+	geom_orientation_ = new Orientation();
+	geom_orientation_->SetView(glm::vec3(0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
 	joint_ = glm::vec3(0);
 	parentTransform_ = glm::mat4(1);
 	blending_ = false;
@@ -324,11 +326,12 @@ void SceneNode::Update(float deltaTime){
 glm::mat4 SceneNode::CalculateFinalTransformation(Camera* camera) {
 	// World transformation
 	glm::mat4 Orientation = glm::mat4_cast(orientation_->GetOrientation());
+	glm::mat4 GeomOrientation = glm::mat4_cast(geom_orientation_->GetOrientation());
 	glm::mat4 translation = glm::translate(glm::mat4(1.0), position_);
 	glm::mat4 trans_joint = glm::translate(glm::mat4(1.0), joint_);
 	glm::mat4 trans_joint_inv = glm::translate(glm::mat4(1.0), -joint_);
 
-	glm::mat4 orbit = trans_joint_inv * Orientation * trans_joint;
+	glm::mat4 orbit = trans_joint_inv * Orientation * trans_joint*GeomOrientation;
 	glm::mat4 transf = parentTransform_* translation * orbit;
 	
 	for (std::vector<SceneNode*>::iterator it = children_.begin(); it != children_.end(); ++it) {
@@ -360,6 +363,14 @@ void SceneNode::SetupShader(GLuint program, Camera* camera){
     // World transformation
     glm::mat4 scaling = glm::scale(glm::mat4(1.0), scale_);
 	 glm::mat4 transf = CalculateFinalTransformation(camera) * scaling;
+
+	 if (name_ == "player") {
+		 glm::vec4 t = camera->GetProjection() * camera->GetView() * transf * glm::vec4(1.0);
+		 t.x /= t.w;
+		 t.y /= t.w;
+		 t.z /= t.w;
+		 int arg = 544;
+	 }
 
     GLint world_mat = glGetUniformLocation(program, "world_mat");
     glUniformMatrix4fv(world_mat, 1, GL_FALSE, glm::value_ptr(transf));

@@ -34,7 +34,6 @@ namespace game {
             virtual ~GameException() throw() {};
     };
 
-	typedef std::map<std::string, Resource*> NodeResources;
     // Game application
     class Game {
 
@@ -121,7 +120,7 @@ namespace game {
 
             SceneNode *CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type,std::string texture_name = std::string(""), std::string normal_name = std::string(""));
 
-			NodeResources GetResources(std::string object_name,std::string material_name, std::string texture_name, std::string normal_name);
+			NodeResources* GetResources(std::string object_name,std::string material_name, std::string texture_name, std::string normal_name);
     }; // class Game
 
 } // namespace game

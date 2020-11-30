@@ -50,6 +50,15 @@ namespace game {
 
     }; // class Resource
 
+
+	struct NodeResources {
+		Resource* geom;
+		Resource* mat;
+		Resource* tex;
+		Resource* norm;
+		NodeResources();
+
+	};
 } // namespace game
 
 #endif // RESOURCE_H_

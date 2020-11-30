@@ -387,7 +387,7 @@ void SceneGraph::DisplayScreenSpace(GLuint program, std::string name,bool to_tex
 
 void SceneGraph::CreateDeathAnimation(SceneNode* node) {
 	std::string name = node->GetName() + "_death";
-	ParticleNode* pn = new ParticleNode(name,death_animation_param_.obj, death_animation_param_.mat, death_animation_param_.tex);
+	ParticleNode* pn = new ParticleNode(name,death_animation_rsc.geom, death_animation_rsc.mat, death_animation_rsc.tex);
 	glm::vec3 scale = node->GetScale()*(float)0.1;
 	pn->SetScale(scale);
 	pn->SetPosition(node->GetPosition());
@@ -416,49 +416,59 @@ bool SceneGraph::ProjectileCollision(AgentNode* node, bool player) {
 }
 bool SceneGraph::Collision(Entity* node, bool player) {
 	bool collided = false;
-	for (auto ast = asteroid_->begin(); ast != asteroid_->end(); ) {
-		if ((*ast)->Hit(node->GetPosition(), glm::length((*ast)->GetScale()) * 0.9)) {
-			CreateDeathAnimation((*ast));
-			ast = asteroid_->erase(ast);
-			node->damage(20);
-			collided = true;
-			if (player)audio_->playAgain("asteroidExplosion");
+	if (player) {
+		for (auto ast = asteroid_->begin(); ast != asteroid_->end(); ) {
+			if ((*ast)->Hit(node->GetPosition(), glm::length((*ast)->GetScale()) * 0.9)) {
+				CreateDeathAnimation((*ast));
+				ast = asteroid_->erase(ast);
+				node->damage(20);
+				collided = true;
+				if (player)audio_->playAgain("asteroidExplosion");
+			}
+			else {
+				++ast;
+			}
 		}
-		else {
-			++ast;
+
+		for (auto ast = enemy_->begin(); ast != enemy_->end(); ) {
+			if ((*ast)->Hit(node->GetPosition(), glm::length((*ast)->GetScale()) * 0.5)) {
+				CreateDeathAnimation((*ast));
+				ast = enemy_->erase(ast);
+				node->damage(20);
+				collided = true;
+				if (player)audio_->playAgain("asteroidExplosion");
+			}
+			else {
+				++ast;
+			}
+		}
+
+		for (auto ast = comet_->begin(); ast != comet_->end(); ) {
+			if ((*ast)->Hit(node->GetPosition(), glm::length((*ast)->GetScale()) * 0.9)) {
+				CreateDeathAnimation((*ast));
+				ast = comet_->erase(ast);
+				node->damage(20);
+				collided = true;
+				if (player)audio_->playAgain("asteroidExplosion");
+			}
+			else {
+				++ast;
+			}
 		}
 	}
-
-	for (auto ast = enemy_->begin(); ast != enemy_->end(); ) {
-		if ((*ast)->Hit(node->GetPosition(), glm::length((*ast)->GetScale()) * 0.9)) {
-			CreateDeathAnimation((*ast));
-			ast = enemy_->erase(ast);
-			node->damage(20);
+	else {
+		if ((player_->Hit(node->GetPosition(), glm::length(player_->GetScale()) * 0.9))) {
+			player_->damage(5);
 			collided = true;
-			if (player)audio_->playAgain("asteroidExplosion");
-		}
-		else {
-			++ast;
-		}
-	}
+			audio_->playAgain("playerHit");
 
-	for (auto ast = comet_->begin(); ast != comet_->end(); ) {
-		if ((*ast)->Hit(node->GetPosition(), glm::length((*ast)->GetScale()) * 0.9)) {
-			CreateDeathAnimation((*ast));
-			ast = comet_->erase(ast);
-			node->damage(20);
-			collided = true;
-			if (player)audio_->playAgain("asteroidExplosion");
-		}
-		else {
-			++ast;
 		}
 	}
 	return collided;
 }
 
-void SceneGraph::SetDeathAnimation(DeathAnimation dm) {
-	death_animation_param_ = dm;
+void SceneGraph::SetDeathAnimation(NodeResources dm) {
+	death_animation_rsc = dm;
 }
 void SceneGraph::Update(float deltaTime){
 	Collision(player_, true);
@@ -472,6 +482,7 @@ void SceneGraph::Update(float deltaTime){
     }
 	for (int i = 0; i < enemy_->size(); i++) {
 		(*enemy_)[i]->Update(deltaTime);
+		ProjectileCollision((*enemy_)[i], false);
 	}
 	for (int i = 0; i < asteroid_->size(); i++) {
 		asteroid_->at(i)->Update(deltaTime);

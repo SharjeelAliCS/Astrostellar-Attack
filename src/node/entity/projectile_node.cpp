@@ -36,6 +36,7 @@ namespace game {
 		move = [this](float deltaTime) { /*do nothing*/ };
 		this->SetScale(glm::vec3(0.6));
 		//displayStats();
+		geom_orientation_->Rotate(90, glm::vec3(1,0,0));
 		
 	}
 
@@ -62,6 +63,16 @@ namespace game {
 			};
 			//moves forward at a speed of 10.0
 			move = [this](float deltaTime) {
+
+				orientation_->FaceTowards(position_, player_->GetPosition(), true);
+				float rot_speed = deltaTime;
+				if (player_->GetBoosted()) {
+					rot_speed*=0.5;
+				}
+				else {
+					rot_speed*=0.05;
+				}
+				orientation_->RotateTowards(rot_speed);
 				position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
 			};
 		}

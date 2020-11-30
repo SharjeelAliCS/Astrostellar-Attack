@@ -35,6 +35,7 @@ namespace game {
             glm::vec3 GetSide(void) const;
             glm::vec3 GetUp(void) const;
 			glm::mat4 GetView(void) const;
+			glm::mat4 GetProjection(void) const;
 			float GetFarDistance(void) const;
             // Perform relative transformations of camera
             void Pitch(float angle);

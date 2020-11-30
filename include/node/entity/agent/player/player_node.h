@@ -70,6 +70,8 @@ namespace game {
 
 		float getBoostPercent(void);
 		float getNuclearOverloadPercent(void);
+		Camera* GetCam(void) { return c_; }
+		bool IsFirstPerson(void){return first_person_;}
 		
 	private:
 		bool first_person_;

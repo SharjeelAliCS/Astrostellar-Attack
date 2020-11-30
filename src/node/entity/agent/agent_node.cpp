@@ -20,10 +20,6 @@ namespace game {
 
 	AgentNode::AgentNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : Entity(name, geometry, material, texture, normal) {
 
-		geo = geometry;
-		mat = material;
-		tex = texture;
-
 	}
 
 	AgentNode::~AgentNode() {

@@ -33,7 +33,7 @@ namespace game {
 		movement_speed = 20;
 		boost_speed_ = 4*movement_speed;
 		first_person_ = true;
-		boost_duration_ = 5;
+		boost_duration_ = 20;
 		boost_duration_left_ = boost_duration_;
 
 		shield_recharge_speed_ = 3;
@@ -157,16 +157,16 @@ namespace game {
 
 			}
 			for (int i = 0; i < numShots; i++) {
-				missile = new Projectile("missile", weapon, upgrades, geo, mat, tex);
+				missile = new Projectile("missile", weapon, upgrades, proj_rsc_->geom, proj_rsc_->mat, proj_rsc_->tex);
 				missile->SetAsteroids(asteroids);
 				missile->SetComets(comets);
 				missile->SetEnemies(enemies);
-
+				missile->SetColor(glm::vec3(0.19,0.78,1));
 				missile->SetOrientation(GetOrientation());
 				if (!first_person_) {
 					glm::vec3 objPos = (float)300 * c_->GetForward() + c_->GetPosition();
 					//missile->GetOrientationObj()->SetView(objPos, position_, glm::vec3(0, 1, 0));
-					missile->GetOrientationObj()->RotateTowards(position_, objPos);
+					missile->GetOrientationObj()->FaceTowards(position_, objPos);
 
 				}
 
@@ -180,7 +180,7 @@ namespace game {
 	}
 
 	void Player::Draw(Camera *camera) {
-
+		
 		AgentNode::Draw(camera);
 
 	}
