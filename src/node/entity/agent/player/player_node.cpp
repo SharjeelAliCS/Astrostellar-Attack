@@ -30,7 +30,7 @@ namespace game {
 		max_shields_ = 100;
 		shields_ = max_shields_;
 		boosted_ = 0;
-		movement_speed = 20;
+		movement_speed = 50;
 		boost_speed_ = 4*movement_speed;
 		first_person_ = true;
 		boost_duration_ = 20;
@@ -197,7 +197,7 @@ namespace game {
 
 	}
 
-	void Player::damage(float dmg,bool health) {
+	bool Player::damage(float dmg,bool health) {
 		if (shields_ > 0) {
 			shields_ -= dmg;
 		}
@@ -205,6 +205,7 @@ namespace game {
 			health_ -= dmg;
 		}
 		time_since_damage_ = 0;
+		return false;
 	}
 	bool Player::Collision() {
 		//check for collisions with player, set collide to true/false depending/ 
@@ -240,7 +241,7 @@ namespace game {
 		else {
 			float time = glfwGetTime();
 			if (boost_duration_left_ < boost_duration_) {
-				boost_duration_left_ += deltaTime*2;
+				boost_duration_left_ += deltaTime*boost_duration_*0.3;
 			}
 			else {
 				boost_duration_left_ = boost_duration_;

@@ -31,7 +31,7 @@ namespace game {
 		dotDuration = 0;
 		dotStackMax = 0;
 		target = NULL;
-
+		health_ = 10000000000;
 		dmg = []() {return 0;};
 		move = [this](float deltaTime) { /*do nothing*/ };
 		this->SetScale(glm::vec3(0.6));
@@ -59,7 +59,7 @@ namespace game {
 			pierce = 0;//upg["laserBatteryPierceLevel"];
 			//deals 10 damage + 10% per level
 			dmg = [this]() {
-				return 10;// pow(1.1, upg["laserBatteryDamageLevel"]);
+				return 5;// pow(1.1, upg["laserBatteryDamageLevel"]);
 			};
 			//moves forward at a speed of 10.0
 			move = [this](float deltaTime) {
@@ -114,26 +114,35 @@ namespace game {
 					std::cout << "targetting\n";
 					float minD = 100000;
 					//glm::vec3 view_plane = player->GetOrientationObj()->GetSide();
-					for (SceneNode* a : *asteroids) { // this might be a problem bc copy...
+					for (SceneNode* a : *enemies) { // this might be a problem bc copy...
 					//for (auto a = asteroids->begin(); a != asteroids->end(); ) {
 						//only want things in front of the player to be chased, this doesn't do that...
 						//if (glm::dot(view_plane, (player->GetPosition() - a->GetPosition())) < 0) {
 							float d = glm::distance(this->GetPosition(), a->GetPosition());
+							std::cout << "d is " << d << std::endl;
 							if (minD > d) {
+								std::cout << "new d is " << d << std::endl;
 								minD = d;
 								target = a;
 							}
 						//}
 					}
+					std::cout << "min d is " << minD << std::endl;
+					
 					//TODO update orientation
-					position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
+					//position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
 				}
 				else {
 
 					//chase target
 					//TODO would like to change this to be a more gentle curve
+					orientation_->FaceTowards(this->GetPosition(), target->GetPosition(), true);
+					orientation_->RotateTowards(deltaTime);
+					position_ += speed * orientation_->GetForward()*deltaTime;
+					/*
 					glm::vec3 direction = glm::normalize(this->GetPosition() - target->GetPosition());
 					position_ -= speed * glm::normalize(direction) * deltaTime;
+					*/
 				}
 				
 			};
@@ -242,5 +251,13 @@ namespace game {
 			exists_ = false;
 		}
 	}
+	float Projectile::GetDamage(void) {
+	
+		if (pierce <= 0) {
+			exists_ = false;
+		}
+		pierce--;
 
+		return dmg();
+	}
 }

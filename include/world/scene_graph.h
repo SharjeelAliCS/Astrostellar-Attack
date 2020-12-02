@@ -44,6 +44,7 @@ namespace game {
 		PAUSE_MENU,
 		CREDITS_MENU,
 		SHOP_MENU,
+		ENEMY_HEALTH,
 		NONE
 	};
 
@@ -147,9 +148,11 @@ namespace game {
 			bool ProjectileCollision(AgentNode* node, bool player);
 
 			void UpdateRadar();
-			void UpdateRadarNode(glm::vec3 direction, glm::vec3 pos,glm::vec3 color);
+			void UpdateRadarNode(glm::vec3 direction, glm::vec3 pos, glm::vec3 color, bool edge = false);
+			void DrawEnemyHealth(Camera* camera,glm::vec2 pos);
 			glm::vec3 CalculateDistanceFromPlayer(glm::vec3 pos);
 
+			float enemy_healthbar_distance_;
 			float radar_distance_;
 
     }; // class SceneGraph

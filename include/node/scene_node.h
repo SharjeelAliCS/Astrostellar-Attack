@@ -84,6 +84,7 @@ namespace game {
 		bool GetExists(void) const { return exists_; }
 		Orientation* GetGeomOrientation() { return geom_orientation_; }
 
+		glm::vec3 GetScreenSpacePos(bool abovePlayer,Camera* camera);
 	protected:
 		Audio* audio_;
 		//Parent of a node
@@ -92,7 +93,7 @@ namespace game {
 		std::vector<SceneNode*> children_;
 		//transformation which contains the entire multipled matrix for transformation
 		glm::mat4 parentTransform_;
-
+		glm::mat4 current_transform_;
 		std::string name_; // Name of the scene node
 		GLuint array_buffer_; // References to geometry: vertex and array buffers
 		GLuint element_array_buffer_;

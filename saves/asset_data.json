@@ -46,6 +46,8 @@
       "shieldBoxTexture": "/hud/shield_box.png",
       "boostBarTexture": "/hud/boost_bar.png",
       "boostBoxTexture": "/hud/boost_box.png",
+      "enemyHealthBoxTexture": "/hud/enemy_health_box.png",
+      "enemyHealthBarTexture": "/hud/enemy_health_bar.png",
       "radarTexture": "/hud/radar.png",
       "crosshairDefaultTexture": "/hud/crosshair_default.png",
       "chargeBlastTexture": "/hud/weapons/charge_blast.png",
@@ -55,7 +57,7 @@
       "shotgunTexture": "/hud/weapons/shotgun.png",
       "sniperShotTexture": "/hud/weapons/sniper.png",
       "pauseButton": "/menu/pause/pause.png",
-      "enemyRedtexture": "/enemy/jodomatis.png",
+      "enemyRedtexture": "/enemy/uvmap.png",
       "Asteroid1Texture": "/asteroids/Asteroid1_AlbedoTransparency.png",
       "Asteroid2Texture": "/asteroids/Asteroid2_AlbedoTransparency.png",
       "Asteroid3Texture": "/asteroids/Asteroid3_AlbedoTransparency.png",
@@ -90,6 +92,7 @@
       "playerEngine": "46504_phreaksaccount_shipengine.mp3",
       "asteroidExplosion": "smartsound-cinematic-impact-eruption-01_EDfmymnR.mp3",
       "missileShot": "36847__ecodtr__laserrocket2.mp3",
-      "playerHit": "player_hit.mp3"
+      "playerHit": "small_explosion.mp3",
+      "enemyHit": "player_hit.mp3"
     }
 }

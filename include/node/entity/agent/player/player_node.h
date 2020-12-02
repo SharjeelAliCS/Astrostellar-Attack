@@ -63,7 +63,7 @@ namespace game {
 		void setEnemies(std::vector<Enemy*>* e);
 		void setDeathAnimations(std::vector<ParticleNode*>* p);
 		std::string GetCurrentWeapon(void) const;
-		void damage(float dmg, bool health=true);
+		bool damage(float dmg, bool health=true);
 		bool NuclearOverload(void);
 		// Update the node
 		void SetFirstPerson(bool f) { first_person_ = f; }
@@ -85,7 +85,6 @@ namespace game {
 
 		//0: no boost. 1: boosted. 2: boost off
 		int boosted_;
-		float boost_speed_;
 		float boost_duration_;
 		float boost_duration_left_;
 

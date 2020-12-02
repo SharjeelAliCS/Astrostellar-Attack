@@ -19,9 +19,13 @@
 namespace game {
 
 	AgentNode::AgentNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : Entity(name, geometry, material, texture, normal) {
+		damage_ =  30;
 
 	}
 
+	float AgentNode::GetDamage(void) {
+		return damage_;
+	}
 	AgentNode::~AgentNode() {
 	}
 
@@ -37,12 +41,12 @@ namespace game {
 			else {
 				int a;
 				*it = NULL;
-				std::cout << "missile died" << std::endl;
+				//std::cout << "missile died" << std::endl;
 				it = missiles.erase(it);
 			}
 
 		}
-
+		Entity::Update(deltaTime);
 	}
 
 

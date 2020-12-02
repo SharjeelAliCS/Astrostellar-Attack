@@ -29,9 +29,11 @@ namespace game {
 		void Update(float deltaTime);
 		void Draw(Camera* camera);
 		void SetProjRsc(NodeResources* rsc) { proj_rsc_ = rsc; }
-
+		float GetDamage(void) ;
 	protected:
+		float damage_;
 
+		float boost_speed_;
 		std::map<std::string, int> upgrades;
 		//store all the missiles in here. 
 		std::vector<Projectile*> missiles;

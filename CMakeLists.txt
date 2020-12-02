@@ -143,6 +143,8 @@ set(RCRS
     ${PROJECT_SOURCE_DIR}/resource/shader/textured_normal_material_vp.glsl
     ${PROJECT_SOURCE_DIR}/resource/shader/skybox_vp.glsl
     ${PROJECT_SOURCE_DIR}/resource/shader/skybox_fp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/colored_vp.glsl
+    ${PROJECT_SOURCE_DIR}/resource/shader/colored_fp.glsl
 
     ${PROJECT_SOURCE_DIR}/resource/particle/particle_stream_fp.glsl
     ${PROJECT_SOURCE_DIR}/resource/particle/particle_stream_vp.glsl

@@ -21,19 +21,22 @@ namespace game {
 	Enemy::Enemy(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : AgentNode(name, geometry, material, texture,normal) {
 		movement_speed = 50;
 		InitState();
-		rate_of_fire_ = 2;
+		rate_of_fire_ = 1;
 		follow_duration_ = 5;
 		move_away_duration_ = 5;
 		time_since_last_move_ = 0;
-		min_distance_ = 100;
-		detect_distance_ = 1000;
+		min_distance_ = 50;
+		detect_distance_ = 750;
 		time_since_fire_ = 0;
+		boost_speed_ = 50;
 	}
 
 	Enemy::~Enemy() {
 	}
 
 	void Enemy::InitState(void) {
+
+		FindNewDirection(0);
 		active_state_ = &Enemy::FindPlayer;
 	}
 
@@ -60,15 +63,18 @@ namespace game {
 		missile->GetOrientationObj()->FaceTowards(position_, pos);
 
 		missiles.push_back(missile);
-		if (missiles.size() > 0) {
-			std::cout << "Enemy fired a missile!" << std::endl;
-		}
+	}
+
+	void Enemy::FindNewDirection(float deltaTime) {
+		rotation_axis_ = glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX));
+		rotation_axis_ = glm::normalize(rotation_axis_);
 	}
 	void Enemy::FollowPlayer(float deltaTime) {
 
 		orientation_->FaceTowards(position_, player_->GetPosition(), true);
 		orientation_->RotateTowards(deltaTime * 3);
 		if (glm::distance(position_, player_->GetPosition()) > detect_distance_) {
+			FindNewDirection(deltaTime);
 			active_state_ = &Enemy::FindPlayer;
 			return;
 		}
@@ -100,6 +106,10 @@ namespace game {
 
 			active_state_ = &Enemy::FollowPlayer;
 		}
+		else {
+			Rotate(deltaTime*30, rotation_axis_);
+			position_ += orientation_->GetForward()*(movement_speed+boost_speed_)*deltaTime;
+		}
 	}
 	void Enemy::MoveToRandomDirection(float deltaTime) {
 		float radius = 10;
@@ -113,6 +123,7 @@ namespace game {
 	void Enemy::MoveAwayFromPlayer(float deltaTime) {
 		if (time_since_last_move_ > move_away_duration_) {
 			time_since_last_move_ = 0;
+			FindNewDirection(deltaTime);
 			active_state_ = &Enemy::FindPlayer;
 		}
 		orientation_->RotateTowards(deltaTime*3);

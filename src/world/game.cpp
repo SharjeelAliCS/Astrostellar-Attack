@@ -192,7 +192,7 @@ void Game::SetupResources(void){
 	audio_->volume("playerEngine", 300);
 	audio_->volume("asteroidExplosion", 200);
 	audio_->volume("missileShot", 30);
-	audio_->volume("playerHit", 30);
+	audio_->volume("enemyHit", 30);
 	audio_->playRepeat("ambience");
 	
 }
@@ -220,7 +220,7 @@ void Game::SetupScene(void){
 	
 	//skybox->SetOrientation(180, glm::vec3(1, 0, 0));
 	//create enemies
-	CreateEnemies(100);
+	CreateEnemies(50);
 	CreateAsteroids(500);
 	CreateComets();
 	//ame::SceneNode *wall = CreateInstance("Canvas", "FlatSurface", "Procedural", "RockyTexture"); // must supply a texture, even if not used
@@ -655,6 +655,13 @@ void Game::CreateHUD(void) {
 	node->SetScale(glm::vec3(0.063, 0.063 *3.6, 1));//multiply by 17.72
 	node->SetPosition(glm::vec3(-0.9, 0.045, 0));
 	
+	//enemy health bar
+	node = CreateScreenInstance("enemyHealthBox", "FlatSurface", "ScreenMaterial", ENEMY_HEALTH, "enemyHealthBoxTexture");
+	node->SetScale(glm::vec3(0.1, 0.1*0.1,1));//multiply by 0.2
+
+	node = CreateScreenInstance("enemyHealthBar", "FlatSurface", "ScreenMaterial", ENEMY_HEALTH, "enemyHealthBarTexture");
+	node->SetScale(glm::vec3(0.1, 0.1*0.1, 1));//multiply by 0.2
+
 	//crosshair
 	node = CreateScreenInstance("crosshair", "FlatSurface", "ScreenMaterial", HUD_MENU, "crosshairDefaultTexture");
 	node->SetScale(glm::vec3(0.1));

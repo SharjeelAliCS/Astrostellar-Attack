@@ -45,6 +45,7 @@ namespace game {
 		void SetTTL(double t);
 		double GetTTL(void) const { return ttl; }
 		void displayStats();
+		float GetDamage(void);
 
 	private:
 		float lastTime=0; //just for debugging

@@ -150,7 +150,7 @@ bool SceneNode::Hit(glm::vec3 pos, float range) {
 	//std::cout << "distance is: " << glm::distance(pos, this->GetPosition()) << std::endl;
 	//std::cout << "range is: " <<  range + glm::length(this->GetScale()) << std::endl<< std::endl;
 
-	return glm::distance(pos, this->GetPosition()) <= range + glm::length(this->GetScale());
+	return glm::distance(pos, this->GetPosition()) <= range +this->GetScale().x;
 }
 
 
@@ -269,24 +269,16 @@ void SceneNode::SetupBlending(void) {
 void SceneNode::Draw(Camera *camera){
 	if (!draw_)return;
 	SetupBlending();
-	/*
-	//https://stackoverflow.com/questions/6301085/how-to-check-if-an-object-lies-outside-the-clipping-volume-in-opengl
-	glm::mat4 view_mat = camera->GetView();
-	glm::vec4 Pclip = view_mat * glm::vec4(position_, 1.);
-	if(not( abs(Pclip.x) < Pclip.w &&
-		abs(Pclip.y) < Pclip.w &&
-		abs(Pclip.z) < Pclip.w)){
-		return;
-		}
-	else {
-	}
-	*/
 	
-	glm::vec3 view_plane = camera->GetForward();
+	glm::vec3 view_plane = camera->GetSide();
+	glm::vec3 screen_pos = GetScreenSpacePos(false, camera);
 	if (glm::dot(view_plane, (position_-camera->GetPosition())) < 0 &&
 		glm::distance(camera->GetPosition(), position_)< camera->GetFarDistance() &&
 		parent_!=NULL &&
 		parent_->GetName()!="player") {
+		return;
+	}
+	if (abs(screen_pos.x) > 1 || abs(screen_pos.y) > 1 || abs(screen_pos.z) > 1) {
 		return;
 	}
     // Select proper material (shader program)
@@ -340,6 +332,21 @@ glm::mat4 SceneNode::CalculateFinalTransformation(Camera* camera) {
 
 	return transf;
 }
+
+//https://stackoverflow.com/questions/8491247/c-opengl-convert-world-coords-to-screen2d-coords
+glm::vec3 SceneNode::GetScreenSpacePos(bool abovePlayer, Camera* camera) {
+	
+	glm::vec3 pos = position_;
+	if (abovePlayer) {
+		pos += scale_.x*camera->GetUp();
+	}
+	glm::mat4 translation = glm::translate(glm::mat4(1.0), pos);
+	glm::mat4 transf = parentTransform_ * translation;
+
+	glm::vec4 pos4 = camera->GetProjection()*camera->GetView()*transf*glm::vec4(0, 0, 0, 1);
+	glm::vec3 screen_pos(pos4.x / pos4.w, pos4.y / pos4.w, pos4.z / pos4.w);
+	return screen_pos;
+}
 void SceneNode::SetupShader(GLuint program, Camera* camera){
 
 	
@@ -363,14 +370,8 @@ void SceneNode::SetupShader(GLuint program, Camera* camera){
     // World transformation
     glm::mat4 scaling = glm::scale(glm::mat4(1.0), scale_);
 	 glm::mat4 transf = CalculateFinalTransformation(camera) * scaling;
-
-	 if (name_ == "player") {
-		 glm::vec4 t = camera->GetProjection() * camera->GetView() * transf * glm::vec4(1.0);
-		 t.x /= t.w;
-		 t.y /= t.w;
-		 t.z /= t.w;
-		 int arg = 544;
-	 }
+	 current_transform_ = transf;
+	
 
     GLint world_mat = glGetUniformLocation(program, "world_mat");
     glUniformMatrix4fv(world_mat, 1, GL_FALSE, glm::value_ptr(transf));

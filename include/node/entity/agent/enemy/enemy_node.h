@@ -36,6 +36,7 @@ namespace game {
 		void SetPlayer(Player* p) { player_ = p; }
 
 		void Fire(float deltaTime);
+		void FindNewDirection(float deltaTime);
 	protected:
 		EnemyState active_state_;
 		Player* player_;
@@ -49,7 +50,7 @@ namespace game {
 
 		float detect_distance_;
 		float min_distance_;
-
+		glm::vec3 rotation_axis_;
 		glm::vec3 CalculateAimPosition(float speed);
 
 	}; // class GameObj
