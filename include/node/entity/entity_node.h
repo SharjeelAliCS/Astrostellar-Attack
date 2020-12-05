@@ -13,6 +13,7 @@
 
 namespace game {
 
+	
 	// Stores the enemy object, which for the demo is simply a "planet". It is a child of the GameObj class. 
 	class Entity : public SceneNode {
 
@@ -28,6 +29,7 @@ namespace game {
 		bool Exists(void) const;
 
 		void SetHealth(float h);
+		void SetMaxHealth(float h);
 		float GetHealth(void) const;
 		float getHealthPercent(void) const;
 

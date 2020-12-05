@@ -453,6 +453,8 @@ bool SceneGraph::ProjectileCollision(AgentNode* node, bool player) {
 }
 bool SceneGraph::Collision(Entity* node, bool player) {
 	bool collided = false;
+	std::vector<Enemy*> splitter_list;
+	bool newSplitters = false;
 	if (player) {
 		for (auto ast = asteroid_->begin(); ast != asteroid_->end(); ) {
 			if ((*ast)->Hit(node->GetPosition(), (*ast)->GetScale().x * 0.9)) {
@@ -467,23 +469,49 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 			}
 		}
 
-		for (auto ast = enemy_->begin(); ast != enemy_->end(); ) {
-			if ((*ast)->Hit(node->GetPosition(), (*ast)->GetScale().x * 0.2)) {
-				node->damage((*ast)->GetDamage());
-				(*ast)->damage(node->GetDamage());
+		for (auto en = enemy_->begin(); en != enemy_->end(); ) {
+			if ((*en)->Hit(node->GetPosition(), (*en)->GetScale().x * 0.2)) {
+				node->damage((*en)->GetDamage());
+				(*en)->damage(node->GetDamage());
 				collided = true;
 				if (player)audio_->playAgain("enemyHit");
 
-				float per = (*ast)->getHealthPercent();
-				std::cout << "damage is " << node->GetDamage() << std::endl;
+				float per = (*en)->getHealthPercent();
+				//std::cout << "damage is " << node->GetDamage() << std::endl;
 			}
-			if((*ast)->Exists()){
-				++ast;
+			if((*en)->Exists()){
+				++en;
 			}
 			else {
-				CreateDeathAnimation((*ast));
-				ast = enemy_->erase(ast);
-				if (player)audio_->playAgain("asteroidExplosion");
+				std::cout << "enemy hit" << std::endl;
+				std::string enemy_type = (*en)->GetEnemyType();
+				float phase = (*en)->GetPhase();
+				if (enemy_type == "Splitter" && phase>0) {
+					newSplitters = true;
+					NodeResources* rsc = (*en)->GetNodeResources();
+
+					for (int i = 0; i < 3; i++) {
+						Enemy* n = new Enemy((*en)->GetName(), rsc->geom, rsc->mat, rsc->tex);
+						n->SetNodeResources(rsc);
+						n->SetMaxHealth((*en)->GetHealth()*0.5);
+						n->SetScale((*en)->GetScale()*(float)0.5);
+						n->SetMovementSpeed((*en)->getCurSpeed());
+						n->SetDamage((*en)->GetDamage()*0.5);
+						n->SetPhase((*en)->GetPhase()-1);
+						n->SetPosition((*en)->GetPosition());
+						n->SetProjRsc((*en)->GetProjRsc());
+						n->SetPlayer(player_);
+						n->SetEnemyType("Splitter");
+
+						n->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float)rand() / RAND_MAX), glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX)))));
+						splitter_list.push_back(n);
+					}
+				}
+				else {
+					CreateDeathAnimation((*en));
+					if (player)audio_->playAgain("asteroidExplosion");
+				}
+				en = enemy_->erase(en);
 			}
 		}
 
@@ -507,6 +535,12 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 			collided = true;
 			audio_->playAgain("playerHit");
 
+		}
+	}
+
+	if (newSplitters) {
+		for (int i = 0; i < splitter_list.size(); i++) {
+			enemy_->push_back(splitter_list[i]);
 		}
 	}
 	return collided;

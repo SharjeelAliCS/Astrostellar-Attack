@@ -540,23 +540,112 @@ Game::~Game(){
     glfwTerminate();
 }
 
+void Game::SetEnemyStats(std::string type, Enemy* en, json data) {
 
+	en->SetEnemyType(type);
+	en->SetMovementSpeed(data[type]["speed"]);
+	en->SetMaxHealth(data[type]["health"]);
+	en->SetProjectileDmg(data[type]["bullet_damage"]);
+	en->SetDamage(data[type]["ram_damage"]);
+}
 void Game::CreateEnemies(int num_enemies) {
 
-	float radius = 2000;
-	// Create a number of asteroid instances
-	for (int i = 0; i < num_enemies; i++) {
-		// Create instance name
+	float radius = 1000;
+	float default_scale = 5;
+	Resource* dataResource = resman_.GetResource("save");
+	json data = dataResource->GetJSON()["enemies"];
+
+	// Create a number of grunt enemies
+	std::string enemy_type = "Grunt";
+	for (int i = 0; i < (float)num_enemies*(float)data[enemy_type]["amount"]; i++) {
 		std::stringstream ss;
 		ss << i;
 		std::string index = ss.str();
-		std::string name = "enemy" + index;
-		Enemy *en = CreateEnemyInstance(name, "EnemyMesh", "TextureShader","enemyRedtexture");
+		std::string name = "enemy_"+enemy_type + index;
+		Enemy *en = CreateEnemyInstance(name, "EnemyMesh", "TextureShader","enemy"+enemy_type+"Texture");
+		SetEnemyStats(enemy_type, en, data);
 
 		en->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
 		en->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float)rand() / RAND_MAX), glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX)))));
-		en->SetScale(glm::vec3(5));
+		en->SetScale(glm::vec3(default_scale));
 	}
+
+	enemy_type = "Ram";
+	for (int i = 0; i < (float)num_enemies*(float)data[enemy_type]["amount"]; i++) {
+		// Create a number of ram enemies
+		std::stringstream ss;
+		ss << i;
+		std::string index = ss.str();
+		std::string name = "enemy_" + enemy_type + index;
+		Enemy *en = CreateEnemyInstance(name, "EnemyMesh", "TextureShader", "enemy" + enemy_type + "Texture");
+		SetEnemyStats(enemy_type, en, data);
+
+		en->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
+		en->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float)rand() / RAND_MAX), glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX)))));
+		en->SetScale(glm::vec3(default_scale));
+	}
+
+	enemy_type = "Tank";
+	for (int i = 0; i < (float)num_enemies*(float)data[enemy_type]["amount"]; i++) {
+		// Create a number of ram enemies
+		std::stringstream ss;
+		ss << i;
+		std::string index = ss.str();
+		std::string name = "enemy_" + enemy_type + index;
+		Enemy *en = CreateEnemyInstance(name, "EnemyMesh", "TextureShader", "enemy" + enemy_type + "Texture");
+		SetEnemyStats(enemy_type, en, data);
+
+		en->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
+		en->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float)rand() / RAND_MAX), glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX)))));
+		en->SetScale(glm::vec3(default_scale*2));
+	}
+
+	enemy_type = "Speedster";
+	for (int i = 0; i < (float)num_enemies*(float)data[enemy_type]["amount"]; i++) {
+		// Create a number of ram enemies
+		std::stringstream ss;
+		ss << i;
+		std::string index = ss.str();
+		std::string name = "enemy_" + enemy_type + index;
+		Enemy *en = CreateEnemyInstance(name, "EnemyMesh", "TextureShader", "enemy" + enemy_type + "Texture");
+		SetEnemyStats(enemy_type, en, data);
+
+		en->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
+		en->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float)rand() / RAND_MAX), glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX)))));
+		en->SetScale(glm::vec3(default_scale));
+	}
+
+	enemy_type = "Splitter";
+	for (int i = 0; i < (float)num_enemies*(float)data[enemy_type]["amount"]; i++) {
+		// Create a number of ram enemies
+		std::stringstream ss;
+		ss << i;
+		std::string index = ss.str();
+		std::string name = "enemy_" + enemy_type + index;
+		Enemy *en = CreateEnemyInstance(name, "EnemyMesh", "TextureShader", "enemy" + enemy_type + "Texture");
+		SetEnemyStats(enemy_type, en, data);
+
+		en->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
+		en->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float)rand() / RAND_MAX), glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX)))));
+		en->SetScale(glm::vec3(default_scale));
+		en->SetPhase(data[enemy_type]["phases"]);
+	}
+
+	enemy_type = "Disrupter";
+	for (int i = 0; i < (float)num_enemies*(float)data[enemy_type]["amount"]; i++) {
+		// Create a number of ram enemies
+		std::stringstream ss;
+		ss << i;
+		std::string index = ss.str();
+		std::string name = "enemy_" + enemy_type + index;
+		Enemy *en = CreateEnemyInstance(name, "EnemyMesh", "TextureShader", "enemy" + enemy_type + "Texture");
+		SetEnemyStats(enemy_type, en, data);
+
+		en->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
+		en->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float)rand() / RAND_MAX), glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX)))));
+		en->SetScale(glm::vec3(default_scale));
+	}
+
 }
 
 void Game::CreateAsteroids(int num_asteroids){
@@ -702,6 +791,7 @@ Enemy *Game::CreateEnemyInstance(std::string entity_name, std::string object_nam
 	NodeResources* proj = GetResources("SimpleCylinderMesh", "ColoredMaterial", "", "");
 	Enemy *en = new Enemy(entity_name, rsc->geom, rsc->mat, rsc->tex, rsc->norm);
 
+	en->SetNodeResources(rsc);
 	
 	en->SetProjRsc(proj);
 	scene_.AddEnemy(en);

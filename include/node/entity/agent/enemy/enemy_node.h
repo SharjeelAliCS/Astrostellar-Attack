@@ -31,22 +31,33 @@ namespace game {
 		void MoveToRandomDirection(float deltaTime);
 		void MoveAwayFromPlayer(float deltaTime);
 
+		void RamPlayer(float deltaTime);
+
 		void Update(float deltaTime);
 		void Draw(Camera* camera);
 		void SetPlayer(Player* p) { player_ = p; }
 
 		void Fire(float deltaTime);
 		void FindNewDirection(float deltaTime);
+		
+		void SetEnemyType(std::string e) { enemy_type_ = e; }
+		std::string GetEnemyType(void) { return enemy_type_; }
+		void SetProjectileDmg(float d) { projectile_dmg_ = d; }
+
+		void SetPhase(float p) { phase_ = p; }
+		float GetPhase(void){return phase_; }
 	protected:
+		int phase_;
 		EnemyState active_state_;
 		Player* player_;
-
+		std::string enemy_type_;
 		float rate_of_fire_;
 		float time_since_fire_;
 		float follow_duration_;
 		float move_away_duration_;
 		
 		float time_since_last_move_;
+		float projectile_dmg_;
 
 		float detect_distance_;
 		float min_distance_;

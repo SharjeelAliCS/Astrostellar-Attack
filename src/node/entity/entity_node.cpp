@@ -56,6 +56,10 @@ namespace game {
 	void Entity::SetHealth(float h) {
 		health_ = h;
 	}
+	void Entity::SetMaxHealth(float h) {
+		health_ = h;
+		max_health_ = health_;
+	}
 	float Entity::GetHealth(void) const {
 		return health_;
 	}

@@ -85,7 +85,12 @@ namespace game {
 		Orientation* GetGeomOrientation() { return geom_orientation_; }
 
 		glm::vec3 GetScreenSpacePos(bool abovePlayer,Camera* camera);
+
+		NodeResources* GetNodeResources(void) { return node_resources_; }
+		void SetNodeResources(NodeResources* n) { node_resources_ = n; }
 	protected:
+
+		NodeResources* node_resources_;
 		Audio* audio_;
 		//Parent of a node
 		SceneNode* parent_;

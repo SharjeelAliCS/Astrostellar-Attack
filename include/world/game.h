@@ -106,6 +106,8 @@ namespace game {
 			// Create entire random asteroid field
 			void CreateHUD(void);
 
+			void SetEnemyStats(std::string type, Enemy* en, json data);
+
 			AsteroidNode *CreateAsteroidInstance(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name = std::string(""), std::string normal_name = std::string(""));
 
 			CometNode *CreateCometNode(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name = std::string(""), std::string normal_name = std::string(""));

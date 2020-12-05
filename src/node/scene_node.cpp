@@ -58,6 +58,9 @@ SceneNode::SceneNode(const std::string name, const Resource *geometry, const Res
 	color_ = glm::vec3(1);
 	exists_ = true;
 	parent_ = NULL;
+
+	node_resources_ = new NodeResources();
+
 }
 
 

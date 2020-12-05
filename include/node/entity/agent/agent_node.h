@@ -30,6 +30,9 @@ namespace game {
 		void Draw(Camera* camera);
 		void SetProjRsc(NodeResources* rsc) { proj_rsc_ = rsc; }
 		float GetDamage(void) ;
+		void SetDamage(float d) { damage_ = d; }
+
+		NodeResources* GetProjRsc(void) { return proj_rsc_; }
 	protected:
 		float damage_;
 

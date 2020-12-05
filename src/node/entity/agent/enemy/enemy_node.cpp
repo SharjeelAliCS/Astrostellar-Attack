@@ -29,6 +29,7 @@ namespace game {
 		detect_distance_ = 750;
 		time_since_fire_ = 0;
 		boost_speed_ = 50;
+		phase_ = 0;
 	}
 
 	Enemy::~Enemy() {
@@ -103,8 +104,13 @@ namespace game {
 			
 			glm::vec3 pos = CalculateAimPosition(getCurSpeed());
 			//orientation_->FaceTowards(position_, pos,true);
-
-			active_state_ = &Enemy::FollowPlayer;
+			
+			if (enemy_type_ == "Ram") {
+				active_state_ = &Enemy::RamPlayer;
+			}
+			else {
+				active_state_ = &Enemy::FollowPlayer;
+			}
 		}
 		else {
 			Rotate(deltaTime*30, rotation_axis_);
@@ -128,6 +134,26 @@ namespace game {
 		}
 		orientation_->RotateTowards(deltaTime*3);
 		position_ += orientation_->GetForward()*movement_speed*deltaTime;
+	}
+
+	void Enemy::RamPlayer(float deltaTime) {
+		orientation_->FaceTowards(position_, player_->GetPosition(), true);
+		orientation_->RotateTowards(deltaTime * 3);
+		if (glm::distance(position_, player_->GetPosition()) > detect_distance_) {
+			FindNewDirection(deltaTime);
+			active_state_ = &Enemy::FindPlayer;
+			return;
+		}
+		float speed = movement_speed;
+		if (glm::distance(position_, player_->GetPosition()) < min_distance_) {
+			speed += boost_speed_;
+		}
+		position_ += orientation_->GetForward()*speed*deltaTime;
+
+		if (time_since_last_move_ > follow_duration_) {
+			time_since_last_move_ = 0;
+			active_state_ = &Enemy::MoveToRandomDirection;
+		}
 	}
 
 	//https://gamedev.stackexchange.com/questions/35859/algorithm-to-shoot-at-a-target-in-a-3d-game
