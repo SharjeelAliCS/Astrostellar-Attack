@@ -76,4 +76,5 @@ std::string Resource::GetFilePath(void) const {
 	return file_path_;
 }
 
+NodeResources::NodeResources() : geom(NULL), mat(NULL), tex(NULL), norm(NULL) {}
 } // namespace game

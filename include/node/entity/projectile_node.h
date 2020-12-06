@@ -14,14 +14,17 @@
 #include "asteroid_node.h"
 #include "comet_node.h"
 
+
 namespace game {
+
+	class Player;
 	class Enemy;
 	// Class for a single projectile object 
 	class Projectile : public Entity {
 
 	public:
 		// Create game object
-		Projectile(const std::string name, const std::string type, std::map<std::string, int> upgrades, std::vector<AsteroidNode*>* ast, std::vector<CometNode*>* cmt, std::vector<Enemy*>* enemy,
+		Projectile(const std::string name, const std::string type, std::map<std::string, int> upgrades, 
 			const Resource *geometry, const Resource *material,const Resource *texture = NULL, const Resource *normal = NULL);
 
 		// Destructor
@@ -29,16 +32,20 @@ namespace game {
 
 		//defines stats for player attack types
 		void init();
-
+		void SetAsteroids(std::vector<AsteroidNode*>* ast) { asteroids = ast; }
+		void SetComets(std::vector<CometNode*>* cmt) { comets = cmt; }
+		void SetEnemies(std::vector<Enemy*>* en) { enemies = en; }
+		void SetPlayer(Player* p);
 
 		void setSpeed(float s) { speed = s; }
-
+		float GetSpeed(void) { return speed; }
 		void Update(float deltaTime);
 
 		//Set the max range it can be as a function of time
 		void SetTTL(double t);
 		double GetTTL(void) const { return ttl; }
 		void displayStats();
+		float GetDamage(void);
 
 	private:
 		float lastTime=0; //just for debugging
@@ -65,6 +72,7 @@ namespace game {
 		std::vector<AsteroidNode*>* asteroids;
 		std::vector<CometNode*>* comets;
 		std::vector<Enemy*>* enemies;
+		Player* player_;
 
 	}; // class GameObj
 

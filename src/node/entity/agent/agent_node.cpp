@@ -19,11 +19,42 @@
 namespace game {
 
 	AgentNode::AgentNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : Entity(name, geometry, material, texture, normal) {
+		damage_ =  30;
+
 	}
 
+	float AgentNode::GetDamage(void) {
+		return damage_;
+	}
 	AgentNode::~AgentNode() {
 	}
 
 
+	void AgentNode::Update(float deltaTime) {
+
+		for (std::vector<Projectile*>::iterator it = missiles.begin(); it != missiles.end();) {
+			(*it)->Update(deltaTime);
+			if ((*it)->Exists()) {
+				++it;
+
+			}
+			else {
+				int a;
+				*it = NULL;
+				//std::cout << "missile died" << std::endl;
+				it = missiles.erase(it);
+			}
+
+		}
+		Entity::Update(deltaTime);
+	}
+
+
+	void AgentNode::Draw(Camera* camera) {
+		for (std::vector<Projectile*>::iterator it = missiles.begin(); it != missiles.end(); ++it) {
+			(*it)->Draw(camera);
+		}
+		Entity::Draw(camera);
+	}
 
 }

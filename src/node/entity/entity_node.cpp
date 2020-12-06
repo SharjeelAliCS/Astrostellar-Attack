@@ -21,6 +21,8 @@ namespace game {
 		max_health_ = 100;
 		health_ = max_health_;
 		particles_ = NULL;
+		see_health_duration_ = 2;
+		see_health_left_ = 0;
 	}
 
 	Entity::~Entity() {
@@ -30,11 +32,23 @@ namespace game {
 		return exists_;
 	}
 
+	bool Entity::SeeHealth(bool see) {
+		if (see) {
+			see_health_left_ = see_health_duration_;
+		}
+		return see_health_left_ > 0;
+	}
 	void Entity::SetMovementSpeed(float s) {
 		movement_speed = s;
 	}
-	void Entity::damage(float dmg) {
-		if (health_ > 0)health_ -= dmg;
+	bool Entity::damage(float dmg, bool health) {
+		health_ -= dmg;
+		if (health_ < 0) {
+			health_ = 0;
+			exists_ = false;
+			return true;
+		}
+		return false;
 	}
 	ParticleNode* Entity::GetParticle(void) {
 		return particles_;
@@ -47,6 +61,10 @@ namespace game {
 		health_ = max(health_, 0);
 	}
 
+	void Entity::SetMaxHealth(float h) {
+		health_ = h;
+		max_health_ = health_;
+	}
 	float Entity::GetHealth(void) const {
 		return health_;
 	}
@@ -60,6 +78,7 @@ namespace game {
 	}
 
 	void Entity::Update(float deltaTime) {
+		see_health_left_ -= deltaTime;
 		if (particles_ != NULL) {
 			//particles_->Rotate(deltaTime * 30, glm::vec3(0,0,1));
 		}
@@ -73,6 +92,9 @@ namespace game {
 		}
 		return transf;
 
+	}
+	float Entity::GetDamage(void)  {
+		return 20;
 	}
 	void Entity::SetParticleSystem(ParticleNode* particles) {
 		particles_ = particles;

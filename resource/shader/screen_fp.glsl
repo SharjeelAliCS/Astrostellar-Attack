@@ -9,7 +9,7 @@ in vec3 light_pos;
 
 // Uniform (global) buffer
 uniform sampler2D texture_map;
-uniform float progress_size;
+uniform vec2 progress_size;
 uniform vec3 glow = vec3(0,0,0);
 
 void main() 
@@ -22,10 +22,12 @@ void main()
 	gl_FragColor.g +=glow.g;
 	gl_FragColor.b +=glow.b;
 
-	if(uv_interp.x > progress_size){
+	if(uv_interp.x > progress_size.x){
 		gl_FragColor.a = 0;
 	}
-	
+	if(uv_interp.y < 1.0- progress_size.y ){
+		gl_FragColor.a = 0;
+	}
     // Use texture in determining fragment colour
     
 }

@@ -63,10 +63,16 @@ namespace game {
 		void setEnemies(std::vector<Enemy*>* e);
 		void setDeathAnimations(std::vector<ParticleNode*>* p);
 		std::string GetCurrentWeapon(void) const;
-		void damage(float dmg);
+		bool damage(float dmg, bool health=true);
+		bool NuclearOverload(void);
 		// Update the node
 		void SetFirstPerson(bool f) { first_person_ = f; }
 
+		float getBoostPercent(void);
+		float getNuclearOverloadPercent(void);
+		Camera* GetCam(void) { return c_; }
+		bool IsFirstPerson(void){return first_person_;}
+		
 	private:
 		bool first_person_;
 		int projType;
@@ -79,14 +85,19 @@ namespace game {
 
 		//0: no boost. 1: boosted. 2: boost off
 		int boosted_;
-		float boost_speed_;
+		float boost_duration_;
+		float boost_duration_left_;
+
+		float nuclear_buildup_duration_;
+		float nuclear_buildup_left_;
+
+		float shield_recharge_speed_;
+		float time_since_damage_;
+		float shield_recharge_delay_;
 		//player upgrades
-		std::map<std::string, int> upgrades;
 
 		//default geom used for projectiles, will be replaced 
-		const Resource *geo;
-		const Resource *mat;
-		const Resource *tex;
+		
 
 		std::vector<AsteroidNode*>* asteroids;
 		std::vector<Enemy*>* enemies;

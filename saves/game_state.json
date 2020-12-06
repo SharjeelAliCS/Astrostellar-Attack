@@ -1,5 +1,50 @@
 {
     "color": "Red",
+    "enemies": {
+        "Disrupter": {
+            "amount": 0.15,
+            "bullet_damage": 5,
+            "health": 100,
+            "ram_damage": 20,
+            "speed": 70
+        },
+        "Grunt": {
+            "amount": 0.25,
+            "bullet_damage": 5,
+            "health": 100,
+            "ram_damage": 20,
+            "speed": 70
+        },
+        "Ram": {
+            "amount": 0.15,
+            "bullet_damage": 0,
+            "health": 50,
+            "ram_damage": 30,
+            "speed": 70
+        },
+        "Speedster": {
+            "amount": 0.15,
+            "bullet_damage": 2,
+            "health": 50,
+            "ram_damage": 20,
+            "speed": 120
+        },
+        "Splitter": {
+            "amount": 0.15,
+            "bullet_damage": 5,
+            "health": 100,
+            "phases": 3,
+            "ram_damage": 20,
+            "speed": 70
+        },
+        "Tank": {
+            "amount": 0.15,
+            "bullet_damage": 2,
+            "health": 300,
+            "ram_damage": 20,
+            "speed": 30
+        }
+    },
     "fruit": "ace",
     "inventory": {
         "charge_Ammo": 10,

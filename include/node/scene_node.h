@@ -82,8 +82,15 @@ namespace game {
 
 		void SetExists(bool e) {exists_ = e;}
 		bool GetExists(void) const { return exists_; }
+		Orientation* GetGeomOrientation() { return geom_orientation_; }
 
+		glm::vec3 GetScreenSpacePos(bool abovePlayer,Camera* camera);
+
+		NodeResources* GetNodeResources(void) { return node_resources_; }
+		void SetNodeResources(NodeResources* n) { node_resources_ = n; }
 	protected:
+
+		NodeResources* node_resources_;
 		Audio* audio_;
 		//Parent of a node
 		SceneNode* parent_;
@@ -91,7 +98,7 @@ namespace game {
 		std::vector<SceneNode*> children_;
 		//transformation which contains the entire multipled matrix for transformation
 		glm::mat4 parentTransform_;
-
+		glm::mat4 current_transform_;
 		std::string name_; // Name of the scene node
 		GLuint array_buffer_; // References to geometry: vertex and array buffers
 		GLuint element_array_buffer_;
@@ -106,6 +113,7 @@ namespace game {
 		glm::vec3 joint_;
 		glm::vec3 color_;
 		Orientation* orientation_; // Orientation of node
+		Orientation* geom_orientation_; // Orientation of node
 		glm::vec3 scale_; // Scale of node
 
 		float movement_speed;//movement speed over time

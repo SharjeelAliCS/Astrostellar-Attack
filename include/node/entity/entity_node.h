@@ -13,6 +13,7 @@
 
 namespace game {
 
+	
 	// Stores the enemy object, which for the demo is simply a "planet". It is a child of the GameObj class. 
 	class Entity : public SceneNode {
 
@@ -30,6 +31,7 @@ namespace game {
 		void SetHealth(float h);
 		void ReduceHealth(float h);
 
+		void SetMaxHealth(float h);
 		float GetHealth(void) const;
 		float getHealthPercent(void) const;
 
@@ -40,7 +42,9 @@ namespace game {
 		ParticleNode* GetParticle(void);
 		void Update(float deltaTime);
 
-		virtual void damage(float dmg);
+		virtual bool damage(float dmg, bool health= true);
+		virtual float GetDamage(void) ;
+		bool SeeHealth(bool see);
 
 	protected:
 
@@ -50,7 +54,12 @@ namespace game {
 		bool exists_;
 		ParticleNode* particles_;
 
+		float see_health_duration_;
+		float see_health_left_;
+
 		glm::mat4 CalculateFinalTransformation(Camera* camera);
+
+
 	}; // class GameObj
 
 } // namespace game

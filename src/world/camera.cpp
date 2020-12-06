@@ -90,9 +90,13 @@ namespace game {
 
 
 	glm::mat4 Camera::GetView(void) const {
-		return projection_matrix_;
+		return view_matrix_;
 	}
 
+	glm::mat4 Camera::GetProjection(void) const {
+
+		return projection_matrix_;
+	}
 	float Camera::GetFarDistance(void) const {
 		return far_distance_;
 	}

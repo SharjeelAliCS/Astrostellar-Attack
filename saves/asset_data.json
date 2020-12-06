@@ -2,6 +2,7 @@
     "Shader": {
       "TextureShader": "/shader/textured_material",
       "Procedural": "/shader/procedural",
+      "ColoredMaterial": "/shader/colored",
       "ObjectMaterial": "/shader/procedural",
       "textMaterial": "/shader/text",
       "ScreenMaterial": "/shader/screen",
@@ -20,6 +21,7 @@
       "pumpkin": "/Pumkin.obj",
       "ship": "/player.obj",
       "skybox": "/cube.obj",
+      "EnemyMesh": "/fighter.obj",
       "Asteroid1Mesh": "/asteroids/Asteroid1.obj",
       "Asteroid2Mesh": "/asteroids/Asteroid2.obj",
       "Asteroid3Mesh": "/asteroids/Asteroid3.obj",
@@ -42,6 +44,10 @@
       "healthBoxTexture": "/hud/health_box.png",
       "shieldBarTexture": "/hud/shield_bar.png",
       "shieldBoxTexture": "/hud/shield_box.png",
+      "boostBarTexture": "/hud/boost_bar.png",
+      "boostBoxTexture": "/hud/boost_box.png",
+      "enemyHealthBoxTexture": "/hud/enemy_health_box.png",
+      "enemyHealthBarTexture": "/hud/enemy_health_bar.png",
       "radarTexture": "/hud/radar.png",
       "crosshairDefaultTexture": "/hud/crosshair_default.png",
       "chargeBlastTexture": "/hud/weapons/charge_blast.png",
@@ -51,6 +57,12 @@
       "shotgunTexture": "/hud/weapons/shotgun.png",
       "sniperShotTexture": "/hud/weapons/sniper.png",
       "pauseButton": "/menu/pause/pause.png",
+      "enemyGruntTexture": "/enemy/enemy_grunt.png",
+      "enemyRamTexture": "/enemy/enemy_ram.png",
+      "enemyTankTexture": "/enemy/enemy_tank.png",
+      "enemySpeedsterTexture": "/enemy/enemy_speedster.png",
+      "enemySplitterTexture": "/enemy/enemy_splitter.png",
+      "enemyDisrupterTexture": "/enemy/enemy_disrupter.png",
       "Asteroid1Texture": "/asteroids/Asteroid1_AlbedoTransparency.png",
       "Asteroid2Texture": "/asteroids/Asteroid2_AlbedoTransparency.png",
       "Asteroid3Texture": "/asteroids/Asteroid3_AlbedoTransparency.png",
@@ -84,6 +96,8 @@
     "SoundEffects": {
       "playerEngine": "46504_phreaksaccount_shipengine.mp3",
       "asteroidExplosion": "smartsound-cinematic-impact-eruption-01_EDfmymnR.mp3",
-      "missileShot": "36847__ecodtr__laserrocket2.mp3"
+      "missileShot": "36847__ecodtr__laserrocket2.mp3",
+      "playerHit": "small_explosion.mp3",
+      "enemyHit": "player_hit.mp3"
     }
 }
