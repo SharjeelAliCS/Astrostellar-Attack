@@ -68,6 +68,7 @@ namespace game {
 		 }
 		 */
 
+
 		for (int i = 0; i < 6; i++) {
 			unlockedWeapons[i] = true; // usually false, true for testing
 			rof[i] = 1.0f; //will play around with individiual rof later 

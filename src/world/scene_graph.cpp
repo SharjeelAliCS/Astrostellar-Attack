@@ -396,12 +396,14 @@ void SceneGraph::DisplayScreenSpace(GLuint program, std::string name,bool to_tex
 	GLint timer_var = glGetUniformLocation(program, "timer");
 	glUniform1f(timer_var, current_time);
 
+	//Player health percent, used to determine how read the screen should be when the player loses health
+	GLint health_var = glGetUniformLocation(program, "healthPercent");
+	glUniform1f(health_var, player_->getHealthPercent());
+
 	GLint time_diff_var = glGetUniformLocation(program, "time_diff");
 	glUniform1f(time_diff_var, time_intensity);
 
 	//std::cout << "reduction start time is " << time_intensity << std::endl;
-
-	
 
 	// Bind texture
 	glActiveTexture(GL_TEXTURE0);

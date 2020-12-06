@@ -331,7 +331,14 @@ void Game::MainLoop(void){
 			frames += 1;
 		}
 		
-		
+
+		//gen the screen
+		bool genScreen = true;//change this value 
+		scene_.Draw(&camera_, genScreen, window_width, window_height);
+		if (genScreen) {
+			//player->ReduceHealth(0.5); //reduce the health over time to show the effect
+			scene_.DisplayTexture(resman_.GetResource("ScreenHealthMaterial")->GetResource());
+
 		//the "nuclear" overload bool is used to check when to apply the screen effect or not. 
 		bool genScreen = player->NuclearOverload();
 		scene_.Draw(&camera_, genScreen, window_width, window_height);
@@ -343,7 +350,9 @@ void Game::MainLoop(void){
 
 			//generate the boost screen material (main part of the assignment)
 			scene_.DisplayScreenSpace(resman_.GetResource("ScreenBoostMaterial")->GetResource(),"boost");
+
 		}
+
 
 		text.RenderText(new Text(player->GetCurrentWeapon(), glm::vec2(0.6, -0.78), 0.4f, glm::vec3(0.0941, 0.698, 0.921)));
 		text.RenderText(new Text(std::to_string(fps), glm::vec2(-1, 0.9), 0.5f, glm::vec3(1.0, 1.0, 0)));

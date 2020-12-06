@@ -29,6 +29,8 @@ namespace game {
 		bool Exists(void) const;
 
 		void SetHealth(float h);
+		void ReduceHealth(float h);
+
 		void SetMaxHealth(float h);
 		float GetHealth(void) const;
 		float getHealthPercent(void) const;
