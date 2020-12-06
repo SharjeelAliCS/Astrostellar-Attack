@@ -331,17 +331,17 @@ void Game::MainLoop(void){
 			frames += 1;
 		}
 		
-
+		
 		//gen the screen
-		bool genScreen = true;//change this value 
-		scene_.Draw(&camera_, genScreen, window_width, window_height);
-		if (genScreen) {
-			//player->ReduceHealth(0.5); //reduce the health over time to show the effect
-			scene_.DisplayTexture(resman_.GetResource("ScreenHealthMaterial")->GetResource());
+		//bool genScreen = true;//change this value 
+		scene_.Draw(&camera_, true, window_width, window_height);
 
-		//the "nuclear" overload bool is used to check when to apply the screen effect or not. 
 		bool genScreen = player->NuclearOverload();
-		scene_.Draw(&camera_, genScreen, window_width, window_height);
+			//player->ReduceHealth(0.5); //reduce the health over time to show the effect
+		scene_.DisplayScreenSpace(resman_.GetResource("ScreenHealthMaterial")->GetResource(),"health", genScreen, window_width, window_height);
+		
+		//the "nuclear" overload bool is used to check when to apply the screen effect or not. 
+		//scene_.Draw(&camera_, genScreen, window_width, window_height);
 
 		//generate the bloom material screen material
 		//scene_.DisplayScreenSpace(resman_.GetResource("ScreenBloomMaterial")->GetResource(),"", genScreen,window_width, window_height);
