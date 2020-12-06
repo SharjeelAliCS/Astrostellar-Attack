@@ -34,7 +34,6 @@ namespace game {
             virtual ~GameException() throw() {};
     };
 
-	typedef std::map<std::string, Resource*> NodeResources;
     // Game application
     class Game {
 
@@ -101,10 +100,13 @@ namespace game {
 
             // Create entire random asteroid field
 
+			void CreateEnemies(int num_enemies = 100);
 			void CreateAsteroids(int num_asteroids = 1500);
 			void CreateComets(int num_comets = 10);
 			// Create entire random asteroid field
 			void CreateHUD(void);
+
+			void SetEnemyStats(std::string type, Enemy* en, json data);
 
 			AsteroidNode *CreateAsteroidInstance(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name = std::string(""), std::string normal_name = std::string(""));
 
@@ -120,7 +122,7 @@ namespace game {
 
             SceneNode *CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type,std::string texture_name = std::string(""), std::string normal_name = std::string(""));
 
-			NodeResources GetResources(std::string object_name,std::string material_name, std::string texture_name, std::string normal_name);
+			NodeResources* GetResources(std::string object_name,std::string material_name, std::string texture_name, std::string normal_name);
     }; // class Game
 
 } // namespace game

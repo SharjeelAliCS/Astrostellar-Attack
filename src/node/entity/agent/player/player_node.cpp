@@ -27,19 +27,20 @@ namespace game {
 
 	Player::Player(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : AgentNode(name, geometry, material, texture,normal) {
 
-		geo = geometry;
-		mat = material;
-		tex = texture;
-
 		max_shields_ = 100;
 		shields_ = max_shields_;
 		boosted_ = 0;
-		movement_speed = 20;
+		movement_speed = 50;
 		boost_speed_ = 4*movement_speed;
 		first_person_ = true;
+		boost_duration_ = 20;
+		boost_duration_left_ = boost_duration_;
 
-
-		//resman_ refuses to be global, likely because I'm being dumbass.
+		shield_recharge_speed_ = 3;
+		time_since_damage_ = 0;
+		shield_recharge_delay_ = 10;
+		nuclear_buildup_duration_ = 25;
+		nuclear_buildup_left_ = nuclear_buildup_duration_;
 
 		//Projectile::Projectile(const std::string name, const std::string type, const std::map<std::string, int> upgrades, const Resource * geometry,
 			//const Resource * material, const Resource * texture);
@@ -156,13 +157,16 @@ namespace game {
 
 			}
 			for (int i = 0; i < numShots; i++) {
-				missile = new Projectile("missile", weapon, upgrades, asteroids, comets, enemies, geo, mat, tex);
-
+				missile = new Projectile("missile", weapon, upgrades, proj_rsc_->geom, proj_rsc_->mat, proj_rsc_->tex);
+				missile->SetAsteroids(asteroids);
+				missile->SetComets(comets);
+				missile->SetEnemies(enemies);
+				missile->SetColor(glm::vec3(0.19,0.78,1));
 				missile->SetOrientation(GetOrientation());
 				if (!first_person_) {
 					glm::vec3 objPos = (float)300 * c_->GetForward() + c_->GetPosition();
 					//missile->GetOrientationObj()->SetView(objPos, position_, glm::vec3(0, 1, 0));
-					missile->GetOrientationObj()->RotateTowards(position_, objPos);
+					missile->GetOrientationObj()->FaceTowards(position_, objPos);
 
 				}
 
@@ -176,12 +180,8 @@ namespace game {
 	}
 
 	void Player::Draw(Camera *camera) {
-
-		for (std::vector<Projectile*>::iterator it = missiles.begin(); it != missiles.end(); ++it) {
-			(*it)->Draw(camera);
-		}
-		if (!draw_)return;
-		Entity::Draw(camera);
+		
+		AgentNode::Draw(camera);
 
 	}
 	glm::quat Player::RotLagBehind(float pitch, float yaw) {
@@ -197,96 +197,67 @@ namespace game {
 
 	}
 
-	void Player::damage(float dmg) {
+	bool Player::damage(float dmg,bool health) {
 		if (shields_ > 0) {
 			shields_ -= dmg;
 		}
-		else if (health_ > 0) {
+		else if (health_ > 0 && health) {
 			health_ -= dmg;
 		}
-		int a = 45;
+		time_since_damage_ = 0;
+		return false;
 	}
 	bool Player::Collision() {
 		//check for collisions with player, set collide to true/false depending/ 
 		bool collide = false;
-		/*
-		for (auto en = enemies->begin(); en != enemies->end(); ) {
-			if ((*en)->Hit(position_, glm::length((*en)->GetScale()) * 1.0)) {
-				en = enemies->erase(en);
-				collide = true;
-				damage(20);
-			}
-			else {
-				++en;
-			}
-		}
-		for (auto ast = asteroids->begin(); ast != asteroids->end(); ) {
-			if ((*ast)->Hit(position_, glm::length((*ast)->GetScale()) * 0.9)) {
-				ast = asteroids->erase(ast);
-				collide = true;
-				damage(20);
-			}
-			else {
-				++ast;
-			}
-		}
-
-		for (auto ast = comets->begin(); ast != comets->end(); ) {
-			if ((*ast)->Hit(position_, glm::length((*ast)->GetScale()) * 0.9)) {
-				ast = comets->erase(ast);
-				collide = true;
-				damage(20);
-			}
-			else {
-				++ast;
-			}
-		}
 		
-		//Check for collisions with missiles and remove both fromo their vectors. 
-		for (auto it = missiles.begin(); it != missiles.end(); ) {
-			bool removed = false;
-
-			for (auto en = enemies->begin(); en != enemies->end(); ) {
-				if ((*en)->Hit((*it)->GetPosition(), glm::length((*en)->GetScale())*1.2)) {
-					it = missiles.erase(it);
-					enemies->erase(en);
-					removed = true;
-					break;
-					
-				}
-				else {
-					++en;
-				}
-			}
-			for (auto ast = asteroids->begin(); ast != asteroids->end(); ) {
-			
-				if ((*ast)->Hit((*it)->GetPosition(), glm::length((*ast)->GetScale()) * 1.2)) {
-					std::cout << "\nHIT\n";
-					it = missiles.erase(it);
-					asteroids->erase(ast);
-					removed = true;
-					break;
-
-				}
-				else {
-					++ast;
-				}
-			}
-			if (!removed) {
-				++it;
-			}
-			
-			
-		}
 		return collide;
-		*/
-		return true;
 	}
 
 	std::string Player::GetCurrentWeapon(void) const {
 		return projectileTypes[projType];
 	}
+
+	float Player::getBoostPercent(void) {
+		return (boost_duration_- boost_duration_left_) / boost_duration_;
+	}
+	float Player::getNuclearOverloadPercent(void) {
+		return (nuclear_buildup_duration_ - nuclear_buildup_left_) / nuclear_buildup_duration_;
+	}
+	bool Player::NuclearOverload(void) {
+		return (boosted_ && boost_duration_left_ <= 0) || 
+			(nuclear_buildup_left_<nuclear_buildup_duration_);
+	}
 	void Player::Update(float deltaTime) {
+
+		if (boosted_) {
+			boost_duration_left_ -= deltaTime;
+			if (boost_duration_left_ <= 0) {
+				boost_duration_left_ = 0;
+				damage(deltaTime * 3, false);
+				nuclear_buildup_left_ -= deltaTime;
+			}
+		}
+		else {
+			float time = glfwGetTime();
+			if (boost_duration_left_ < boost_duration_) {
+				boost_duration_left_ += deltaTime*boost_duration_*0.3;
+			}
+			else {
+				boost_duration_left_ = boost_duration_;
+			}
+			if (nuclear_buildup_left_ < nuclear_buildup_duration_) {
+				nuclear_buildup_left_ += deltaTime * 10;
+			}
+			else {
+				nuclear_buildup_left_ = nuclear_buildup_duration_;
+			}
+		}
+
+		time_since_damage_ += deltaTime;
+		if (time_since_damage_ > shield_recharge_delay_ && shields_ < max_shields_) {
+			shields_ += deltaTime * shield_recharge_speed_*10;
+		}
 		Translate(c_->GetForward() * getCurSpeed() *deltaTime);
 		c_->Translate(c_->GetForward() * getCurSpeed() *deltaTime);
 		Collision();
@@ -294,22 +265,7 @@ namespace game {
 		//update the missiles and check if they exist or not. 
 		//std::cout << "mypos is " << position_.x << " "<< position_.y << " "<< position_.z << std::endl;
 		
-		for (std::vector<Projectile*>::iterator it = missiles.begin(); it != missiles.end();) {
-			(*it)->Update(deltaTime);
-			if ((*it)->Exists()) {
-				++it;
-				
-			}
-			else {
-				int a;
-				*it = NULL;
-				std::cout << "DEAD";
-				it = missiles.erase(it);
-			}
-
-		}
-	
-		Entity::Update(deltaTime);
+		AgentNode::Update(deltaTime);
 
 	}
 

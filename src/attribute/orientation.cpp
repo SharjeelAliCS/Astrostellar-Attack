@@ -17,6 +17,8 @@
 namespace game {
 
 	Orientation::Orientation(void) {
+		rotate_cur_angle_ = 0;
+		rotate_max_angle_ = -1;
 	}
 
 
@@ -35,6 +37,13 @@ namespace game {
 	}
 
 	void Orientation::Rotate(glm::quat rot) {
+
+		orientation_ = rot * orientation_;
+		orientation_ = glm::normalize(orientation_);
+	}
+
+	void Orientation::Rotate(float angle, glm::vec3 normal) {
+		glm::quat rot = glm::angleAxis(angle*glm::pi<float>() / 180.0f, normal);
 
 		orientation_ = rot * orientation_;
 		orientation_ = glm::normalize(orientation_);
@@ -95,18 +104,39 @@ namespace game {
 	}
 
 	//taken from https://gamedev.net/forums/topic/493428-rotate-an-object-to-face-a-target-in-3d-space/4218536/
-	void Orientation::RotateTowards(glm::vec3 cur_pos, glm::vec3 target_pos) {
+	void Orientation::FaceTowards(glm::vec3 cur_pos, glm::vec3 target_pos, bool rotate) {
+
 		glm::vec3 forw = GetForward();
 		glm::vec3 distance = target_pos - cur_pos;
 		glm::vec3 dis = glm::normalize(distance);
 		glm::vec3 axis = glm::cross(forw, dis);
+
+		float length = glm::length(axis);
 		axis = glm::normalize(axis);
 
 		float cosa = glm::dot(forw, dis);
 		float angle = acos(cosa);
 		glm::quat qu = glm::angleAxis(angle, axis);
+		if (angle != angle)return;
 
-
+		if (rotate) {
+			rotate_cur_angle_ = 0;
+			rotate_max_angle_ = angle;
+			rotate_axis_ = axis;
+		}
+		else {
+			Rotate(qu);
+		}
+	}
+	void Orientation::RotateTowards(float speed) {
+		if (rotate_cur_angle_+speed >= rotate_max_angle_) {
+			rotate_cur_angle_ = rotate_max_angle_;
+			speed = rotate_max_angle_ - rotate_cur_angle_;
+		}
+		else {
+			rotate_cur_angle_ += speed;
+		}
+		glm::quat qu = glm::angleAxis(speed, rotate_axis_);
 		Rotate(qu);
 	}
 	void Orientation::SetView(glm::vec3 position, glm::vec3 look_at, glm::vec3 up) {

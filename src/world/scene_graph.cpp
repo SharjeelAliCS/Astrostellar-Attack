@@ -30,6 +30,7 @@ SceneGraph::SceneGraph(void){
 	active_menu_ = HUD_MENU;
 
 	radar_distance_ = 1000;
+	enemy_healthbar_distance_ = 300;
 	audio_ = NULL;
 
 }
@@ -275,8 +276,31 @@ void SceneGraph::Draw(Camera *camera, bool to_texture,float frame_width, float f
     for (int i = 0; i < node_->size(); i++){
 		(*node_)[i]->Draw(camera);
     }
+
+	float radius = 0.05;
 	for (int i = 0; i < enemy_->size(); i++) {
 		(*enemy_)[i]->Draw(camera);
+
+		if (glm::distance((*enemy_)[i]->GetPosition(), player_->GetPosition()) < enemy_healthbar_distance_) {
+			glm::vec3 screen_pos = (*enemy_)[i]->GetScreenSpacePos(true, camera);
+			
+			if (abs(screen_pos.z) <= 1) {
+				float per = (*enemy_)[i]->getHealthPercent();
+				GetScreen("enemyHealthBar")->SetProgressX(per);
+				DrawEnemyHealth(camera, glm::vec2(screen_pos.x, screen_pos.y));
+			}
+		}
+		/*
+		glm::vec2 screen_pos = (*enemy_)[i]->GetScreenSpacePos(false, camera);
+		bool within_length = glm::length(screen_pos) < radius;
+
+		if ((*enemy_)[i]->SeeHealth(within_length)) {
+			screen_pos = (*enemy_)[i]->GetScreenSpacePos(true, camera);
+			float per = (*enemy_)[i]->getHealthPercent();
+			GetScreen("enemyHealthBar")->SetProgressX(per);
+			DrawEnemyHealth(camera, screen_pos);
+		}
+		*/
 	}
 	for (int i = 0; i < asteroid_->size(); i++) {
 		asteroid_->at(i)->Draw(camera);
@@ -291,15 +315,20 @@ void SceneGraph::Draw(Camera *camera, bool to_texture,float frame_width, float f
 
 
 	if (active_menu_ == HUD_MENU || active_menu_ == PAUSE_MENU) {
+
 		for (int i = 0; i < screen_.at(NONE).size(); i++) {
 			screen_.at(NONE)[i]->Draw(camera);
 		}
 		radar_->Draw(camera);
+
+		//DrawEnemyHealth(camera);
 	}
 	if (active_menu_ == PAUSE_MENU) {
 		for (int i = 0; i < screen_.at(HUD_MENU).size(); i++) {
 			screen_.at(HUD_MENU)[i]->Draw(camera);
 		}
+
+		//DrawEnemyHealth(camera);
 	}
 
 	for (int i = 0; i < screen_.at(active_menu_).size(); i++) {
@@ -319,9 +348,27 @@ void SceneGraph::Draw(Camera *camera, bool to_texture,float frame_width, float f
 
 }
 
+void SceneGraph::DrawEnemyHealth(Camera* camera, glm::vec2 pos) {
 
-void SceneGraph::DisplayTexture(GLuint program) {
+		for (int i = 0; i < screen_.at(ENEMY_HEALTH).size(); i++) {
+			screen_.at(ENEMY_HEALTH)[i]->SetPosition(glm::vec3(pos, 0));
+			screen_.at(ENEMY_HEALTH)[i]->Draw(camera);
+		}
+		return;
+	
+}
 
+void SceneGraph::DisplayScreenSpace(GLuint program, std::string name,bool to_texture, float frame_width, float frame_height) {
+	GLint viewport[4];
+	if (to_texture) {
+		// Save current viewport	
+		glGetIntegerv(GL_VIEWPORT, viewport);
+
+		// Enable frame buffer
+		glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_);
+		glViewport(0, 0, frame_width, frame_height);
+
+	}
 	// Configure output to the screen
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
@@ -341,10 +388,20 @@ void SceneGraph::DisplayTexture(GLuint program) {
 	glEnableVertexAttribArray(tex_att);
 	glVertexAttribPointer(tex_att, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
 
+	float current_time = glfwGetTime();
+	//get the time intensity (0 to 1) for the screen effect
+	float time_intensity = player_->getNuclearOverloadPercent();
+	
 	// Timer
 	GLint timer_var = glGetUniformLocation(program, "timer");
-	float current_time = glfwGetTime();
 	glUniform1f(timer_var, current_time);
+
+	GLint time_diff_var = glGetUniformLocation(program, "time_diff");
+	glUniform1f(time_diff_var, time_intensity);
+
+	//std::cout << "reduction start time is " << time_intensity << std::endl;
+
+	
 
 	// Bind texture
 	glActiveTexture(GL_TEXTURE0);
@@ -355,12 +412,20 @@ void SceneGraph::DisplayTexture(GLuint program) {
 
 	// Reset current geometry
 	glEnable(GL_DEPTH_TEST);
+
+	if (to_texture) {
+		// Reset frame buffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		// Restore viewport
+		glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+	}
 }
 
 
 void SceneGraph::CreateDeathAnimation(SceneNode* node) {
 	std::string name = node->GetName() + "_death";
-	ParticleNode* pn = new ParticleNode(name,death_animation_param_.obj, death_animation_param_.mat, death_animation_param_.tex);
+	ParticleNode* pn = new ParticleNode(name,death_animation_rsc.geom, death_animation_rsc.mat, death_animation_rsc.tex);
 	glm::vec3 scale = node->GetScale()*(float)0.1;
 	pn->SetScale(scale);
 	pn->SetPosition(node->GetPosition());
@@ -373,14 +438,13 @@ bool SceneGraph::ProjectileCollision(AgentNode* node, bool player) {
 	std::vector<Projectile*>* missiles = node->GetMissiles();
 
 	for (auto it = missiles->begin(); it != missiles->end(); ) {
-		bool removed = false;
-
-		removed = Collision((*it), player);
-		if (removed) {
-			it = missiles->erase(it);
+		
+		Collision((*it), player);
+		if ((*it)->Exists()) {
+			++it;
 		}
 		else{
-			++it;
+			it = missiles->erase(it);
 		}
 	}
 	return true;
@@ -389,49 +453,101 @@ bool SceneGraph::ProjectileCollision(AgentNode* node, bool player) {
 }
 bool SceneGraph::Collision(Entity* node, bool player) {
 	bool collided = false;
-	for (auto ast = asteroid_->begin(); ast != asteroid_->end(); ) {
-		if ((*ast)->Hit(node->GetPosition(), glm::length((*ast)->GetScale()) * 0.9)) {
-			CreateDeathAnimation((*ast));
-			ast = asteroid_->erase(ast);
-			node->damage(20);
-			collided = true;
-			if (player)audio_->playAgain("asteroidExplosion");
+	std::vector<Enemy*> splitter_list;
+	bool newSplitters = false;
+	if (player) {
+		for (auto ast = asteroid_->begin(); ast != asteroid_->end(); ) {
+			if ((*ast)->Hit(node->GetPosition(), (*ast)->GetScale().x * 0.9)) {
+				CreateDeathAnimation((*ast));
+				ast = asteroid_->erase(ast);
+				node->damage(node->GetDamage());
+				collided = true;
+				if (player)audio_->playAgain("asteroidExplosion");
+			}
+			else {
+				++ast;
+			}
 		}
-		else {
-			++ast;
+
+		for (auto en = enemy_->begin(); en != enemy_->end(); ) {
+			if ((*en)->Hit(node->GetPosition(), (*en)->GetScale().x * 0.2)) {
+				node->damage((*en)->GetDamage());
+				(*en)->damage(node->GetDamage());
+				collided = true;
+				if (player)audio_->playAgain("enemyHit");
+
+				float per = (*en)->getHealthPercent();
+				//std::cout << "damage is " << node->GetDamage() << std::endl;
+			}
+			if((*en)->Exists()){
+				++en;
+			}
+			else {
+				std::cout << "enemy hit" << std::endl;
+				std::string enemy_type = (*en)->GetEnemyType();
+				float phase = (*en)->GetPhase();
+				if (enemy_type == "Splitter" && phase>0) {
+					newSplitters = true;
+					NodeResources* rsc = (*en)->GetNodeResources();
+
+					for (int i = 0; i < 3; i++) {
+						Enemy* n = new Enemy((*en)->GetName(), rsc->geom, rsc->mat, rsc->tex);
+						n->SetNodeResources(rsc);
+						n->SetMaxHealth((*en)->GetHealth()*0.5);
+						n->SetScale((*en)->GetScale()*(float)0.5);
+						n->SetMovementSpeed((*en)->getCurSpeed());
+						n->SetDamage((*en)->GetDamage()*0.5);
+						n->SetPhase((*en)->GetPhase()-1);
+						n->SetPosition((*en)->GetPosition());
+						n->SetProjRsc((*en)->GetProjRsc());
+						n->SetPlayer(player_);
+						n->SetEnemyType("Splitter");
+
+						n->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float)rand() / RAND_MAX), glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX)))));
+						splitter_list.push_back(n);
+					}
+				}
+				else {
+					CreateDeathAnimation((*en));
+					if (player)audio_->playAgain("asteroidExplosion");
+				}
+				en = enemy_->erase(en);
+			}
+		}
+
+		for (auto ast = comet_->begin(); ast != comet_->end(); ) {
+			if ((*ast)->Hit(node->GetPosition(), (*ast)->GetScale().x * 0.9)) {
+				CreateDeathAnimation((*ast));
+				ast = comet_->erase(ast);
+				node->damage(node->GetDamage());
+				collided = true;
+				if (player)audio_->playAgain("asteroidExplosion");
+			}
+			else {
+				++ast;
+			}
+		}
+	}
+	else {
+		if ((player_->Hit(node->GetPosition(), glm::length(player_->GetScale()) * 0.9))) {
+			player_->damage(node->GetDamage());
+			node->damage(player_->GetDamage());
+			collided = true;
+			audio_->playAgain("playerHit");
+
 		}
 	}
 
-	for (auto ast = enemy_->begin(); ast != enemy_->end(); ) {
-		if ((*ast)->Hit(node->GetPosition(), glm::length((*ast)->GetScale()) * 0.9)) {
-			CreateDeathAnimation((*ast));
-			ast = enemy_->erase(ast);
-			node->damage(20);
-			collided = true;
-			if (player)audio_->playAgain("asteroidExplosion");
-		}
-		else {
-			++ast;
-		}
-	}
-
-	for (auto ast = comet_->begin(); ast != comet_->end(); ) {
-		if ((*ast)->Hit(node->GetPosition(), glm::length((*ast)->GetScale()) * 0.9)) {
-			CreateDeathAnimation((*ast));
-			ast = comet_->erase(ast);
-			node->damage(20);
-			collided = true;
-			if (player)audio_->playAgain("asteroidExplosion");
-		}
-		else {
-			++ast;
+	if (newSplitters) {
+		for (int i = 0; i < splitter_list.size(); i++) {
+			enemy_->push_back(splitter_list[i]);
 		}
 	}
 	return collided;
 }
 
-void SceneGraph::SetDeathAnimation(DeathAnimation dm) {
-	death_animation_param_ = dm;
+void SceneGraph::SetDeathAnimation(NodeResources dm) {
+	death_animation_rsc = dm;
 }
 void SceneGraph::Update(float deltaTime){
 	Collision(player_, true);
@@ -445,6 +561,7 @@ void SceneGraph::Update(float deltaTime){
     }
 	for (int i = 0; i < enemy_->size(); i++) {
 		(*enemy_)[i]->Update(deltaTime);
+		ProjectileCollision((*enemy_)[i], false);
 	}
 	for (int i = 0; i < asteroid_->size(); i++) {
 		asteroid_->at(i)->Update(deltaTime);
@@ -491,9 +608,9 @@ void SceneGraph::UpdateRadar() {
 		UpdateRadarNode(direction, comet_->at(i)->GetPosition(), glm::vec3(1, 1, 0));
 	}
 	for (int i = 0; i < enemy_->size(); i++) {
-		UpdateRadarNode(direction, (*enemy_)[i]->GetPosition(), glm::vec3(1, 0, 0));
+		UpdateRadarNode(direction, (*enemy_)[i]->GetPosition(), glm::vec3(1, 0, 0),true);
 	}
-	UpdateRadarNode(direction, glm::vec3(0) , glm::vec3(1, 1, 1));
+	UpdateRadarNode(direction, glm::vec3(0) , glm::vec3(1, 1, 1),true);
 
 	glm::vec3 pos_3d = player_->GetPosition();
 	glm::vec2 pos_player(pos_3d.x, pos_3d.z);
@@ -520,7 +637,7 @@ void SceneGraph::UpdateScreenSizeNodes(float x, float y) {
 		}
 	}
 }
-void SceneGraph::UpdateRadarNode(glm::vec3 direction, glm::vec3 target_pos,glm::vec3 color){
+void SceneGraph::UpdateRadarNode(glm::vec3 direction, glm::vec3 target_pos,glm::vec3 color,bool edge){
 	glm::vec3 pos_entity = CalculateDistanceFromPlayer(target_pos);
 	glm::vec2 pos_2d(pos_entity.x, pos_entity.y);
 	glm::vec3 pos_3d = player_->GetPosition();
@@ -540,7 +657,7 @@ void SceneGraph::UpdateRadarNode(glm::vec3 direction, glm::vec3 target_pos,glm::
 		radar_->AddDotPos(radar_pos);
 		radar_->AddDotColor(color);
 	}
-	else  if (glm::length(target_pos) == 0) {
+	else  if (edge) {
 		glm::vec2 radar_pos = pos_2d;
 		radar_pos = glm::normalize(radar_pos);
 

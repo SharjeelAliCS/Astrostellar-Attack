@@ -28,7 +28,7 @@ namespace game {
 	ScreenNode::ScreenNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : SceneNode(name, geometry, material, texture,normal) {
 		int a = 5;
 		org_pos_ = position_;
-		progress_size_ = 1.0;
+		progress_size_ = glm::vec2(1);
 		rotation_ = 0;
 		SetOrientation(180, glm::vec3(1, 0, 0));
 		glow_ = false;
@@ -43,8 +43,14 @@ namespace game {
 	}
 
 
-	void ScreenNode::SetProgress(float p) {
+	void ScreenNode::SetProgress(glm::vec2 p) {
 		progress_size_ = p;
+	}
+	void ScreenNode::SetProgressX(float p) {
+		progress_size_.x = p;
+	}
+	void ScreenNode::SetProgressY(float p) {
+		progress_size_.y = p;
 	}
 	glm::mat4 ScreenNode::CalculateFinalTransformation(Camera* camera) {
 		glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), rotation_*glm::pi<float>(), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -98,8 +104,9 @@ namespace game {
 		GLint color = glGetUniformLocation(program, "glow");
 		glUniform3f(color, glow_amount_.r*glow_, glow_amount_.g*glow_, glow_amount_.b*glow_);
 
+
 		GLint progress_uniform = glGetUniformLocation(program, "progress_size");
-		glUniform1f(progress_uniform, progress_size_);
+		glUniform2f(progress_uniform, progress_size_.x, progress_size_.y);
 		SceneNode::SetupShader(program, camera);
 	}
 

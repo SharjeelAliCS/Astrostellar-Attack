@@ -12,6 +12,7 @@
 #include <iostream>
 #include <time.h>
 
+#include "player_node.h"
 #include "projectile_node.h"
 
 namespace game {
@@ -19,26 +20,23 @@ namespace game {
 
 
 	Projectile::Projectile(const std::string name, const std::string t, std::map<std::string, int> upgrades,
-		std::vector<AsteroidNode*>* ast, std::vector<CometNode*>* cmt, std::vector<Enemy*>* enemy,
 		const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal)
 		: Entity(name, geometry, material, texture,normal) {
 		//default all to zero
 		type = t;
 		upg = upgrades;
-		asteroids = ast;
-		comets = cmt;
-		enemies = enemy;
 		ttl    = 0;
 		pierce = 0;
 		dotDmg = 0;
 		dotDuration = 0;
 		dotStackMax = 0;
 		target = NULL;
-
+		health_ = 10000000000;
 		dmg = []() {return 0;};
 		move = [this](float deltaTime) { /*do nothing*/ };
 		this->SetScale(glm::vec3(0.6));
 		//displayStats();
+		geom_orientation_->Rotate(90, glm::vec3(1,0,0));
 		
 	}
 
@@ -46,10 +44,39 @@ namespace game {
 		//delete all sub-projectiles then self
 	}
 	
+	void Projectile::SetPlayer(Player* p) {
+		player_ = p;
+	}
+
 	//TODO: make the movement speed a function of the player speed when fired
 	void Projectile::init() {
 		//damage upgrades are multiplictive 
-		if (type.compare("laserBattery") == 0) {
+		if (type.compare("enemy") == 0) {
+			speed += 3.0f;
+			//travels  seconds +10% per level
+			ttl = glfwGetTime() + 5;// pow(1.1, upg["laserBatteryRangeLevel"]);
+			//pierces 0 to 5 targets (+1 per upgrade)
+			pierce = 0;//upg["laserBatteryPierceLevel"];
+			//deals 10 damage + 10% per level
+			dmg = [this]() {
+				return 5;// pow(1.1, upg["laserBatteryDamageLevel"]);
+			};
+			//moves forward at a speed of 10.0
+			move = [this](float deltaTime) {
+
+				orientation_->FaceTowards(position_, player_->GetPosition(), true);
+				float rot_speed = deltaTime;
+				if (player_->GetBoosted()) {
+					rot_speed*=0.5;
+				}
+				else {
+					rot_speed*=0.05;
+				}
+				orientation_->RotateTowards(rot_speed);
+				position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
+			};
+		}
+		else if (type.compare("laserBattery") == 0) {
 			speed += 10.0f;
 			//travels  seconds +10% per level
 			ttl = glfwGetTime() + 5 * pow(1.1, upg["laserBatteryRangeLevel"]);
@@ -87,26 +114,35 @@ namespace game {
 					std::cout << "targetting\n";
 					float minD = 100000;
 					//glm::vec3 view_plane = player->GetOrientationObj()->GetSide();
-					for (SceneNode* a : *asteroids) { // this might be a problem bc copy...
+					for (SceneNode* a : *enemies) { // this might be a problem bc copy...
 					//for (auto a = asteroids->begin(); a != asteroids->end(); ) {
 						//only want things in front of the player to be chased, this doesn't do that...
 						//if (glm::dot(view_plane, (player->GetPosition() - a->GetPosition())) < 0) {
 							float d = glm::distance(this->GetPosition(), a->GetPosition());
+							std::cout << "d is " << d << std::endl;
 							if (minD > d) {
+								std::cout << "new d is " << d << std::endl;
 								minD = d;
 								target = a;
 							}
 						//}
 					}
+					std::cout << "min d is " << minD << std::endl;
+					
 					//TODO update orientation
-					position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
+					//position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
 				}
 				else {
 
 					//chase target
 					//TODO would like to change this to be a more gentle curve
+					orientation_->FaceTowards(this->GetPosition(), target->GetPosition(), true);
+					orientation_->RotateTowards(deltaTime);
+					position_ += speed * orientation_->GetForward()*deltaTime;
+					/*
 					glm::vec3 direction = glm::normalize(this->GetPosition() - target->GetPosition());
 					position_ -= speed * glm::normalize(direction) * deltaTime;
+					*/
 				}
 				
 			};
@@ -215,5 +251,13 @@ namespace game {
 			exists_ = false;
 		}
 	}
+	float Projectile::GetDamage(void) {
+	
+		if (pierce <= 0) {
+			exists_ = false;
+		}
+		pierce--;
 
+		return dmg();
+	}
 }

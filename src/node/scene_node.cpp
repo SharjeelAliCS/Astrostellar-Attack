@@ -50,12 +50,17 @@ SceneNode::SceneNode(const std::string name, const Resource *geometry, const Res
     scale_ = glm::vec3(1.0, 1.0, 1.0);
 	orientation_ = new Orientation();
 	orientation_->SetView(glm::vec3(0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
+	geom_orientation_ = new Orientation();
+	geom_orientation_->SetView(glm::vec3(0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
 	joint_ = glm::vec3(0);
 	parentTransform_ = glm::mat4(1);
 	blending_ = false;
 	color_ = glm::vec3(1);
 	exists_ = true;
 	parent_ = NULL;
+
+	node_resources_ = new NodeResources();
+
 }
 
 
@@ -148,7 +153,7 @@ bool SceneNode::Hit(glm::vec3 pos, float range) {
 	//std::cout << "distance is: " << glm::distance(pos, this->GetPosition()) << std::endl;
 	//std::cout << "range is: " <<  range + glm::length(this->GetScale()) << std::endl<< std::endl;
 
-	return glm::distance(pos, this->GetPosition()) <= range + glm::length(this->GetScale());
+	return glm::distance(pos, this->GetPosition()) <= range +this->GetScale().x;
 }
 
 
@@ -267,24 +272,16 @@ void SceneNode::SetupBlending(void) {
 void SceneNode::Draw(Camera *camera){
 	if (!draw_)return;
 	SetupBlending();
-	/*
-	//https://stackoverflow.com/questions/6301085/how-to-check-if-an-object-lies-outside-the-clipping-volume-in-opengl
-	glm::mat4 view_mat = camera->GetView();
-	glm::vec4 Pclip = view_mat * glm::vec4(position_, 1.);
-	if(not( abs(Pclip.x) < Pclip.w &&
-		abs(Pclip.y) < Pclip.w &&
-		abs(Pclip.z) < Pclip.w)){
-		return;
-		}
-	else {
-	}
-	*/
 	
-	glm::vec3 view_plane = camera->GetForward();
+	glm::vec3 view_plane = camera->GetSide();
+	glm::vec3 screen_pos = GetScreenSpacePos(false, camera);
 	if (glm::dot(view_plane, (position_-camera->GetPosition())) < 0 &&
 		glm::distance(camera->GetPosition(), position_)< camera->GetFarDistance() &&
 		parent_!=NULL &&
 		parent_->GetName()!="player") {
+		return;
+	}
+	if (abs(screen_pos.x) > 1 || abs(screen_pos.y) > 1 || abs(screen_pos.z) > 1) {
 		return;
 	}
     // Select proper material (shader program)
@@ -324,11 +321,12 @@ void SceneNode::Update(float deltaTime){
 glm::mat4 SceneNode::CalculateFinalTransformation(Camera* camera) {
 	// World transformation
 	glm::mat4 Orientation = glm::mat4_cast(orientation_->GetOrientation());
+	glm::mat4 GeomOrientation = glm::mat4_cast(geom_orientation_->GetOrientation());
 	glm::mat4 translation = glm::translate(glm::mat4(1.0), position_);
 	glm::mat4 trans_joint = glm::translate(glm::mat4(1.0), joint_);
 	glm::mat4 trans_joint_inv = glm::translate(glm::mat4(1.0), -joint_);
 
-	glm::mat4 orbit = trans_joint_inv * Orientation * trans_joint;
+	glm::mat4 orbit = trans_joint_inv * Orientation * trans_joint*GeomOrientation;
 	glm::mat4 transf = parentTransform_* translation * orbit;
 	
 	for (std::vector<SceneNode*>::iterator it = children_.begin(); it != children_.end(); ++it) {
@@ -336,6 +334,21 @@ glm::mat4 SceneNode::CalculateFinalTransformation(Camera* camera) {
 	}
 
 	return transf;
+}
+
+//https://stackoverflow.com/questions/8491247/c-opengl-convert-world-coords-to-screen2d-coords
+glm::vec3 SceneNode::GetScreenSpacePos(bool abovePlayer, Camera* camera) {
+	
+	glm::vec3 pos = position_;
+	if (abovePlayer) {
+		pos += scale_.x*camera->GetUp();
+	}
+	glm::mat4 translation = glm::translate(glm::mat4(1.0), pos);
+	glm::mat4 transf = parentTransform_ * translation;
+
+	glm::vec4 pos4 = camera->GetProjection()*camera->GetView()*transf*glm::vec4(0, 0, 0, 1);
+	glm::vec3 screen_pos(pos4.x / pos4.w, pos4.y / pos4.w, pos4.z / pos4.w);
+	return screen_pos;
 }
 void SceneNode::SetupShader(GLuint program, Camera* camera){
 
@@ -360,6 +373,8 @@ void SceneNode::SetupShader(GLuint program, Camera* camera){
     // World transformation
     glm::mat4 scaling = glm::scale(glm::mat4(1.0), scale_);
 	 glm::mat4 transf = CalculateFinalTransformation(camera) * scaling;
+	 current_transform_ = transf;
+	
 
     GLint world_mat = glGetUniformLocation(program, "world_mat");
     glUniformMatrix4fv(world_mat, 1, GL_FALSE, glm::value_ptr(transf));

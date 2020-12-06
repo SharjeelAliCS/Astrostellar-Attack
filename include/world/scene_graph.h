@@ -44,14 +44,10 @@ namespace game {
 		PAUSE_MENU,
 		CREDITS_MENU,
 		SHOP_MENU,
+		ENEMY_HEALTH,
 		NONE
 	};
 
-	struct DeathAnimation {
-		Resource* obj;
-		Resource* mat;
-		Resource* tex;
-	};
     // Class that manages all the objects in a scene
     class SceneGraph {
 
@@ -101,6 +97,8 @@ namespace game {
             // Draw the entire scene
             void Draw(Camera *camera,bool to_texture = false,float frame_width=0, float frame_height=0);
 
+			// Process and draw the texture on the screen
+			void DisplayScreenSpace(GLuint program,std::string name, bool to_texture = false, float frame_width = 0, float frame_height = 0);
             // Update entire scene
             void Update(float deltaTime);
 
@@ -112,11 +110,9 @@ namespace game {
 			std::string ButtonEvents(float x, float y);
 			void UpdateScreenSizeNodes(float x, float y);
 
-			void SetDeathAnimation(DeathAnimation dm);
+			void SetDeathAnimation(NodeResources dm);
 			void SetAudio(Audio* a) { audio_ = a; }
 
-			// Process and draw the texture on the screen
-			void DisplayTexture(GLuint program);
 		private:
 
 			// Frame buffer for drawing to texture
@@ -140,7 +136,8 @@ namespace game {
 			std::vector<AsteroidNode*>* asteroid_;
 			std::vector<CometNode*>* comet_;
 			std::vector<ParticleNode*>* death_animations_;
-			DeathAnimation death_animation_param_;
+
+			NodeResources death_animation_rsc;
 			Text text;
 			std::map <ScreenType, std::vector<ScreenNode *>> screen_;
 			ScreenType active_menu_;
@@ -151,9 +148,11 @@ namespace game {
 			bool ProjectileCollision(AgentNode* node, bool player);
 
 			void UpdateRadar();
-			void UpdateRadarNode(glm::vec3 direction, glm::vec3 pos,glm::vec3 color);
+			void UpdateRadarNode(glm::vec3 direction, glm::vec3 pos, glm::vec3 color, bool edge = false);
+			void DrawEnemyHealth(Camera* camera,glm::vec2 pos);
 			glm::vec3 CalculateDistanceFromPlayer(glm::vec3 pos);
 
+			float enemy_healthbar_distance_;
 			float radar_distance_;
 
     }; // class SceneGraph
