@@ -82,7 +82,7 @@ namespace game {
 		
 		upgrades["pursuerROFLevel"] = 5;
 		 
-		upgrades["chargeRadiusLevel"] = 0;  //size of shot
+		upgrades["chargeRadiusLevel"] = 5;  //size of shot
 		upgrades["chargeDamageLevel"] = 0;  
 		upgrades["chargeDurationLevel"] = 0; //how long to charge up the shot
 		 
@@ -148,7 +148,11 @@ namespace game {
 	void Player::Fire() {
 		std::string weapon = projectileTypes[projType];
 
-		double shotTime = lastShotTime + rof[projType] * ((projectileTypes[projType].compare("pursuer") == 0) ? (2 - pow(1.1, upgrades["pursuerROFLevel"])) : 1);
+		double shotModifier = 1;
+		if (projectileTypes[projType].compare("pursuer") == 0) {
+			shotModifier = 1.75 - pow(1.1, upgrades["pursuerROFLevel"]);
+		}
+		double shotTime = lastShotTime + rof[projType] * shotModifier;
 		if (glfwGetTime() > shotTime) {
 			audio_->playAgain("missileShot");
 			Projectile* missile;
@@ -171,7 +175,7 @@ namespace game {
 
 				}
 
-				missile->setSpeed(this->getCurSpeed()*3);
+				missile->SetSpeed(missile->GetSpeed()+this->getCurSpeed());
 				missile->init();
 				missile->SetPosition(position_);
 				missiles.push_back(missile);

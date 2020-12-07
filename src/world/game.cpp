@@ -146,6 +146,11 @@ void Game::SetupResources(void){
 	//todo David  
 	json saveData = resman_.GetResource("save")->GetJSON();
 	
+	for (auto& gameData : saveData["inventory"].items()) {
+		//filename = std::string(gameData.value());
+		std::cout<<"\nkey: "<< gameData.key() << "\nvalue: " << gameData.value() << std::endl;
+	}
+	
 	//load shaders
 	for (auto& asset : assets["Shader"].items()) {
 		filename = std::string(MATERIAL_DIRECTORY) + std::string(asset.value());
@@ -337,7 +342,7 @@ void Game::MainLoop(void){
 		scene_.Draw(&camera_, true, window_width, window_height);
 
 		bool genScreen = player->NuclearOverload();
-			//player->ReduceHealth(0.5); //reduce the health over time to show the effect
+			
 		scene_.DisplayScreenSpace(resman_.GetResource("ScreenHealthMaterial")->GetResource(),"health", genScreen, window_width, window_height);
 		
 		//the "nuclear" overload bool is used to check when to apply the screen effect or not. 
@@ -345,7 +350,6 @@ void Game::MainLoop(void){
 
 		//generate the bloom material screen material
 		//scene_.DisplayScreenSpace(resman_.GetResource("ScreenBloomMaterial")->GetResource(),"", genScreen,window_width, window_height);
-
 		if (genScreen) {
 
 			//generate the boost screen material (main part of the assignment)

@@ -37,7 +37,7 @@ namespace game {
 		void SetEnemies(std::vector<Enemy*>* en) { enemies = en; }
 		void SetPlayer(Player* p);
 
-		void setSpeed(float s) { speed = s; }
+		void SetSpeed(float s) { speed = s; }
 		float GetSpeed(void) { return speed; }
 		void Update(float deltaTime);
 

@@ -30,6 +30,7 @@ namespace game {
 		time_since_fire_ = 0;
 		boost_speed_ = 50;
 		phase_ = 0;
+		this->Scale(glm::vec3(4));
 	}
 
 	Enemy::~Enemy() {
@@ -54,7 +55,7 @@ namespace game {
 
 		missile->SetOrientation(GetOrientation());
 
-		missile->setSpeed(this->getCurSpeed() * 3);
+		missile->SetSpeed(missile->GetSpeed() +this->getCurSpeed());
 		missile->init();
 		missile->SetPosition(position_);
 		missile->SetColor(glm::vec3(0, 1, 0.18));
