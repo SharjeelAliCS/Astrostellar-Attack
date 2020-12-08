@@ -32,10 +32,10 @@ namespace game {
 		dotStackMax = 0;
 		target = NULL;
 		health_ = 10000000000;
-		speed = 300;
+		speed = 450;
 		dmg = []() {return 0;};
 		move = [this](float deltaTime) { /*do nothing*/ };
-		this->SetScale(glm::vec3(0.6));
+		// this->SetScale(glm::vec3(0.6));
 		//displayStats();
 		geom_orientation_->Rotate(90, glm::vec3(1,0,0));
 		
@@ -74,22 +74,23 @@ namespace game {
 		}
 		else if (type.compare("laserBattery") == 0) {
 			//travels  seconds +10% per level
-			ttl = glfwGetTime() + 5 * pow(1.1, upg["laserBatteryRangeLevel"]);
+			ttl = glfwGetTime() + 5 * pow(1.1, upg["laser_Battery_Range_Level"]);
 			//pierces 0 to 5 targets (+1 per upgrade)
-			pierce = upg["laserBatteryPierceLevel"];
+			pierce = upg["laser_Battery_Pierce_Level"];
 			//deals 10 damage + 10% per level
 			dmg = [this]() {
-				return 10 * pow(1.1, upg["laserBatteryDamageLevel"]);
+				return 20 * pow(1.1, upg["laser_Battery_Damage_Level"]);
 			};
 			move = [this](float deltaTime) {
 				position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
 			};
 
 		}else if (type.compare("pursuer") == 0) {
+			speed -= 100.0f;
 			//travels 20 seconds
 			ttl = glfwGetTime() + 20;
 			dmg = [this]() {
-				return 5;
+				return 10;
 			};
 			move = [this](float deltaTime) {
 				//will need access to enemy vector, determine nearest enemy and then go
@@ -112,40 +113,38 @@ namespace game {
 
 					//chase target
 					orientation_->FaceTowards(this->GetPosition(), target->GetPosition(), true);
-					orientation_->RotateTowards(deltaTime*3);
+					orientation_->RotateTowards(deltaTime*5);
 					position_ += speed * orientation_->GetForward()*deltaTime;
 				}			
 			};
 
 		}else if (type.compare("chargeBlast") == 0) {
-			speed += 75.0f;
 			//travels 12 seconds
 			ttl = glfwGetTime() + 12;
 			//deals 150 damage + 10% per level
 			dmg = [this]() {
-				return 150 * pow(1.1, upg["chargeDamageLevel"]);
+				return 100 * pow(1.1, upg["charge_Damage_Level"]);
 			};
 			pierce = 5;
 			this->Scale(glm::vec3(5));
 			move = [this](float deltaTime) {
 				position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
-				if(this->GetScale().x<70+10*upg["chargeRadiusLevel"]){
-					this->Scale(glm::vec3(max(1.025, pow(1.01, 1+upg["chargeRadiusLevel"]))));
+				if(this->GetScale().x<70+10*upg["charge_Radius_Level"]){
+					this->Scale(glm::vec3(max(1.025, pow(1.01, 1+upg["charge_Radius_Level"]))));
 				}
 			};
 			
 
 
 		}else if (type.compare("sniperShot") == 0) {
-			speed += 100.0f;
+			speed *= 2.5;
 			this->Scale(glm::vec3(2));
 			//travels 15 seconds +10% per level
-			ttl = glfwGetTime() + 15 * pow(1.1, upg["sniperRangeLevel"]);
+			ttl = glfwGetTime() + 15 * pow(1.1, upg["sniper_Range_Level"]);
 			//deals (1 damage + 60 per second travelled) + 10% per level
 			int damageFactor = 60;
 			dmg = [this, damageFactor]() {
-				
-				return (1 - damageFactor *(ttl - glfwGetTime() - (damageFactor * pow(1.1, upg["sniperRangeLevel"])))) * pow(1.1, upg["sniperDamageLevel"]);
+				return (1 - damageFactor *(ttl - glfwGetTime() - (damageFactor * pow(1.1, upg["sniper_Range_Level"])))) * pow(1.1, upg["sniper_Damage_Level"]);
 			};
 			move = [this](float deltaTime) {
 				position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
@@ -157,7 +156,7 @@ namespace game {
 			ttl = glfwGetTime() + 0.7;
 			//deals 5 damage + 10% per level
 			dmg = [this]() {
-				return 5 * pow(1.1, upg["shotgunDamageLevel"]);
+				return 5 * pow(1.1, upg["shotgun_Damage_Level"]);
 			};
 			//random spread
 			this->Rotate(rand() % 14 - 7, glm::vec3(1, 0, 0));
@@ -178,9 +177,9 @@ namespace game {
 				return 0;
 			};
 			//5dps per stack up to 5 stacks, lasts for 5 seconds
-			dotDmg = 5 * pow(1.1, upg["naniteTorpedoDamageLevel"]);
-			dotDuration = glfwGetTime() + 5 *pow(1.1, upg["naniteTorpedoDurationLevel"]);
-			dotStackMax = 5 + upg["naniteTorpedoStackLevel"];
+			dotDmg = 5 * pow(1.1, upg["nanite_Torpedo_Damage_Level"]);
+			dotDuration = glfwGetTime() + 5 *pow(1.1, upg["nanite_Torpedo_Duration_Level"]);
+			dotStackMax = 5 + upg["nanite_Torpedo_Stack_Level"];
 			move = [this](float deltaTime) {
 				position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
 			};

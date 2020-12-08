@@ -6,28 +6,28 @@
             "bullet_damage": 5,
             "health": 100,
             "ram_damage": 20,
-            "speed": 70
+            "speed": 40
         },
         "Grunt": {
             "amount": 0.25,
             "bullet_damage": 5,
             "health": 100,
             "ram_damage": 20,
-            "speed": 70
+            "speed": 40
         },
         "Ram": {
             "amount": 0.15,
             "bullet_damage": 0,
             "health": 50,
             "ram_damage": 30,
-            "speed": 70
+            "speed": 40
         },
         "Speedster": {
             "amount": 0.15,
             "bullet_damage": 2,
             "health": 50,
             "ram_damage": 20,
-            "speed": 120
+            "speed": 80
         },
         "Splitter": {
             "amount": 0.15,
@@ -35,17 +35,16 @@
             "health": 100,
             "phases": 3,
             "ram_damage": 20,
-            "speed": 70
+            "speed": 40
         },
         "Tank": {
             "amount": 0.15,
             "bullet_damage": 2,
             "health": 300,
             "ram_damage": 20,
-            "speed": 30
+            "speed": 20
         }
     },
-    "fruit": "ace",
     "inventory": {
         "charge_Ammo": 10,
         "chrono_Surge_Ammo": 0,
@@ -84,7 +83,8 @@
         "level": 1,
         "shield_recharge_time": 30,
         "ship_base_health": 100,
-        "ship_base_shield": 100
+        "ship_base_shield": 100,
+        "shots_fired": 0
     },
     "playtime": 0,
     "size": "Large",
@@ -93,7 +93,6 @@
         "barrier_Size_Level": 0,
         "battery_Overcharge_Level": 0,
         "charge_Damage_Level": 0,
-        "charge_Duration_Level": 0,
         "charge_Radius_Level": 0,
         "chrono_Surge_Level": 0,
         "emergency_Warp_Level": 0,

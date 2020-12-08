@@ -42,31 +42,7 @@ namespace game {
 		nuclear_buildup_duration_ = 25;
 		nuclear_buildup_left_ = nuclear_buildup_duration_;
 
-		//Projectile::Projectile(const std::string name, const std::string type, const std::map<std::string, int> upgrades, const Resource * geometry,
-			//const Resource * material, const Resource * texture);
-		/*
-		 std::string object_name = "ship";
-		 std::string material_name = "TextureShader";
-		 std::string texture_name = "shipTexture";
 
-		 Resource* geom = resman_.GetResource(object_name);
-		 if (!geom) {
-			// throw((std::string("Could not find resource \"") + object_name + std::string("\"")));
-		 }
-
-		 Resource* mat = resman_.GetResource(material_name);
-		 if (!mat) {
-			// throw((std::string("Could not find resource \"") + material_name + std::string("\"")));
-		 }
-
-		 Resource* tex = NULL;
-		 if (texture_name != "") {
-			 tex = resman_.GetResource(texture_name);
-			 if (!tex) {
-				// throw((std::string("Could not find resource \"") + material_name + std::string("\"")));
-			 }
-		 }
-		 */
 
 
 		for (int i = 0; i < 6; i++) {
@@ -75,7 +51,7 @@ namespace game {
 		}
 		 
 		unlockedWeapons[0] = true; //laser battery always unlocked
-
+		/*
 		upgrades["laserBatteryRangeLevel"] = 0;
 		upgrades["laserBatteryPierceLevel"] = 0;
 		upgrades["laserBatteryDamageLevel"] = 0;	 
@@ -95,16 +71,10 @@ namespace game {
 		upgrades["naniteTorpedoDamageLevel"] = 0;   //dot dmg
 		upgrades["naniteTorpedoDurationLevel"] = 0; //dot duration
 		upgrades["naniteTorpedoStackLevel"] = 0;    //max stacks of dot
-
+		*/
 		projType = 0;
 
 
-		 //Projectile* missile = new Projectile("missile", "laserBattery", upgrades, geom, mat, tex);
-		 //Projectile* missile = new Projectile("missile", "laserBattery", upgrades, geometry, material, texture);
-		 //Projectile* missile = new Projectile("missile", "sniperShot", upgrades, geometry, material, texture);
-		 //missiles.push_back(missile);
-
-		 //*/
 	}
 
 
@@ -150,7 +120,7 @@ namespace game {
 
 		double shotModifier = 1;
 		if (projectileTypes[projType].compare("pursuer") == 0) {
-			shotModifier = 1.75 - pow(1.1, upgrades["pursuerROFLevel"]);
+			shotModifier = 1.75 - pow(1.1, upgrades->at("pursuer_ROF_Level"));
 		}
 		double shotTime = lastShotTime + rof[projType] * shotModifier;
 		if (glfwGetTime() > shotTime) {
@@ -158,11 +128,11 @@ namespace game {
 			Projectile* missile;
 			int numShots = 1;
 			if (weapon.compare("shotgun") == 0) {
-				numShots = 15 + 6 * upgrades["shotgun_NumShots_Level"];
+				numShots = 15 + 6 * upgrades->at("shotgun_NumShots_Level");
 
 			}
 			for (int i = 0; i < numShots; i++) {
-				missile = new Projectile("missile", weapon, upgrades, proj_rsc_->geom, proj_rsc_->mat, proj_rsc_->tex);
+				missile = new Projectile("missile", weapon, *upgrades, proj_rsc_->geom, proj_rsc_->mat, proj_rsc_->tex);
 				missile->SetAsteroids(asteroids);
 				missile->SetComets(comets);
 				missile->SetEnemies(enemies);

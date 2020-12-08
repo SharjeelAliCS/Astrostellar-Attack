@@ -75,12 +75,20 @@ namespace game {
             void InitWindow(void);
             void InitView(void);
             void InitEventHandlers(void);
+
+            void LoadSaveFile(void);
+            void SaveGame(void);
  
 			bool first_person_;
 			float aspect_ratio_;
 			int window_width;
 			int window_height;
 			float timeOfLastMove;
+
+			std::map<std::string, int> loadedPlayerUpgrades;
+            std::map<std::string, int> loadedPlayerInventory;
+            std::map<std::string, int> loadedPlayerLoadout;
+            std::map<std::string, int> loadedPlayerStats;
 
 			void SetSaveState(void);
 			//New user input function more multiple inputs

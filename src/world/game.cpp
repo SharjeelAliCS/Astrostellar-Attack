@@ -143,14 +143,8 @@ void Game::SetupResources(void){
 
 	json assets = resman_.GetResource("assetList")->GetJSON();
 
-	//todo David  
-	json saveData = resman_.GetResource("save")->GetJSON();
-	
-	for (auto& gameData : saveData["inventory"].items()) {
-		//filename = std::string(gameData.value());
-		std::cout<<"\nkey: "<< gameData.key() << "\nvalue: " << gameData.value() << std::endl;
-	}
-	
+	LoadSaveFile();
+
 	//load shaders
 	for (auto& asset : assets["Shader"].items()) {
 		filename = std::string(MATERIAL_DIRECTORY) + std::string(asset.value());
@@ -202,6 +196,34 @@ void Game::SetupResources(void){
 	
 }
 
+
+void Game::LoadSaveFile(void) {
+
+	//todo David  
+	json saveData = resman_.GetResource("save")->GetJSON();
+
+	for (auto& gameData : saveData["inventory"].items()) {
+		std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
+		loadedPlayerInventory[gameData.key()] = gameData.value();
+	}	
+	for (auto& gameData : saveData["upgrades"].items()) {
+		std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
+		loadedPlayerUpgrades[gameData.key()] = gameData.value();
+	}
+	for (auto& gameData : saveData["loadout"].items()) {
+		std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
+		loadedPlayerLoadout[gameData.key()] = gameData.value();
+	}
+	for (auto& gameData : saveData["player_stats"].items()) {
+		std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
+		loadedPlayerStats[gameData.key()] = gameData.value();
+	}
+}
+//david todo
+void Game::SaveGame(void) {
+
+}
+
 void Game::SetupScene(void){
 
 
@@ -214,12 +236,20 @@ void Game::SetupScene(void){
     scene_.SetBackgroundColor(viewport_background_color_g);
 	
 	//create player object
-	SceneNode* player =CreateInstance("player", "ship", "TextureShader", PLAYER,"shipTexture");
+	Player* player = dynamic_cast<Player*>(CreateInstance("player", "ship", "TextureShader", PLAYER,"shipTexture"));
 	NodeResources* proj_rsc = GetResources("SimpleCylinderMesh", "ColoredMaterial", "","");
 	scene_.GetPlayer()->SetProjRsc(proj_rsc);
 	player->SetScale(glm::vec3(2));
 	player->SetOrientation(-90, glm::vec3(0, 1, 0));
 	player->SetAudio(audio_);
+	
+	player->SetUpgrades(&loadedPlayerUpgrades);
+	player->SetPlayerLoadout(&loadedPlayerLoadout);
+	player->SetPlayerStats(&loadedPlayerStats);
+	player->SetPlayerInventory(&loadedPlayerInventory);
+
+	std::cout << "\nplayer created\n";
+
     // Create an object for showing the texture
 	// instance contains identifier, geometry, shader, and texture
 	
@@ -467,10 +497,12 @@ void Game::GetMouseCameraInput(float xpos, float ypos) {
 
 		Player* player = scene_.GetPlayer();
 
+		int mouse_speed = 1250;
+
 		float speed_x = xpos - window_width / 2;
 		float speed_y = ypos - window_height / 2;
-		speed_x /= 3000;
-		speed_y /= 3000;
+		speed_x /= mouse_speed;
+		speed_y /= mouse_speed;
 		glfwSetCursorPos(window_, window_width / 2, window_height / 2);
 
 
@@ -482,9 +514,7 @@ void Game::GetMouseCameraInput(float xpos, float ypos) {
 
 		player->GetOrientationObj()->Yaw(-speed_x);
 		player->GetOrientationObj()->Pitch(-speed_y);
-		//player->GetParticle()->GetOrientationObj()->Roll(-speed_x*0.5);
-		//player->GetParticle()->GetOrientationObj()->Roll(-speed_y);
-		//player->GetParticle()->SetOrientation(player->GetOrientation());
+
 		camera_.SetOrientation(player->RotLagBehind(speed_y / 2, speed_x / 2));
 
 		ScreenNode* screen = scene_.GetScreen("cockpit");

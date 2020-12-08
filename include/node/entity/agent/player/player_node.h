@@ -49,7 +49,7 @@ namespace game {
 		void SetBoosted(int i);
 		int GetBoosted(void) const;
 		float GetBoostSpeed(void) const;
-		std::map<std::string, int> getUpgrades(void) const {return upgrades;}
+		std::map<std::string, int>* getUpgrades(void) const {return upgrades;}
 
 		float getCurSpeed() const;
 
@@ -67,6 +67,11 @@ namespace game {
 		bool NuclearOverload(void);
 		// Update the node
 		void SetFirstPerson(bool f) { first_person_ = f; }
+
+
+		void SetPlayerInventory(std::map<std::string, int>* m) { playerInventory = m; }
+		void SetPlayerLoadout(std::map<std::string, int>* m) { playerLoadout = m; }
+		void SetPlayerStats(std::map<std::string, int>* m) { playerStats = m; }
 
 		float getBoostPercent(void);
 		float getNuclearOverloadPercent(void);
@@ -96,8 +101,9 @@ namespace game {
 		float shield_recharge_delay_;
 		//player upgrades
 
-		//default geom used for projectiles, will be replaced 
-		
+		std::map<std::string, int>* playerInventory;
+		std::map<std::string, int>* playerLoadout;
+		std::map<std::string, int>* playerStats;
 
 		std::vector<AsteroidNode*>* asteroids;
 		std::vector<Enemy*>* enemies;

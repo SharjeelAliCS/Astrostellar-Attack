@@ -32,12 +32,14 @@ namespace game {
 		float GetDamage(void) ;
 		void SetDamage(float d) { damage_ = d; }
 
+		void SetUpgrades(std::map<std::string, int>* m) { upgrades = m; }
+
 		NodeResources* GetProjRsc(void) { return proj_rsc_; }
 	protected:
 		float damage_;
 
 		float boost_speed_;
-		std::map<std::string, int> upgrades;
+		std::map<std::string, int>* upgrades;
 		//store all the missiles in here. 
 		std::vector<Projectile*> missiles;
 
