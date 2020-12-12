@@ -93,6 +93,7 @@ namespace game {
             std::map<std::string, float> loadedWeaponStats;
             std::map<std::string, std::map<std::string, int>> loadedBountyStats;
 
+            int startTime;
             int mouse_speed=1250;
 
 			void SetSaveState(void);

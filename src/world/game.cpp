@@ -231,18 +231,35 @@ void Game::LoadSaveFile(void) {
 		}
 	}
 	
-
+	startTime = saveData["playtime"];
 	mouse_speed = saveData["mouse_speed"];
 }
 //david todo
 void Game::SaveGame(void) {
 
-	//load unchanging data
-		//enemies
-		//bounty_data
-		//
-	//gather 
+	Resource* dataResource = resman_.GetResource("save");
+	json newData = dataResource->GetJSON();
 
+	for (std::map<std::string, int>::const_iterator it = loadedPlayerInventory.begin(); it != loadedPlayerInventory.end(); ++it){
+		std::cout << it->first << " " << it->second<< "\n";
+		newData["inventory"][it->first] = it->second;
+	}
+	for (std::map<std::string, int>::const_iterator it = loadedPlayerUpgrades.begin(); it != loadedPlayerUpgrades.end(); ++it){
+		std::cout << it->first << " " << it->second<< "\n";
+		newData["upgrades"][it->first] = it->second;
+	}
+	for (std::map<std::string, int>::const_iterator it = loadedPlayerLoadout.begin(); it != loadedPlayerLoadout.end(); ++it){
+		std::cout << it->first << " " << it->second<< "\n";
+		newData["loadout"][it->first] = it->second;
+	}
+	for (std::map<std::string, int>::const_iterator it = loadedPlayerStats.begin(); it != loadedPlayerStats.end(); ++it){
+		std::cout << it->first << " " << it->second<< "\n";
+		newData["player_stats"][it->first] = it->second;
+	}
+	newData["playtime"] = (int)(startTime+glfwGetTime());
+
+	dataResource->SetJSON(newData);
+	resman_.SaveResource("save");
 }
 
 void Game::SetupScene(void){
@@ -426,6 +443,9 @@ void Game::GetUserInput(float deltaTime) {
 	//quit game
 	if (glfwGetKey(window_, GLFW_KEY_Q) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window_, true);
+	}	//save game
+	if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS) {
+		SaveGame();
 	}
 
 	// Stop animation if escape  is pressed
