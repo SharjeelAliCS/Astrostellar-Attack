@@ -90,6 +90,11 @@ namespace game {
             std::map<std::string, int> loadedPlayerLoadout;
             std::map<std::string, int> loadedPlayerStats;
 
+            std::map<std::string, float> loadedWeaponStats;
+            std::map<std::string, std::map<std::string, int>> loadedBountyStats;
+
+            int mouse_speed=1250;
+
 			void SetSaveState(void);
 			//New user input function more multiple inputs
 			void GetUserInput(float deltaTime);

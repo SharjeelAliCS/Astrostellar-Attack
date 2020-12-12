@@ -1,5 +1,48 @@
 {
-    "color": "Red",
+    "bounty_data": {
+        "destroy_50_asteroids_reward": {
+            "charge_Ammo": 0,
+            "chrono_Surge_Ammo": 0,
+            "credits": 100,
+            "emergency_Warp_Ammo": 0,
+            "nanite_Swarm_Ammo": 0,
+            "nanite_Torpedo_Ammo": 0,
+            "point_Defense_Drone_Ammo": 0,
+            "pursuer_Ammo": 0,
+            "shotgun_Ammo": 0,
+            "sniper_Ammo": 0,
+            "stellaranite_Fragments": 5,
+            "stellaranite_Slabs": 1
+        },
+        "kill_40_enemies_reward": {
+            "charge_Ammo": 10,
+            "chrono_Surge_Ammo": 1,
+            "credits": 100,
+            "emergency_Warp_Ammo": 1,
+            "nanite_Swarm_Ammo": 1,
+            "nanite_Torpedo_Ammo": 10,
+            "point_Defense_Drone_Ammo": 1,
+            "pursuer_Ammo": 10,
+            "shotgun_Ammo": 10,
+            "sniper_Ammo": 10,
+            "stellaranite_Fragments": 3,
+            "stellaranite_Slabs": 1
+        },
+        "kill_boss_reward": {
+            "charge_Ammo": 20,
+            "chrono_Surge_Ammo": 2,
+            "credits": 200,
+            "emergency_Warp_Ammo": 2,
+            "nanite_Swarm_Ammo": 2,
+            "nanite_Torpedo_Ammo": 20,
+            "point_Defense_Drone_Ammo": 2,
+            "pursuer_Ammo": 20,
+            "shotgun_Ammo": 20,
+            "sniper_Ammo": 20,
+            "stellaranite_Fragments": 6,
+            "stellaranite_Slabs": 2
+        }
+    },
     "enemies": {
         "Disrupter": {
             "amount": 0.15,
@@ -75,6 +118,7 @@
         "shotgun": 1,
         "sniper": 1
     },
+    "mouse_speed": 1250,
     "obstacle_stats": {
         "damage": 20
     },
@@ -121,5 +165,28 @@
         "shotgun_NumShots_Level": 0,
         "sniper_Damage_Level": 0,
         "sniper_Range_Level": 0
+    },
+    "weapon_stats": {
+        "charge_Blast_ROF": 2,
+        "charge_Blast_baseDmg": 60,
+        "charge_Blast_baseTTL": 12,
+        "enemy_ROF": 1,
+        "enemy_baseDmg": 5,
+        "enemy_baseTTL": 5,
+        "laser_Battery_ROF": 0.6,
+        "laser_Battery_baseDmg": 20,
+        "laser_Battery_baseTTL": 5,
+        "nanite_Torpedo_ROF": 1,
+        "nanite_Torpedo_baseDmg": 5,
+        "nanite_Torpedo_baseTTL": 10,
+        "pursuer_ROF": 1,
+        "pursuer_baseDmg": 10,
+        "pursuer_baseTTL": 20,
+        "shotgun_ROF": 1,
+        "shotgun_baseDmg": 7,
+        "shotgun_baseTTL": 0.7,
+        "sniper_Shot_ROF": 1,
+        "sniper_Shot_baseDmg": 40,
+        "sniper_Shot_baseTTL": 15
     }
 }

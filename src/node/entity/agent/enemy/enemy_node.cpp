@@ -32,6 +32,7 @@ namespace game {
 		phase_ = 0;
 		this->Scale(glm::vec3(6));
 		upgrades = new std::map<std::string, int>();
+		weaponStats = new std::map<std::string, float>();
 	}
 
 	Enemy::~Enemy() {
@@ -51,7 +52,7 @@ namespace game {
 		}
 		time_since_fire_ = 0;
 
-		Projectile* missile = new Projectile("missile", "enemy", *upgrades, proj_rsc_->geom, proj_rsc_->mat, proj_rsc_->tex);
+		Projectile* missile = new Projectile("missile", "enemy", *upgrades, *weaponStats, proj_rsc_->geom, proj_rsc_->mat, proj_rsc_->tex);
 		missile->SetPlayer(player_);
 
 		missile->SetOrientation(GetOrientation());

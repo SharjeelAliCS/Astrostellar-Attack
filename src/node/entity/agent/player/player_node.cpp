@@ -42,37 +42,10 @@ namespace game {
 		nuclear_buildup_duration_ = 25;
 		nuclear_buildup_left_ = nuclear_buildup_duration_;
 
+	
 
-
-
-		for (int i = 0; i < 6; i++) {
-			unlockedWeapons[i] = true; // usually false, true for testing
-			rof[i] = 1.0f; //will play around with individiual rof later 
-		}
-		 
 		unlockedWeapons[0] = true; //laser battery always unlocked
-		/*
-		upgrades["laserBatteryRangeLevel"] = 0;
-		upgrades["laserBatteryPierceLevel"] = 0;
-		upgrades["laserBatteryDamageLevel"] = 0;	 
-		
-		upgrades["pursuerROFLevel"] = 5;
-		 
-		upgrades["chargeRadiusLevel"] = 5;  //size of shot
-		upgrades["chargeDamageLevel"] = 0;  
-		upgrades["chargeDurationLevel"] = 0; //how long to charge up the shot
-		 
-		upgrades["sniperDamageLevel"] = 0;
-		upgrades["sniperRangeLevel"] = 0;
-
-		upgrades["shotgunDamageLevel"] = 0;
-		upgrades["shotgun_NumShots_Level"] = 5; // how many are fired, +6 per level
-
-		upgrades["naniteTorpedoDamageLevel"] = 0;   //dot dmg
-		upgrades["naniteTorpedoDurationLevel"] = 0; //dot duration
-		upgrades["naniteTorpedoStackLevel"] = 0;    //max stacks of dot
-		*/
-		projType = 0;
+		projType = 0; //default to laser battery
 
 
 	}
@@ -80,6 +53,15 @@ namespace game {
 
 
 	Player::~Player() {
+	}
+
+	void Player::SetWeaponStats(std::map<std::string, float>* m) {
+		weaponStats = m;
+		for (int i = 0; i < 6; i++) {
+			unlockedWeapons[i] = true; // usually false, true for testing
+			std::string s = projectileTypes[i];
+			rof[i] = weaponStats->at(s.append("_ROF"));
+		}
 	}
 
 	void Player::SetBoosted(int i) {
@@ -132,7 +114,7 @@ namespace game {
 
 			}
 			for (int i = 0; i < numShots; i++) {
-				missile = new Projectile("missile", weapon, *upgrades, proj_rsc_->geom, proj_rsc_->mat, proj_rsc_->tex);
+				missile = new Projectile("missile", weapon, *upgrades, *weaponStats, proj_rsc_->geom, proj_rsc_->mat, proj_rsc_->tex);
 				missile->SetAsteroids(asteroids);
 				missile->SetComets(comets);
 				missile->SetEnemies(enemies);
@@ -151,11 +133,11 @@ namespace game {
 				missiles.push_back(missile);
 			}
 			lastShotTime = glfwGetTime();
-		}	
+		}
 	}
 
 	void Player::Draw(Camera *camera) {
-		
+
 		AgentNode::Draw(camera);
 
 	}
@@ -183,9 +165,9 @@ namespace game {
 		return false;
 	}
 	bool Player::Collision() {
-		//check for collisions with player, set collide to true/false depending/ 
+		//check for collisions with player, set collide to true/false depending/
 		bool collide = false;
-		
+
 		return collide;
 	}
 
@@ -200,7 +182,7 @@ namespace game {
 		return (nuclear_buildup_duration_ - nuclear_buildup_left_) / nuclear_buildup_duration_;
 	}
 	bool Player::NuclearOverload(void) {
-		return (boosted_ && boost_duration_left_ <= 0) || 
+		return (boosted_ && boost_duration_left_ <= 0) ||
 			(nuclear_buildup_left_<nuclear_buildup_duration_);
 	}
 	void Player::Update(float deltaTime) {
@@ -237,9 +219,9 @@ namespace game {
 		c_->Translate(c_->GetForward() * getCurSpeed() *deltaTime);
 		Collision();
 
-		//update the missiles and check if they exist or not. 
+		//update the missiles and check if they exist or not.
 		//std::cout << "mypos is " << position_.x << " "<< position_.y << " "<< position_.z << std::endl;
-		
+
 		AgentNode::Update(deltaTime);
 
 	}

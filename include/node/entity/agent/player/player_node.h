@@ -72,6 +72,7 @@ namespace game {
 		void SetPlayerInventory(std::map<std::string, int>* m) { playerInventory = m; }
 		void SetPlayerLoadout(std::map<std::string, int>* m) { playerLoadout = m; }
 		void SetPlayerStats(std::map<std::string, int>* m) { playerStats = m; }
+		void SetWeaponStats(std::map<std::string, float>* m);
 
 		float getBoostPercent(void);
 		float getNuclearOverloadPercent(void);
@@ -82,7 +83,7 @@ namespace game {
 		bool first_person_;
 		int projType;
 		const int numWeapons = 6;
-		std::string projectileTypes[6] = { "laserBattery", "pursuer", "chargeBlast", "sniperShot", "shotgun", "naniteTorpedo"};
+		std::string projectileTypes[6] = { "laser_Battery", "pursuer", "charge_Blast", "sniper_Shot", "shotgun", "nanite_Torpedo"};
 
 		std::map<int, bool> unlockedWeapons;
 		std::map<int, float> rof;
@@ -104,6 +105,7 @@ namespace game {
 		std::map<std::string, int>* playerInventory;
 		std::map<std::string, int>* playerLoadout;
 		std::map<std::string, int>* playerStats;
+		std::map<std::string, float>* weaponStats;
 
 		std::vector<AsteroidNode*>* asteroids;
 		std::vector<Enemy*>* enemies;

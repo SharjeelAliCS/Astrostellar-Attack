@@ -40,6 +40,7 @@ namespace game {
 
 		float boost_speed_;
 		std::map<std::string, int>* upgrades;
+		std::map<std::string, float>* weaponStats;
 		//store all the missiles in here. 
 		std::vector<Projectile*> missiles;
 

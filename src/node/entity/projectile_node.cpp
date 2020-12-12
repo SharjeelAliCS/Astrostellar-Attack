@@ -19,12 +19,13 @@ namespace game {
 
 
 
-	Projectile::Projectile(const std::string name, const std::string t, std::map<std::string, int> upgrades,
+	Projectile::Projectile(const std::string name, const std::string t, std::map<std::string, int> upgrades, std::map<std::string, float> weaponStats,
 		const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal)
 		: Entity(name, geometry, material, texture,normal) {
 		//default all to zero
 		type = t;
 		upg = upgrades;
+		stats = weaponStats;
 		ttl    = 0;
 		pierce = 0;
 		dotDmg = 0;
@@ -72,14 +73,14 @@ namespace game {
 				position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
 			};
 		}
-		else if (type.compare("laserBattery") == 0) {
-			//travels  seconds +10% per level
-			ttl = glfwGetTime() + 5 * pow(1.1, upg["laser_Battery_Range_Level"]);
+		else if (type.compare("laser_Battery") == 0) {
+			//travels 5 seconds +10% per level
+			ttl = glfwGetTime() + stats["laser_Battery_baseTTL"] * pow(1.1, upg["laser_Battery_Range_Level"]);
 			//pierces 0 to 5 targets (+1 per upgrade)
 			pierce = upg["laser_Battery_Pierce_Level"];
 			//deals 10 damage + 10% per level
 			dmg = [this]() {
-				return 20 * pow(1.1, upg["laser_Battery_Damage_Level"]);
+				return stats["laser_Battery_baseDmg"] * pow(1.1, upg["laser_Battery_Damage_Level"]);
 			};
 			move = [this](float deltaTime) {
 				position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
@@ -88,14 +89,14 @@ namespace game {
 		}else if (type.compare("pursuer") == 0) {
 			speed -= 100.0f;
 			//travels 20 seconds
-			ttl = glfwGetTime() + 20;
+			ttl = glfwGetTime() + stats["pursuer_baseTTL"];
 			dmg = [this]() {
-				return 10;
+				return stats["pursuer_baseDmg"];
 			};
 			move = [this](float deltaTime) {
 				//will need access to enemy vector, determine nearest enemy and then go
 				
-				if (ttl - glfwGetTime() > 19.8) {
+				if (ttl - glfwGetTime() > stats["pursuer_baseTTL"]-0.2) {
 					//go straight initially before locking on
 					position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
 				}
@@ -118,14 +119,20 @@ namespace game {
 				}			
 			};
 
-		}else if (type.compare("chargeBlast") == 0) {
+		}else if (type.compare("charge_Blast") == 0) {
 			//travels 12 seconds
-			ttl = glfwGetTime() + 12;
-			//deals 150 damage + 10% per level
-			dmg = [this]() {
-				return 100 * pow(1.1, upg["charge_Damage_Level"]);
+			int chargePierce = 50;
+			pierce = chargePierce;
+			ttl = glfwGetTime() + stats["charge_Blast_baseTTL"];
+			//deals 100 damage + 10% per level
+			dmg = [this, chargePierce]() {
+				if (pierce == chargePierce-1) {
+					this->Scale(glm::vec3(5,6,5)); //kaboom
+					ttl = glfwGetTime() + 0.2;
+				}
+				return stats["charge_Blast_baseDmg"] * pow(1.1, upg["charge_Damage_Level"]);
 			};
-			pierce = 5;
+
 			this->Scale(glm::vec3(5));
 			move = [this](float deltaTime) {
 				position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
@@ -136,13 +143,13 @@ namespace game {
 			
 
 
-		}else if (type.compare("sniperShot") == 0) {
-			speed *= 2.5;
-			this->Scale(glm::vec3(2));
+		}else if (type.compare("sniper_Shot") == 0) {
+			speed *= 3.5;
+			this->Scale(glm::vec3(3));
 			//travels 15 seconds +10% per level
-			ttl = glfwGetTime() + 15 * pow(1.1, upg["sniper_Range_Level"]);
+			ttl = glfwGetTime() + stats["sniper_Shot_baseTTL"] * pow(1.1, upg["sniper_Range_Level"]);
 			//deals (1 damage + 60 per second travelled) + 10% per level
-			int damageFactor = 60;
+			int damageFactor = stats["sniper_Shot_baseDmg"];
 			dmg = [this, damageFactor]() {
 				return (1 - damageFactor *(ttl - glfwGetTime() - (damageFactor * pow(1.1, upg["sniper_Range_Level"])))) * pow(1.1, upg["sniper_Damage_Level"]);
 			};
@@ -153,10 +160,10 @@ namespace game {
 					   
 		}else if (type.compare("shotgun") == 0) { // multiple of these will be created on the player side
 			//travels 0.7 seconds
-			ttl = glfwGetTime() + 0.7;
+			ttl = glfwGetTime() + stats["shotgun_baseTTL"];
 			//deals 5 damage + 10% per level
 			dmg = [this]() {
-				return 5 * pow(1.1, upg["shotgun_Damage_Level"]);
+				return stats["shotgun_baseDmg"] * pow(1.1, upg["shotgun_Damage_Level"]);
 			};
 			//random spread
 			this->Rotate(rand() % 14 - 7, glm::vec3(1, 0, 0));
@@ -167,17 +174,17 @@ namespace game {
 			};
 		
 					   
-		}else if (type.compare("naniteTorpedo") == 0) { // multiple of these will be created on the player side
+		}else if (type.compare("nanite_Torpedo") == 0) { // multiple of these will be created on the player side
 			
 			speed += 20;
 			//travels 10 seconds
-			ttl = glfwGetTime() + 10;
+			ttl = glfwGetTime() + stats["nanite_Torpedo_baseTTL"];
 			//deals 0 impact damage
 			dmg = [this]() {
 				return 0;
 			};
 			//5dps per stack up to 5 stacks, lasts for 5 seconds
-			dotDmg = 5 * pow(1.1, upg["nanite_Torpedo_Damage_Level"]);
+			dotDmg = stats["nanite_Torpedo_baseDmg"] * pow(1.1, upg["nanite_Torpedo_Damage_Level"]);
 			dotDuration = glfwGetTime() + 5 *pow(1.1, upg["nanite_Torpedo_Duration_Level"]);
 			dotStackMax = 5 + upg["nanite_Torpedo_Stack_Level"];
 			move = [this](float deltaTime) {
