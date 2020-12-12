@@ -264,6 +264,19 @@ void Game::SaveGame(void) {
 	resman_.SaveResource("save");
 }
 
+void Game::LoadLastSave(void) {
+	int lastStartTime = startTime;
+	LoadSaveFile();
+	startTime = lastStartTime;
+	Player* player = scene_.GetPlayer();
+	player->SetUpgrades(&loadedPlayerUpgrades);
+	player->SetPlayerLoadout(&loadedPlayerLoadout);
+	player->SetPlayerStats(&loadedPlayerStats);
+	player->SetPlayerInventory(&loadedPlayerInventory);
+	player->SetWeaponStats(&loadedWeaponStats);
+
+}
+
 void Game::SetupScene(void){
 
 
@@ -446,9 +459,14 @@ void Game::GetUserInput(float deltaTime) {
 	//quit game
 	if (glfwGetKey(window_, GLFW_KEY_Q) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window_, true);
-	}	//save game
+	}
+	//save game
 	if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS) {
 		SaveGame();
+	}
+	//load last save (will be option on death)
+	if (glfwGetKey(window_, GLFW_KEY_L) == GLFW_PRESS) {
+		LoadLastSave();
 	}
 
 	// Stop animation if escape  is pressed

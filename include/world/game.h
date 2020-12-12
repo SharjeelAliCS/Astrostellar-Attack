@@ -77,6 +77,7 @@ namespace game {
             void InitEventHandlers(void);
 
             void LoadSaveFile(void);
+            void LoadLastSave(void);
             void SaveGame(void);
  
 			bool first_person_;
