@@ -132,6 +132,7 @@ namespace game {
 				missile->SetPosition(position_);
 				missiles.push_back(missile);
 			}
+			playerStats->at("shots_fired")++;
 			lastShotTime = glfwGetTime();
 		}
 	}

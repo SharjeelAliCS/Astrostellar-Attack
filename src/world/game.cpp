@@ -47,6 +47,7 @@ void Game::Init(void){
     // Set variables
     animating_ = true;
 	timeOfLastMove = 0.0;
+	tabPressedLastFrame = false;
 	first_person_ = true;
 
 }
@@ -232,6 +233,7 @@ void Game::LoadSaveFile(void) {
 	}
 	
 	startTime = saveData["playtime"];
+	startKills = loadedPlayerStats["kills"];
 	mouse_speed = saveData["mouse_speed"];
 }
 //david todo
@@ -295,8 +297,9 @@ void Game::SetupScene(void){
 
 	//skybox->SetOrientation(180, glm::vec3(1, 0, 0));
 	//create enemies
-	CreateEnemies(50);
-	CreateAsteroids(500);
+	CreateEnemies(numEnemies);
+	numEnemies = scene_.GetEnemies()->size(); //accounts for any rounding errors, should be handled by chosen number (60) but just in case that changes later
+	CreateAsteroids(numAsteroids);
 	CreateComets();
 	//ame::SceneNode *wall = CreateInstance("Canvas", "FlatSurface", "Procedural", "RockyTexture"); // must supply a texture, even if not used
 	//create skybox
@@ -491,17 +494,22 @@ void Game::GetUserInput(float deltaTime) {
 		//Get the factors used for movement
 		//glm::vec3 pos = player->GetPosition();
 		glm::vec3 foward = camera_.GetForward();
-
+		//keep track of kills
+		std::cout << startKills << " " << numEnemies << " " << scene_.GetEnemies()->size() << "\n ";
+		loadedPlayerStats["kills"] = startKills + numEnemies - scene_.GetEnemies()->size();
 		//Fire a missile
 		if (glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
 			//std::cout << "\n\nFIRE\n\n";
 			player->Fire();
 			timeOfLastMove = glfwGetTime();
 		}
-		if ((timeOfLastMove < glfwGetTime() - 0.6) && glfwGetKey(window_, GLFW_KEY_TAB) == GLFW_PRESS) {
+		
+		
+		if (tabPressedLastFrame && glfwGetKey(window_, GLFW_KEY_TAB) == GLFW_RELEASE) {
 			player->nextWeapon();
 			timeOfLastMove = glfwGetTime();
 		}
+		tabPressedLastFrame = glfwGetKey(window_, GLFW_KEY_TAB) == GLFW_PRESS;
 		//move the player forward as well as the camera
 		if (glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
 		//if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS) {
@@ -642,7 +650,7 @@ void Game::CreateEnemies(int num_enemies) {
 
 	// Create a number of grunt enemies
 	std::string enemy_type = "Grunt";
-	for (int i = 0; i < (float)num_enemies*(float)data[enemy_type]["amount"]; i++) {
+	for (int i = 0; i < floor(num_enemies*(float)data[enemy_type]["amount"]); i++) {
 		std::stringstream ss;
 		ss << i;
 		std::string index = ss.str();
@@ -656,7 +664,7 @@ void Game::CreateEnemies(int num_enemies) {
 	}
 
 	enemy_type = "Ram";
-	for (int i = 0; i < (float)num_enemies*(float)data[enemy_type]["amount"]; i++) {
+	for (int i = 0; i < floor(num_enemies*(float)data[enemy_type]["amount"]); i++) {
 		// Create a number of ram enemies
 		std::stringstream ss;
 		ss << i;
@@ -671,7 +679,7 @@ void Game::CreateEnemies(int num_enemies) {
 	}
 
 	enemy_type = "Tank";
-	for (int i = 0; i < (float)num_enemies*(float)data[enemy_type]["amount"]; i++) {
+	for (int i = 0; i < floor(num_enemies*(float)data[enemy_type]["amount"]); i++) {
 		// Create a number of ram enemies
 		std::stringstream ss;
 		ss << i;
@@ -686,7 +694,7 @@ void Game::CreateEnemies(int num_enemies) {
 	}
 
 	enemy_type = "Speedster";
-	for (int i = 0; i < (float)num_enemies*(float)data[enemy_type]["amount"]; i++) {
+	for (int i = 0; i < floor(num_enemies*(float)data[enemy_type]["amount"]); i++) {
 		// Create a number of ram enemies
 		std::stringstream ss;
 		ss << i;
@@ -701,7 +709,7 @@ void Game::CreateEnemies(int num_enemies) {
 	}
 
 	enemy_type = "Splitter";
-	for (int i = 0; i < (float)num_enemies*(float)data[enemy_type]["amount"]; i++) {
+	for (int i = 0; i < floor(num_enemies*(float)data[enemy_type]["amount"]); i++) {
 		// Create a number of ram enemies
 		std::stringstream ss;
 		ss << i;
@@ -717,7 +725,7 @@ void Game::CreateEnemies(int num_enemies) {
 	}
 
 	enemy_type = "Disrupter";
-	for (int i = 0; i < (float)num_enemies*(float)data[enemy_type]["amount"]; i++) {
+	for (int i = 0; i < floor(num_enemies*(float)data[enemy_type]["amount"]); i++) {
 		// Create a number of ram enemies
 		std::stringstream ss;
 		ss << i;

@@ -84,6 +84,7 @@ namespace game {
 			int window_width;
 			int window_height;
 			float timeOfLastMove;
+			bool tabPressedLastFrame;
 
 			std::map<std::string, int> loadedPlayerUpgrades;
             std::map<std::string, int> loadedPlayerInventory;
@@ -94,7 +95,10 @@ namespace game {
             std::map<std::string, std::map<std::string, int>> loadedBountyStats;
 
             int startTime;
+            int startKills;
             int mouse_speed=1250;
+            int numEnemies = 60;
+            int numAsteroids = 500;
 
 			void SetSaveState(void);
 			//New user input function more multiple inputs
