@@ -113,6 +113,9 @@ namespace game {
 			void SetDeathAnimation(NodeResources dm);
 			void SetAudio(Audio* a) { audio_ = a; }
 
+			ScreenType GetCurrentMenu(void) { return active_menu_; }
+			void SetCurrentMenu(ScreenType t) { active_menu_ = t; }
+
 		private:
 
 			// Frame buffer for drawing to texture
