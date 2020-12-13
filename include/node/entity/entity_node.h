@@ -38,6 +38,10 @@ namespace game {
 		void SetSpeed(float s);
 		float GetSpeed(void) const;
 
+		std::map<std::string, int> GetDrops(void) { return drops; }
+		void SetDrops(std::map<std::string, int> m) { drops = m; }
+		
+
 		void SetParticleSystem(ParticleNode* particles);
 		ParticleNode* GetParticle(void);
 		void Update(float deltaTime);
@@ -53,6 +57,7 @@ namespace game {
 		//float speed_;
 		bool exists_;
 		ParticleNode* particles_;
+		std::map<std::string, int> drops;
 
 		float see_health_duration_;
 		float see_health_left_;

@@ -49,7 +49,7 @@ namespace game {
 		void SetBoosted(int i);
 		int GetBoosted(void) const;
 		float GetBoostSpeed(void) const;
-		std::map<std::string, int> getUpgrades(void) const {return upgrades;}
+		std::map<std::string, int>* getUpgrades(void) const {return upgrades;}
 
 		float getCurSpeed() const;
 
@@ -68,6 +68,14 @@ namespace game {
 		// Update the node
 		void SetFirstPerson(bool f) { first_person_ = f; }
 
+
+		void SetPlayerInventory(std::map<std::string, int>* m) { playerInventory = m; }
+		void SetPlayerLoadout(std::map<std::string, int>* m) { playerLoadout = m; }
+		void SetPlayerStats(std::map<std::string, int>* m) { playerStats = m; }
+		void SetWeaponStats(std::map<std::string, float>* m);
+
+		void CollectLoot(std::map<std::string, int> m);
+
 		float getBoostPercent(void);
 		float getNuclearOverloadPercent(void);
 		Camera* GetCam(void) { return c_; }
@@ -77,7 +85,7 @@ namespace game {
 		bool first_person_;
 		int projType;
 		const int numWeapons = 6;
-		std::string projectileTypes[6] = { "laserBattery", "pursuer", "chargeBlast", "sniperShot", "shotgun", "naniteTorpedo"};
+		std::string projectileTypes[6] = { "laser_Battery", "pursuer", "charge_Blast", "sniper_Shot", "shotgun", "nanite_Torpedo"};
 
 		std::map<int, bool> unlockedWeapons;
 		std::map<int, float> rof;
@@ -96,8 +104,10 @@ namespace game {
 		float shield_recharge_delay_;
 		//player upgrades
 
-		//default geom used for projectiles, will be replaced 
-		
+		std::map<std::string, int>* playerInventory;
+		std::map<std::string, int>* playerLoadout;
+		std::map<std::string, int>* playerStats;
+		std::map<std::string, float>* weaponStats;
 
 		std::vector<AsteroidNode*>* asteroids;
 		std::vector<Enemy*>* enemies;

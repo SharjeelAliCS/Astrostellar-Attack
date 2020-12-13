@@ -30,6 +30,9 @@ namespace game {
 		time_since_fire_ = 0;
 		boost_speed_ = 50;
 		phase_ = 0;
+		this->Scale(glm::vec3(6));
+		upgrades = new std::map<std::string, int>();
+		weaponStats = new std::map<std::string, float>();
 	}
 
 	Enemy::~Enemy() {
@@ -41,6 +44,31 @@ namespace game {
 		active_state_ = &Enemy::FindPlayer;
 	}
 
+	std::map<std::string, int> Enemy::GetDrops(void) {
+		//randomize some bonus loot
+		if (rand() % 100 < 10) {
+			drops["stellaranite_Fragments"]++;
+		}
+		if (rand() % 100 < 2) {
+			drops["stellaranite_Slabs"]++;
+		}
+		if (rand() % 100 < 20) {
+			int x = rand() % 100;
+			if (x < 25) {
+				drops["charge_Blast_Ammo"]+= rand()%5+5;
+			}else if (x < 50) {
+				drops["pursuer_Ammo"]+= rand()%20+5;
+			}else if (x < 75) {
+				drops["shotgun_Ammo"]+= rand()%10+5;
+			}else {
+				drops["sniper_Ammo"]+= rand()%5+5;
+			}
+		}
+		drops["credits"] += rand() % 3;
+		
+		return drops; 
+	}
+
 	void Enemy::Fire(float deltaTime) {
 
 		time_since_fire_ += deltaTime;
@@ -49,12 +77,12 @@ namespace game {
 		}
 		time_since_fire_ = 0;
 
-		Projectile* missile = new Projectile("missile", "enemy", upgrades, proj_rsc_->geom, proj_rsc_->mat, proj_rsc_->tex);
+		Projectile* missile = new Projectile("missile", "enemy", *upgrades, *weaponStats, proj_rsc_->geom, proj_rsc_->mat, proj_rsc_->tex);
 		missile->SetPlayer(player_);
 
 		missile->SetOrientation(GetOrientation());
 
-		missile->setSpeed(this->getCurSpeed() * 3);
+		missile->SetSpeed(missile->GetSpeed() +this->getCurSpeed());
 		missile->init();
 		missile->SetPosition(position_);
 		missile->SetColor(glm::vec3(0, 1, 0.18));

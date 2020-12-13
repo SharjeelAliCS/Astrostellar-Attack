@@ -42,74 +42,31 @@ namespace game {
 		nuclear_buildup_duration_ = 25;
 		nuclear_buildup_left_ = nuclear_buildup_duration_;
 
-		//Projectile::Projectile(const std::string name, const std::string type, const std::map<std::string, int> upgrades, const Resource * geometry,
-			//const Resource * material, const Resource * texture);
-		/*
-		 std::string object_name = "ship";
-		 std::string material_name = "TextureShader";
-		 std::string texture_name = "shipTexture";
+	
 
-		 Resource* geom = resman_.GetResource(object_name);
-		 if (!geom) {
-			// throw((std::string("Could not find resource \"") + object_name + std::string("\"")));
-		 }
-
-		 Resource* mat = resman_.GetResource(material_name);
-		 if (!mat) {
-			// throw((std::string("Could not find resource \"") + material_name + std::string("\"")));
-		 }
-
-		 Resource* tex = NULL;
-		 if (texture_name != "") {
-			 tex = resman_.GetResource(texture_name);
-			 if (!tex) {
-				// throw((std::string("Could not find resource \"") + material_name + std::string("\"")));
-			 }
-		 }
-		 */
-
-
-		for (int i = 0; i < 6; i++) {
-			unlockedWeapons[i] = true; // usually false, true for testing
-			rof[i] = 1.0f; //will play around with individiual rof later 
-		}
-		 
 		unlockedWeapons[0] = true; //laser battery always unlocked
-
-		upgrades["laserBatteryRangeLevel"] = 0;
-		upgrades["laserBatteryPierceLevel"] = 0;
-		upgrades["laserBatteryDamageLevel"] = 0;	 
-		
-		upgrades["pursuerROFLevel"] = 5;
-		 
-		upgrades["chargeRadiusLevel"] = 0;  //size of shot
-		upgrades["chargeDamageLevel"] = 0;  
-		upgrades["chargeDurationLevel"] = 0; //how long to charge up the shot
-		 
-		upgrades["sniperDamageLevel"] = 0;
-		upgrades["sniperRangeLevel"] = 0;
-
-		upgrades["shotgunDamageLevel"] = 0;
-		upgrades["shotgun_NumShots_Level"] = 5; // how many are fired, +6 per level
-
-		upgrades["naniteTorpedoDamageLevel"] = 0;   //dot dmg
-		upgrades["naniteTorpedoDurationLevel"] = 0; //dot duration
-		upgrades["naniteTorpedoStackLevel"] = 0;    //max stacks of dot
-
-		projType = 0;
+		projType = 0; //default to laser battery
 
 
-		 //Projectile* missile = new Projectile("missile", "laserBattery", upgrades, geom, mat, tex);
-		 //Projectile* missile = new Projectile("missile", "laserBattery", upgrades, geometry, material, texture);
-		 //Projectile* missile = new Projectile("missile", "sniperShot", upgrades, geometry, material, texture);
-		 //missiles.push_back(missile);
-
-		 //*/
 	}
 
 
 
 	Player::~Player() {
+	}
+
+	void Player::SetWeaponStats(std::map<std::string, float>* m) {
+		weaponStats = m;
+		for (int i = 0; i < 6; i++) {
+			unlockedWeapons[i] = true; // usually false, true for testing
+			rof[i] = weaponStats->at(projectileTypes[i] +"_ROF");
+		}
+	}
+	
+	void Player::CollectLoot(std::map<std::string, int> loot) {
+		for (std::map<std::string, int>::const_iterator it = loot.begin(); it != loot.end(); ++it){
+			playerInventory->at(it->first) += it->second;
+		}
 	}
 
 	void Player::SetBoosted(int i) {
@@ -136,7 +93,8 @@ namespace game {
 	void Player::nextWeapon() {
 		std::cout << "weapon-change";
 		projType = (projType + 1) % numWeapons;
-		if (!unlockedWeapons[projType]) {
+		std::cout << projectileTypes[projType] + "_Ammo";
+		if (!unlockedWeapons[projType] || playerInventory->at(projectileTypes[projType] + "_Ammo") == 0) {
 			nextWeapon();
 		}
 		else {
@@ -147,18 +105,28 @@ namespace game {
 
 	void Player::Fire() {
 		std::string weapon = projectileTypes[projType];
+		if (playerInventory->at(weapon+"_Ammo") == 0) {
+			std::cout << "OUT OF AMMO, SWAPPING TO NEXT AVAILABLE WEAPON\n";
+			nextWeapon();
+			weapon = projectileTypes[projType];
+		}
 
-		double shotTime = lastShotTime + rof[projType] * ((projectileTypes[projType].compare("pursuer") == 0) ? (2 - pow(1.1, upgrades["pursuerROFLevel"])) : 1);
+
+		double shotModifier = 1;
+		if (projectileTypes[projType].compare("pursuer") == 0) {
+			shotModifier = 1.75 - pow(1.1, upgrades->at("pursuer_ROF_Level"));
+		}
+		double shotTime = lastShotTime + rof[projType] * shotModifier;
 		if (glfwGetTime() > shotTime) {
 			audio_->playAgain("missileShot");
 			Projectile* missile;
 			int numShots = 1;
 			if (weapon.compare("shotgun") == 0) {
-				numShots = 15 + 6 * upgrades["shotgun_NumShots_Level"];
+				numShots = 15 + 6 * upgrades->at("shotgun_NumShots_Level");
 
 			}
 			for (int i = 0; i < numShots; i++) {
-				missile = new Projectile("missile", weapon, upgrades, proj_rsc_->geom, proj_rsc_->mat, proj_rsc_->tex);
+				missile = new Projectile("missile", weapon, *upgrades, *weaponStats, proj_rsc_->geom, proj_rsc_->mat, proj_rsc_->tex);
 				missile->SetAsteroids(asteroids);
 				missile->SetComets(comets);
 				missile->SetEnemies(enemies);
@@ -171,17 +139,21 @@ namespace game {
 
 				}
 
-				missile->setSpeed(this->getCurSpeed()*3);
+				missile->SetSpeed(missile->GetSpeed()+this->getCurSpeed());
 				missile->init();
 				missile->SetPosition(position_);
 				missiles.push_back(missile);
 			}
+			playerStats->at("shots_fired")++;
+			if (projType != 0) {
+				playerInventory->at(weapon + "_Ammo")--;
+			}
 			lastShotTime = glfwGetTime();
-		}	
+		}
 	}
 
 	void Player::Draw(Camera *camera) {
-		
+
 		AgentNode::Draw(camera);
 
 	}
@@ -209,9 +181,9 @@ namespace game {
 		return false;
 	}
 	bool Player::Collision() {
-		//check for collisions with player, set collide to true/false depending/ 
+		//check for collisions with player, set collide to true/false depending/
 		bool collide = false;
-		
+
 		return collide;
 	}
 
@@ -226,7 +198,7 @@ namespace game {
 		return (nuclear_buildup_duration_ - nuclear_buildup_left_) / nuclear_buildup_duration_;
 	}
 	bool Player::NuclearOverload(void) {
-		return (boosted_ && boost_duration_left_ <= 0) || 
+		return (boosted_ && boost_duration_left_ <= 0) ||
 			(nuclear_buildup_left_<nuclear_buildup_duration_);
 	}
 	void Player::Update(float deltaTime) {
@@ -263,9 +235,9 @@ namespace game {
 		c_->Translate(c_->GetForward() * getCurSpeed() *deltaTime);
 		Collision();
 
-		//update the missiles and check if they exist or not. 
+		//update the missiles and check if they exist or not.
 		//std::cout << "mypos is " << position_.x << " "<< position_.y << " "<< position_.z << std::endl;
-		
+
 		AgentNode::Update(deltaTime);
 
 	}

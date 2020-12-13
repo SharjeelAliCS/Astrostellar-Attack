@@ -44,6 +44,8 @@ namespace game {
 		std::string GetEnemyType(void) { return enemy_type_; }
 		void SetProjectileDmg(float d) { projectile_dmg_ = d; }
 
+		std::map<std::string, int> GetDrops(void);
+
 		void SetPhase(float p) { phase_ = p; }
 		float GetPhase(void){return phase_; }
 	protected:

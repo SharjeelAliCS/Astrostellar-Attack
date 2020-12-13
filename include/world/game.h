@@ -75,12 +75,31 @@ namespace game {
             void InitWindow(void);
             void InitView(void);
             void InitEventHandlers(void);
+
+            void LoadSaveFile(void);
+            void LoadLastSave(void);
+            void SaveGame(void);
  
 			bool first_person_;
 			float aspect_ratio_;
 			int window_width;
 			int window_height;
 			float timeOfLastMove;
+			bool tabPressedLastFrame;
+
+			std::map<std::string, int> loadedPlayerUpgrades;
+            std::map<std::string, int> loadedPlayerInventory;
+            std::map<std::string, int> loadedPlayerLoadout;
+            std::map<std::string, int> loadedPlayerStats;
+
+            std::map<std::string, float> loadedWeaponStats;
+            std::map<std::string, std::map<std::string, int>> loadedBountyStats;
+
+            int startTime;
+            int startKills;
+            int mouse_speed=1250;
+            int numEnemies = 60;
+            int numAsteroids = 500;
 
 			void SetSaveState(void);
 			//New user input function more multiple inputs

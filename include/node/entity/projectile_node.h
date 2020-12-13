@@ -24,7 +24,7 @@ namespace game {
 
 	public:
 		// Create game object
-		Projectile(const std::string name, const std::string type, std::map<std::string, int> upgrades, 
+		Projectile(const std::string name, const std::string type, std::map<std::string, int> upgrades, std::map<std::string, float> weaponStats,
 			const Resource *geometry, const Resource *material,const Resource *texture = NULL, const Resource *normal = NULL);
 
 		// Destructor
@@ -37,7 +37,7 @@ namespace game {
 		void SetEnemies(std::vector<Enemy*>* en) { enemies = en; }
 		void SetPlayer(Player* p);
 
-		void setSpeed(float s) { speed = s; }
+		void SetSpeed(float s) { speed = s; }
 		float GetSpeed(void) { return speed; }
 		void Update(float deltaTime);
 
@@ -61,6 +61,7 @@ namespace game {
 		float speed;
 		SceneNode *target;
 		std::map<std::string, int> upg;
+		std::map<std::string, float> stats;
 
 		//damage is a function because of the sniper existing, and maybe aoe shots will have more damage in the center of the blast, etc
 		std::function<double()> dmg;

@@ -29,4 +29,16 @@ namespace game {
 		position_ += movement_speed * orientation_->GetForward();
 	}
 
+	std::map<std::string, int> CometNode::GetDrops(void) {
+		//randomize some bonus loot
+		if (rand() % 100 < 50) {
+			drops["stellaranite_Fragments"]++;
+		}
+		if (rand() % 100 < 10) {
+			drops["stellaranite_Slabs"]++;
+		}
+		drops["credits"] += rand() % 5;
+
+		return drops;
+	}
 }

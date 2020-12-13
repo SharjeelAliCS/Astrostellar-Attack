@@ -19,6 +19,8 @@ namespace game {
 		AsteroidNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture = NULL, const Resource *normal = NULL);
 		~AsteroidNode();
 
+		std::map<std::string, int> GetDrops(void);
+
 	private:
 	}; // class GameObj
 

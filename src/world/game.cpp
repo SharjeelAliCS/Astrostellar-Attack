@@ -24,7 +24,7 @@ glm::vec3 camera_position_3rd_g(0, -1.5, 8);
 glm::vec3 camera_look_at_g(-0.0, -0, 0);
 glm::vec3 camera_up_g(0.0, 1.0, 0.0);
 
-// Materials 
+// Materials
 const std::string material_directory_g = MATERIAL_DIRECTORY;
 
 
@@ -38,7 +38,7 @@ void Game::Init(void){
 	aspect_ratio_ = 1080.0 / 1920.0;
 	window_width = 800;
 	window_height = window_width * aspect_ratio_;
-	
+
     // Run all initialization steps
     InitWindow();
     InitView();
@@ -47,11 +47,12 @@ void Game::Init(void){
     // Set variables
     animating_ = true;
 	timeOfLastMove = 0.0;
+	tabPressedLastFrame = false;
 	first_person_ = true;
 
 }
 
-       
+
 void Game::InitWindow(void){
 
     // Initialize the window management library (GLFW)
@@ -127,7 +128,7 @@ void Game::SetupResources(void){
 	resman_.CreateSphere("SimpleSphereMesh");
 	resman_.CreateTorus("SimpleTorusMesh");
 	resman_.CreateCube("c",3,3,3);
-	
+
 	resman_.CreateSphereParticles("particleExplosion", 2000);
 	resman_.CreateJetParticles("particleStream", 20000);
 	resman_.CreateCometParticles("cometParticles", 3000);
@@ -137,21 +138,21 @@ void Game::SetupResources(void){
 	filename = SAVE_DIRECTORY + std::string("/game_state.json");
 	resman_.LoadResource(Save, "save", filename.c_str());
 
+
 	//load asset data
 	filename = SAVE_DIRECTORY + std::string("/asset_data.json");
 	resman_.LoadResource(Save, "assetList", filename.c_str());
 
 	json assets = resman_.GetResource("assetList")->GetJSON();
 
-	//todo David  
-	json saveData = resman_.GetResource("save")->GetJSON();
-	
+	LoadSaveFile();
+
 	//load shaders
 	for (auto& asset : assets["Shader"].items()) {
 		filename = std::string(MATERIAL_DIRECTORY) + std::string(asset.value());
 		resman_.LoadResource(Material, asset.key(), filename.c_str());
 	}
-	
+
 	//load meshes
 	for (auto& asset : assets["Mesh"].items()) {
 		filename = std::string(ASSET_DIRECTORY) + "/meshes"+std::string(asset.value());
@@ -194,7 +195,87 @@ void Game::SetupResources(void){
 	audio_->volume("missileShot", 30);
 	audio_->volume("enemyHit", 30);
 	audio_->playRepeat("ambience");
+
+}
+
+
+void Game::LoadSaveFile(void) {
+
+	//todo David
+	json saveData = resman_.GetResource("save")->GetJSON();
+
+	for (auto& gameData : saveData["inventory"].items()) {
+		std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
+		loadedPlayerInventory[gameData.key()] = gameData.value();
+	}
+	for (auto& gameData : saveData["upgrades"].items()) {
+		std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
+		loadedPlayerUpgrades[gameData.key()] = gameData.value();
+	}
+	for (auto& gameData : saveData["loadout"].items()) {
+		std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
+		loadedPlayerLoadout[gameData.key()] = gameData.value();
+	}
+	for (auto& gameData : saveData["player_stats"].items()) {
+		std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
+		loadedPlayerStats[gameData.key()] = gameData.value();
+	}
 	
+	for (auto& gameData : saveData["weapon_stats"].items()) {
+		std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
+		loadedWeaponStats[gameData.key()] = gameData.value();
+	}
+	
+	for (auto& bounty : saveData["bounty_data"].items()) {
+		for (auto& gameData : saveData["bounty_data"][bounty.key()].items()) {
+			std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
+			loadedBountyStats[bounty.key()][gameData.key()] = gameData.value();
+		}
+	}
+	
+	startTime = saveData["playtime"];
+	startKills = loadedPlayerStats["kills"];
+	mouse_speed = saveData["mouse_speed"];
+}
+//david todo
+void Game::SaveGame(void) {
+
+	Resource* dataResource = resman_.GetResource("save");
+	json newData = dataResource->GetJSON();
+
+	for (std::map<std::string, int>::const_iterator it = loadedPlayerInventory.begin(); it != loadedPlayerInventory.end(); ++it){
+		std::cout << it->first << " " << it->second<< "\n";
+		newData["inventory"][it->first] = it->second;
+	}
+	for (std::map<std::string, int>::const_iterator it = loadedPlayerUpgrades.begin(); it != loadedPlayerUpgrades.end(); ++it){
+		std::cout << it->first << " " << it->second<< "\n";
+		newData["upgrades"][it->first] = it->second;
+	}
+	for (std::map<std::string, int>::const_iterator it = loadedPlayerLoadout.begin(); it != loadedPlayerLoadout.end(); ++it){
+		std::cout << it->first << " " << it->second<< "\n";
+		newData["loadout"][it->first] = it->second;
+	}
+	for (std::map<std::string, int>::const_iterator it = loadedPlayerStats.begin(); it != loadedPlayerStats.end(); ++it){
+		std::cout << it->first << " " << it->second<< "\n";
+		newData["player_stats"][it->first] = it->second;
+	}
+	newData["playtime"] = (int)(startTime+glfwGetTime());
+
+	dataResource->SetJSON(newData);
+	resman_.SaveResource("save");
+}
+
+void Game::LoadLastSave(void) {
+	int lastStartTime = startTime;
+	LoadSaveFile();
+	startTime = lastStartTime;
+	Player* player = scene_.GetPlayer();
+	player->SetUpgrades(&loadedPlayerUpgrades);
+	player->SetPlayerLoadout(&loadedPlayerLoadout);
+	player->SetPlayerStats(&loadedPlayerStats);
+	player->SetPlayerInventory(&loadedPlayerInventory);
+	player->SetWeaponStats(&loadedWeaponStats);
+
 }
 
 void Game::SetupScene(void){
@@ -207,21 +288,32 @@ void Game::SetupScene(void){
 
     // Set background color for the scene
     scene_.SetBackgroundColor(viewport_background_color_g);
-	
+
 	//create player object
-	SceneNode* player =CreateInstance("player", "ship", "TextureShader", PLAYER,"shipTexture");
+	Player* player = dynamic_cast<Player*>(CreateInstance("player", "ship", "TextureShader", PLAYER,"shipTexture"));
 	NodeResources* proj_rsc = GetResources("SimpleCylinderMesh", "ColoredMaterial", "","");
 	scene_.GetPlayer()->SetProjRsc(proj_rsc);
 	player->SetScale(glm::vec3(2));
 	player->SetOrientation(-90, glm::vec3(0, 1, 0));
 	player->SetAudio(audio_);
+
+	player->SetUpgrades(&loadedPlayerUpgrades);
+	player->SetPlayerLoadout(&loadedPlayerLoadout);
+	player->SetPlayerStats(&loadedPlayerStats);
+	player->SetPlayerInventory(&loadedPlayerInventory);
+
+	player->SetWeaponStats(&loadedWeaponStats);
+
+	std::cout << "\nplayer created\n";
+
     // Create an object for showing the texture
 	// instance contains identifier, geometry, shader, and texture
-	
+
 	//skybox->SetOrientation(180, glm::vec3(1, 0, 0));
 	//create enemies
-	CreateEnemies(50);
-	CreateAsteroids(500);
+	CreateEnemies(numEnemies);
+	numEnemies = scene_.GetEnemies()->size(); //accounts for any rounding errors, should be handled by chosen number (60) but just in case that changes later
+	CreateAsteroids(numAsteroids);
 	CreateComets();
 	//ame::SceneNode *wall = CreateInstance("Canvas", "FlatSurface", "Procedural", "RockyTexture"); // must supply a texture, even if not used
 	//create skybox
@@ -234,7 +326,7 @@ void Game::SetupScene(void){
 	ParticleNode* pn = CreateParticleInstance(20000, "jetstream", "particleStream", "ParticleMaterial","jetParticleTexture");
 	pn->SetOrientation(90, glm::vec3(0, 1, 0));
 	pn->Rotate(-90, glm::vec3(1, 0, 0));
-	pn->Translate(glm::vec3(1, 0.5, -3)); 
+	pn->Translate(glm::vec3(1, 0.5, -3));
 	pn->SetJoint(glm::vec3(0,0.2,-1));
 	pn->SetScale(glm::vec3(8));
 	pn->SetDraw(false);
@@ -315,7 +407,7 @@ void Game::MainLoop(void){
 
 				last_time = current_time;
 				t += 0.01;
-				
+
 				std::string currWeapon = player->GetCurrentWeapon() + "Texture";
 				scene_.GetScreen("weaponsHUD")->SetTexture(resman_.GetResource(currWeapon));
 				scene_.GetScreen("boostBar")->SetProgressY(player->getBoostPercent());
@@ -330,22 +422,21 @@ void Game::MainLoop(void){
 			}
 			frames += 1;
 		}
-		
-		
+
+
 		//gen the screen
-		//bool genScreen = true;//change this value 
+		//bool genScreen = true;//change this value
 		scene_.Draw(&camera_, true, window_width, window_height);
 
 		bool genScreen = player->NuclearOverload();
-			//player->ReduceHealth(0.5); //reduce the health over time to show the effect
+
 		scene_.DisplayScreenSpace(resman_.GetResource("ScreenHealthMaterial")->GetResource(),"health", genScreen, window_width, window_height);
-		
-		//the "nuclear" overload bool is used to check when to apply the screen effect or not. 
+
+		//the "nuclear" overload bool is used to check when to apply the screen effect or not.
 		//scene_.Draw(&camera_, genScreen, window_width, window_height);
 
 		//generate the bloom material screen material
 		//scene_.DisplayScreenSpace(resman_.GetResource("ScreenBloomMaterial")->GetResource(),"", genScreen,window_width, window_height);
-
 		if (genScreen) {
 
 			//generate the boost screen material (main part of the assignment)
@@ -356,7 +447,7 @@ void Game::MainLoop(void){
 
 		text.RenderText(new Text(player->GetCurrentWeapon(), glm::vec2(0.6, -0.78), 0.4f, glm::vec3(0.0941, 0.698, 0.921)));
 		text.RenderText(new Text(std::to_string(fps), glm::vec2(-1, 0.9), 0.5f, glm::vec3(1.0, 1.0, 0)));
-		
+
         glfwSwapBuffers(window_);
 
         // Update other events like input handling
@@ -369,6 +460,14 @@ void Game::GetUserInput(float deltaTime) {
 	//quit game
 	if (glfwGetKey(window_, GLFW_KEY_Q) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window_, true);
+	}
+	//save game
+	if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS) {
+		SaveGame();
+	}
+	//load last save (will be option on death)
+	if (glfwGetKey(window_, GLFW_KEY_L) == GLFW_PRESS) {
+		LoadLastSave();
 	}
 
 	// Stop animation if escape  is pressed
@@ -392,7 +491,7 @@ void Game::GetUserInput(float deltaTime) {
 	}
 	double xpos, ypos;
 	glfwGetCursorPos(window_, &xpos, &ypos);
-	
+
 	std::string btn = scene_.ButtonEvents(xpos, ypos);
 	if (btn != "" && (timeOfLastMove < glfwGetTime() - 0.5) && glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
 			timeOfLastMove = glfwGetTime();
@@ -402,10 +501,10 @@ void Game::GetUserInput(float deltaTime) {
 				animating_ = true;
 				glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 			}
-		
+
 	}
 
-	
+
 	if (animating_) {
 
 		GetMouseCameraInput(xpos, ypos);
@@ -414,24 +513,28 @@ void Game::GetUserInput(float deltaTime) {
 		//Get the factors used for movement
 		//glm::vec3 pos = player->GetPosition();
 		glm::vec3 foward = camera_.GetForward();
-
+		//keep track of kills
+		loadedPlayerStats["kills"] = startKills + numEnemies - scene_.GetEnemies()->size();
 		//Fire a missile
 		if (glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
 			//std::cout << "\n\nFIRE\n\n";
 			player->Fire();
 			timeOfLastMove = glfwGetTime();
 		}
-		if ((timeOfLastMove < glfwGetTime() - 0.6) && glfwGetKey(window_, GLFW_KEY_TAB) == GLFW_PRESS) {
+		
+		
+		if (tabPressedLastFrame && glfwGetKey(window_, GLFW_KEY_TAB) == GLFW_RELEASE) {
 			player->nextWeapon();
 			timeOfLastMove = glfwGetTime();
 		}
+		tabPressedLastFrame = glfwGetKey(window_, GLFW_KEY_TAB) == GLFW_PRESS;
 		//move the player forward as well as the camera
 		if (glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
 		//if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS) {
 			//glm::vec3 pos = player->GetPosition();
 			glm::vec3 foward = camera_.GetForward();
 
-			
+
 			if (player->GetBoosted() == 0) {
 				audio_->playRepeat("playerEngine");
 				player->SetBoosted(1);
@@ -454,19 +557,20 @@ void Game::GetUserInput(float deltaTime) {
 void Game::GetMouseCameraInput(float xpos, float ypos) {
 
 	//For this, I decided the best way to do it was simply to keep the cursor set at the center
-	//so that the user only moves the game WHEN their mouse is within the screen. 
-	//The next issue I had was seeing how to make the range of the mouse sufficient. So I 
+	//so that the user only moves the game WHEN their mouse is within the screen.
+	//The next issue I had was seeing how to make the range of the mouse sufficient. So I
 	//set the mouse to the center constantly, and measure it from there (difference)
-	//which gives me the overall speed of the mouse that I offset the player with. 
+	//which gives me the overall speed of the mouse that I offset the player with.
 	//After this, I "lag" behind the camera by 2x less than the current mouse speed.
 	if (xpos >= 0 && xpos <= window_width && ypos >= 0 && ypos <= window_height && animating_) {
 
 		Player* player = scene_.GetPlayer();
 
+
 		float speed_x = xpos - window_width / 2;
 		float speed_y = ypos - window_height / 2;
-		speed_x /= 3000;
-		speed_y /= 3000;
+		speed_x /= mouse_speed;
+		speed_y /= mouse_speed;
 		glfwSetCursorPos(window_, window_width / 2, window_height / 2);
 
 
@@ -478,9 +582,7 @@ void Game::GetMouseCameraInput(float xpos, float ypos) {
 
 		player->GetOrientationObj()->Yaw(-speed_x);
 		player->GetOrientationObj()->Pitch(-speed_y);
-		//player->GetParticle()->GetOrientationObj()->Roll(-speed_x*0.5);
-		//player->GetParticle()->GetOrientationObj()->Roll(-speed_y);
-		//player->GetParticle()->SetOrientation(player->GetOrientation());
+
 		camera_.SetOrientation(player->RotLagBehind(speed_y / 2, speed_x / 2));
 
 		ScreenNode* screen = scene_.GetScreen("cockpit");
@@ -519,7 +621,7 @@ void Game::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	float max_zoom = 0.01;
 	float min_zoom = 30;
 	float curr_zoom = game->camera_.GetZoom()+yoffset;
-	std::cout << "scroll is " << yoffset << ", zoom is " << curr_zoom << std::endl;
+
 	if (curr_zoom < 5) {
 		if (yoffset > 0) {
 			game->first_person_ = false;
@@ -545,7 +647,7 @@ void Game::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 
 }
 Game::~Game(){
-    
+
     glfwTerminate();
 }
 
@@ -556,6 +658,13 @@ void Game::SetEnemyStats(std::string type, Enemy* en, json data) {
 	en->SetMaxHealth(data[type]["health"]);
 	en->SetProjectileDmg(data[type]["bullet_damage"]);
 	en->SetDamage(data[type]["ram_damage"]);
+
+	json saveData = resman_.GetResource("save")->GetJSON();
+	std::map<std::string, int> drops;
+	for (auto& gameData : saveData["enemies"][type]["drops"].items()) {
+		drops[gameData.key()] = gameData.value();
+	}
+	en->SetDrops(drops);
 }
 void Game::CreateEnemies(int num_enemies) {
 
@@ -566,7 +675,7 @@ void Game::CreateEnemies(int num_enemies) {
 
 	// Create a number of grunt enemies
 	std::string enemy_type = "Grunt";
-	for (int i = 0; i < (float)num_enemies*(float)data[enemy_type]["amount"]; i++) {
+	for (int i = 0; i < floor(num_enemies*(float)data[enemy_type]["amount"]); i++) {
 		std::stringstream ss;
 		ss << i;
 		std::string index = ss.str();
@@ -580,7 +689,7 @@ void Game::CreateEnemies(int num_enemies) {
 	}
 
 	enemy_type = "Ram";
-	for (int i = 0; i < (float)num_enemies*(float)data[enemy_type]["amount"]; i++) {
+	for (int i = 0; i < floor(num_enemies*(float)data[enemy_type]["amount"]); i++) {
 		// Create a number of ram enemies
 		std::stringstream ss;
 		ss << i;
@@ -595,7 +704,7 @@ void Game::CreateEnemies(int num_enemies) {
 	}
 
 	enemy_type = "Tank";
-	for (int i = 0; i < (float)num_enemies*(float)data[enemy_type]["amount"]; i++) {
+	for (int i = 0; i < floor(num_enemies*(float)data[enemy_type]["amount"]); i++) {
 		// Create a number of ram enemies
 		std::stringstream ss;
 		ss << i;
@@ -610,7 +719,7 @@ void Game::CreateEnemies(int num_enemies) {
 	}
 
 	enemy_type = "Speedster";
-	for (int i = 0; i < (float)num_enemies*(float)data[enemy_type]["amount"]; i++) {
+	for (int i = 0; i < floor(num_enemies*(float)data[enemy_type]["amount"]); i++) {
 		// Create a number of ram enemies
 		std::stringstream ss;
 		ss << i;
@@ -625,7 +734,7 @@ void Game::CreateEnemies(int num_enemies) {
 	}
 
 	enemy_type = "Splitter";
-	for (int i = 0; i < (float)num_enemies*(float)data[enemy_type]["amount"]; i++) {
+	for (int i = 0; i < floor(num_enemies*(float)data[enemy_type]["amount"]); i++) {
 		// Create a number of ram enemies
 		std::stringstream ss;
 		ss << i;
@@ -641,7 +750,7 @@ void Game::CreateEnemies(int num_enemies) {
 	}
 
 	enemy_type = "Disrupter";
-	for (int i = 0; i < (float)num_enemies*(float)data[enemy_type]["amount"]; i++) {
+	for (int i = 0; i < floor(num_enemies*(float)data[enemy_type]["amount"]); i++) {
 		// Create a number of ram enemies
 		std::stringstream ss;
 		ss << i;
@@ -734,7 +843,7 @@ void Game::CreateHUD(void) {
 	node = CreateScreenInstance("shieldBar", "FlatSurface", "ScreenMaterial", HUD_MENU, "shieldBarTexture");
 	node->SetScale(glm::vec3(0.843, 0.04, 1));//multiply by 21
 	node->SetPosition(glm::vec3(0, 0.92, 0));
-	
+
 	//health
 	node = CreateScreenInstance("healthBox", "FlatSurface", "ScreenMaterial", HUD_MENU, "healthBoxTexture");
 	node->SetScale(glm::vec3(0.41, 0.03416, 1));//multiply by 12
@@ -752,7 +861,7 @@ void Game::CreateHUD(void) {
 	node = CreateScreenInstance("boostBar", "FlatSurface", "ScreenMaterial", HUD_MENU, "boostBarTexture");
 	node->SetScale(glm::vec3(0.063, 0.063 *3.6, 1));//multiply by 17.72
 	node->SetPosition(glm::vec3(-0.9, 0.045, 0));
-	
+
 	//enemy health bar
 	node = CreateScreenInstance("enemyHealthBox", "FlatSurface", "ScreenMaterial", ENEMY_HEALTH, "enemyHealthBoxTexture");
 	node->SetScale(glm::vec3(0.1, 0.1*0.1,1));//multiply by 0.2
@@ -771,7 +880,7 @@ void Game::CreateHUD(void) {
 	node->SetPosition(glm::vec3(-0.85, -0.6, 0));
 
 	//WEAPONS
-	node = CreateScreenInstance("weaponsHUD", "FlatSurface", "ScreenMaterial", HUD_MENU, "laserBatteryTexture");
+	node = CreateScreenInstance("weaponsHUD", "FlatSurface", "ScreenMaterial", HUD_MENU, "laser_BatteryTexture");
 	node->SetScale(glm::vec3(0.384,0.08,1));//multiply by 4.8
 	node->SetPosition(glm::vec3(0.75, -0.6, 0));
 	//PAUSE MENU
@@ -789,7 +898,7 @@ void Game::CreateHUD(void) {
 ParticleNode* Game::CreateParticleInstance(int count, std::string particle_name, std::string object_name, std::string material_name, std::string texture_name) {
 	//create resource
 	NodeResources* rsc = GetResources(object_name, material_name, texture_name, "");
-	
+
 	// Create asteroid instance
 	ParticleNode *pn = new ParticleNode(particle_name, rsc->geom, rsc->mat, rsc->tex);
 	return pn;
@@ -801,7 +910,7 @@ Enemy *Game::CreateEnemyInstance(std::string entity_name, std::string object_nam
 	Enemy *en = new Enemy(entity_name, rsc->geom, rsc->mat, rsc->tex, rsc->norm);
 
 	en->SetNodeResources(rsc);
-	
+
 	en->SetProjRsc(proj);
 	scene_.AddEnemy(en);
 	en->SetScale(glm::vec3(3));
@@ -811,7 +920,7 @@ Enemy *Game::CreateEnemyInstance(std::string entity_name, std::string object_nam
 
 ScreenNode *Game::CreateScreenInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name, std::string normal_name) {
 	NodeResources* rsc = GetResources(object_name, material_name, texture_name, normal_name);
-	
+
 	if (entity_name == "radar") {
 		RadarNode* scn = new RadarNode(entity_name, rsc->geom, rsc->mat, rsc->tex, rsc->norm);
 		scene_.AddRadar(scn);
@@ -829,6 +938,13 @@ AsteroidNode *Game::CreateAsteroidInstance(std::string entity_name, std::string 
 
 	NodeResources* rsc = GetResources(object_name, material_name, texture_name, normal_name);
 	AsteroidNode *ast = new AsteroidNode(entity_name, rsc->geom, rsc->mat, rsc->tex, rsc->norm);
+	
+	json saveData = resman_.GetResource("save")->GetJSON();
+	std::map<std::string, int> drops;
+	for (auto& gameData : saveData["obstacle_stats"]["asteroid_drops"].items()) {
+		drops[gameData.key()] = gameData.value();
+	}
+	ast->SetDrops(drops);
 	scene_.AddAsteroid(ast);
 	return ast;
 }
@@ -836,6 +952,12 @@ CometNode *Game::CreateCometNode(std::string entity_name, std::string object_nam
 
 	NodeResources* rsc = GetResources(object_name, material_name, texture_name, normal_name);
 	CometNode *ast = new CometNode(entity_name, rsc->geom, rsc->mat, rsc->tex, rsc->norm);
+	json saveData = resman_.GetResource("save")->GetJSON();
+	std::map<std::string, int> drops;
+	for (auto& gameData : saveData["obstacle_stats"]["comet_drops"].items()) {
+		drops[gameData.key()] = gameData.value();
+	}
+	ast->SetDrops(drops);
 	scene_.AddComet(ast);
 	return ast;
 }
@@ -848,7 +970,7 @@ ButtonNode *Game::CreateButtonInstance(std::string entity_name, std::string obje
 	btn->SetTextObj(&text);
 	scene_.AddButton(btn, type);
 	return btn;
-	
+
 }
 
 SceneNode *Game::CreateInstance(std::string entity_name, std::string object_name, std::string material_name, NodeType type, std::string texture_name, std::string normal_name){

@@ -24,6 +24,17 @@ namespace game {
 	AsteroidNode::~AsteroidNode() {
 	}
 
+	std::map<std::string, int> AsteroidNode::GetDrops(void) {
+		//randomize some bonus loot
+		if (rand() % 100 < 5) {
+			drops["stellaranite_Fragments"]++;
+		}
+		if (rand() % 100 < 1) {
+			drops["stellaranite_Slabs"]++;
+		}
+		drops["credits"] += rand() % 5;
 
+		return drops;
+	}
 
 }

@@ -464,7 +464,8 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 				ast = asteroid_->erase(ast);
 				node->damage(node->GetDamage());
 				collided = true;
-				if (player)audio_->playAgain("asteroidExplosion");
+				player_->CollectLoot((*ast)->GetDrops());
+				if (player) { audio_->playAgain("asteroidExplosion"); }
 			}
 			else {
 				++ast;
@@ -504,6 +505,7 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 						n->SetProjRsc((*en)->GetProjRsc());
 						n->SetPlayer(player_);
 						n->SetEnemyType("Splitter");
+						n->SetDrops((*en)->GetDrops());
 
 						n->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float)rand() / RAND_MAX), glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX)))));
 						splitter_list.push_back(n);
@@ -511,7 +513,8 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 				}
 				else {
 					CreateDeathAnimation((*en));
-					if (player)audio_->playAgain("asteroidExplosion");
+					player_->CollectLoot((*en)->GetDrops());
+					if (player) { audio_->playAgain("asteroidExplosion"); }
 				}
 				en = enemy_->erase(en);
 			}
@@ -523,7 +526,10 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 				ast = comet_->erase(ast);
 				node->damage(node->GetDamage());
 				collided = true;
-				if (player)audio_->playAgain("asteroidExplosion");
+				player_->CollectLoot((*ast)->GetDrops());
+				if (player){
+					audio_->playAgain("asteroidExplosion");
+				}
 			}
 			else {
 				++ast;
