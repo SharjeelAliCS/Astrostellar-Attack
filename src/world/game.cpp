@@ -138,6 +138,7 @@ void Game::SetupResources(void){
 	filename = SAVE_DIRECTORY + std::string("/game_state.json");
 	resman_.LoadResource(Save, "save", filename.c_str());
 
+
 	//load asset data
 	filename = SAVE_DIRECTORY + std::string("/asset_data.json");
 	resman_.LoadResource(Save, "assetList", filename.c_str());
@@ -513,7 +514,6 @@ void Game::GetUserInput(float deltaTime) {
 		//glm::vec3 pos = player->GetPosition();
 		glm::vec3 foward = camera_.GetForward();
 		//keep track of kills
-		std::cout << startKills << " " << numEnemies << " " << scene_.GetEnemies()->size() << "\n ";
 		loadedPlayerStats["kills"] = startKills + numEnemies - scene_.GetEnemies()->size();
 		//Fire a missile
 		if (glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
@@ -621,7 +621,7 @@ void Game::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	float max_zoom = 0.01;
 	float min_zoom = 30;
 	float curr_zoom = game->camera_.GetZoom()+yoffset;
-	std::cout << "scroll is " << yoffset << ", zoom is " << curr_zoom << std::endl;
+
 	if (curr_zoom < 5) {
 		if (yoffset > 0) {
 			game->first_person_ = false;
@@ -658,6 +658,13 @@ void Game::SetEnemyStats(std::string type, Enemy* en, json data) {
 	en->SetMaxHealth(data[type]["health"]);
 	en->SetProjectileDmg(data[type]["bullet_damage"]);
 	en->SetDamage(data[type]["ram_damage"]);
+
+	json saveData = resman_.GetResource("save")->GetJSON();
+	std::map<std::string, int> drops;
+	for (auto& gameData : saveData["enemies"][type]["drops"].items()) {
+		drops[gameData.key()] = gameData.value();
+	}
+	en->SetDrops(drops);
 }
 void Game::CreateEnemies(int num_enemies) {
 
@@ -931,6 +938,13 @@ AsteroidNode *Game::CreateAsteroidInstance(std::string entity_name, std::string 
 
 	NodeResources* rsc = GetResources(object_name, material_name, texture_name, normal_name);
 	AsteroidNode *ast = new AsteroidNode(entity_name, rsc->geom, rsc->mat, rsc->tex, rsc->norm);
+	
+	json saveData = resman_.GetResource("save")->GetJSON();
+	std::map<std::string, int> drops;
+	for (auto& gameData : saveData["obstacle_stats"]["asteroid_drops"].items()) {
+		drops[gameData.key()] = gameData.value();
+	}
+	ast->SetDrops(drops);
 	scene_.AddAsteroid(ast);
 	return ast;
 }
@@ -938,6 +952,12 @@ CometNode *Game::CreateCometNode(std::string entity_name, std::string object_nam
 
 	NodeResources* rsc = GetResources(object_name, material_name, texture_name, normal_name);
 	CometNode *ast = new CometNode(entity_name, rsc->geom, rsc->mat, rsc->tex, rsc->norm);
+	json saveData = resman_.GetResource("save")->GetJSON();
+	std::map<std::string, int> drops;
+	for (auto& gameData : saveData["obstacle_stats"]["comet_drops"].items()) {
+		drops[gameData.key()] = gameData.value();
+	}
+	ast->SetDrops(drops);
 	scene_.AddComet(ast);
 	return ast;
 }

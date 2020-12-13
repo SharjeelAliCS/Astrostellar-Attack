@@ -63,6 +63,12 @@ namespace game {
 			rof[i] = weaponStats->at(s.append("_ROF"));
 		}
 	}
+	
+	void Player::CollectLoot(std::map<std::string, int> loot) {
+		for (std::map<std::string, int>::const_iterator it = loot.begin(); it != loot.end(); ++it){
+			playerInventory->at(it->first) += it->second;
+		}
+	}
 
 	void Player::SetBoosted(int i) {
 		boosted_ = i;

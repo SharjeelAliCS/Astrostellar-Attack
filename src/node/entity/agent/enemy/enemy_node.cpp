@@ -44,6 +44,31 @@ namespace game {
 		active_state_ = &Enemy::FindPlayer;
 	}
 
+	std::map<std::string, int> Enemy::GetDrops(void) {
+		//randomize some bonus loot
+		if (rand() % 100 < 10) {
+			drops["stellaranite_Fragments"]++;
+		}
+		if (rand() % 100 < 2) {
+			drops["stellaranite_Slabs"]++;
+		}
+		if (rand() % 100 < 20) {
+			int x = rand() % 100;
+			if (x < 25) {
+				drops["charge_Blast_Ammo"]+= rand()%5+5;
+			}else if (x < 50) {
+				drops["pursuer_Ammo"]+= rand()%20+5;
+			}else if (x < 75) {
+				drops["shotgun_Ammo"]+= rand()%10+5;
+			}else {
+				drops["sniper_Ammo"]+= rand()%5+5;
+			}
+		}
+		drops["credits"] += rand() % 3;
+		
+		return drops; 
+	}
+
 	void Enemy::Fire(float deltaTime) {
 
 		time_since_fire_ += deltaTime;

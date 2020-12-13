@@ -74,6 +74,8 @@ namespace game {
 		void SetPlayerStats(std::map<std::string, int>* m) { playerStats = m; }
 		void SetWeaponStats(std::map<std::string, float>* m);
 
+		void CollectLoot(std::map<std::string, int> m);
+
 		float getBoostPercent(void);
 		float getNuclearOverloadPercent(void);
 		Camera* GetCam(void) { return c_; }

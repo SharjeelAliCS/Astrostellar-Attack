@@ -1,7 +1,7 @@
 {
     "bounty_data": {
-        "destroy_50_asteroids_reward": {
-            "charge_Ammo": 0,
+        "destroy_100_asteroids_reward": {
+            "charge_Blast_Ammo": 0,
             "chrono_Surge_Ammo": 0,
             "credits": 100,
             "emergency_Warp_Ammo": 0,
@@ -15,7 +15,7 @@
             "stellaranite_Slabs": 1
         },
         "kill_40_enemies_reward": {
-            "charge_Ammo": 10,
+            "charge_Blast_Ammo": 10,
             "chrono_Surge_Ammo": 1,
             "credits": 100,
             "emergency_Warp_Ammo": 1,
@@ -29,7 +29,7 @@
             "stellaranite_Slabs": 1
         },
         "kill_boss_reward": {
-            "charge_Ammo": 20,
+            "charge_Blast_Ammo": 20,
             "chrono_Surge_Ammo": 2,
             "credits": 200,
             "emergency_Warp_Ammo": 2,
@@ -45,15 +45,43 @@
     },
     "enemies": {
         "Disrupter": {
-            "amount": 0.15,
+            "amount": 0.1,
             "bullet_damage": 5,
+            "drops": {
+                "charge_Blast_Ammo": 0,
+                "chrono_Surge_Ammo": 0,
+                "credits": 15,
+                "emergency_Warp_Ammo": 0,
+                "nanite_Swarm_Ammo": 0,
+                "nanite_Torpedo_Ammo": 0,
+                "point_Defense_Drone_Ammo": 0,
+                "pursuer_Ammo": 0,
+                "shotgun_Ammo": 0,
+                "sniper_Ammo": 0,
+                "stellaranite_Fragments": 0,
+                "stellaranite_Slabs": 0
+            },
             "health": 100,
             "ram_damage": 20,
             "speed": 40
         },
         "Grunt": {
-            "amount": 0.25,
+            "amount": 0.3,
             "bullet_damage": 5,
+            "drops": {
+                "charge_Blast_Ammo": 0,
+                "chrono_Surge_Ammo": 0,
+                "credits": 5,
+                "emergency_Warp_Ammo": 0,
+                "nanite_Swarm_Ammo": 0,
+                "nanite_Torpedo_Ammo": 0,
+                "point_Defense_Drone_Ammo": 0,
+                "pursuer_Ammo": 0,
+                "shotgun_Ammo": 0,
+                "sniper_Ammo": 0,
+                "stellaranite_Fragments": 0,
+                "stellaranite_Slabs": 0
+            },
             "health": 100,
             "ram_damage": 20,
             "speed": 40
@@ -61,6 +89,20 @@
         "Ram": {
             "amount": 0.15,
             "bullet_damage": 0,
+            "drops": {
+                "charge_Blast_Ammo": 0,
+                "chrono_Surge_Ammo": 0,
+                "credits": 10,
+                "emergency_Warp_Ammo": 0,
+                "nanite_Swarm_Ammo": 0,
+                "nanite_Torpedo_Ammo": 0,
+                "point_Defense_Drone_Ammo": 0,
+                "pursuer_Ammo": 0,
+                "shotgun_Ammo": 0,
+                "sniper_Ammo": 0,
+                "stellaranite_Fragments": 0,
+                "stellaranite_Slabs": 0
+            },
             "health": 50,
             "ram_damage": 30,
             "speed": 40
@@ -68,6 +110,20 @@
         "Speedster": {
             "amount": 0.15,
             "bullet_damage": 2,
+            "drops": {
+                "charge_Blast_Ammo": 0,
+                "chrono_Surge_Ammo": 0,
+                "credits": 20,
+                "emergency_Warp_Ammo": 0,
+                "nanite_Swarm_Ammo": 0,
+                "nanite_Torpedo_Ammo": 0,
+                "point_Defense_Drone_Ammo": 0,
+                "pursuer_Ammo": 0,
+                "shotgun_Ammo": 0,
+                "sniper_Ammo": 0,
+                "stellaranite_Fragments": 0,
+                "stellaranite_Slabs": 0
+            },
             "health": 50,
             "ram_damage": 20,
             "speed": 80
@@ -75,21 +131,49 @@
         "Splitter": {
             "amount": 0.15,
             "bullet_damage": 5,
+            "drops": {
+                "charge_Blast_Ammo": 0,
+                "chrono_Surge_Ammo": 0,
+                "credits": 5,
+                "emergency_Warp_Ammo": 0,
+                "nanite_Swarm_Ammo": 0,
+                "nanite_Torpedo_Ammo": 0,
+                "point_Defense_Drone_Ammo": 0,
+                "pursuer_Ammo": 0,
+                "shotgun_Ammo": 0,
+                "sniper_Ammo": 0,
+                "stellaranite_Fragments": 0,
+                "stellaranite_Slabs": 0
+            },
             "health": 100,
             "phases": 3,
             "ram_damage": 20,
-            "speed": 40
+            "speed": 30
         },
         "Tank": {
             "amount": 0.15,
             "bullet_damage": 2,
+            "drops": {
+                "charge_Blast_Ammo": 0,
+                "chrono_Surge_Ammo": 0,
+                "credits": 15,
+                "emergency_Warp_Ammo": 0,
+                "nanite_Swarm_Ammo": 0,
+                "nanite_Torpedo_Ammo": 0,
+                "point_Defense_Drone_Ammo": 0,
+                "pursuer_Ammo": 0,
+                "shotgun_Ammo": 0,
+                "sniper_Ammo": 0,
+                "stellaranite_Fragments": 0,
+                "stellaranite_Slabs": 0
+            },
             "health": 300,
             "ram_damage": 20,
             "speed": 20
         }
     },
     "inventory": {
-        "charge_Ammo": 10,
+        "charge_Blast_Ammo": 10,
         "chrono_Surge_Ammo": 0,
         "credits": 100,
         "emergency_Warp_Ammo": 0,
@@ -120,6 +204,34 @@
     },
     "mouse_speed": 1250,
     "obstacle_stats": {
+        "asteroid_drops": {
+            "charge_Blast_Ammo": 0,
+            "chrono_Surge_Ammo": 0,
+            "credits": 1,
+            "emergency_Warp_Ammo": 0,
+            "nanite_Swarm_Ammo": 0,
+            "nanite_Torpedo_Ammo": 0,
+            "point_Defense_Drone_Ammo": 0,
+            "pursuer_Ammo": 0,
+            "shotgun_Ammo": 0,
+            "sniper_Ammo": 0,
+            "stellaranite_Fragments": 0,
+            "stellaranite_Slabs": 0
+        },
+        "comet_drops": {
+            "charge_Blast_Ammo": 0,
+            "chrono_Surge_Ammo": 0,
+            "credits": 30,
+            "emergency_Warp_Ammo": 0,
+            "nanite_Swarm_Ammo": 0,
+            "nanite_Torpedo_Ammo": 0,
+            "point_Defense_Drone_Ammo": 0,
+            "pursuer_Ammo": 0,
+            "shotgun_Ammo": 0,
+            "sniper_Ammo": 0,
+            "stellaranite_Fragments": 5,
+            "stellaranite_Slabs": 2
+        },
         "damage": 20
     },
     "player_stats": {
@@ -128,9 +240,9 @@
         "shield_recharge_time": 30,
         "ship_base_health": 100,
         "ship_base_shield": 100,
-        "shots_fired": 0
+        "shots_fired": 31
     },
-    "playtime": 0,
+    "playtime": 203,
     "size": "Large",
     "upgrades": {
         "barrier_Duration_Level": 0,

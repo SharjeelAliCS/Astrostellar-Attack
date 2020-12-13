@@ -21,6 +21,7 @@ namespace game {
 
 		// Update the node
 		void Update(float deltaTime);
+		std::map<std::string, int> GetDrops(void);
 	private:
 	}; // class GameObj
 
