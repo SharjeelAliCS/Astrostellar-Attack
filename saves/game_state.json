@@ -10,7 +10,7 @@
             "point_Defense_Drone_Ammo": 0,
             "pursuer_Ammo": 0,
             "shotgun_Ammo": 0,
-            "sniper_Ammo": 0,
+            "sniper_Shot_Ammo": 0,
             "stellaranite_Fragments": 5,
             "stellaranite_Slabs": 1
         },
@@ -24,7 +24,7 @@
             "point_Defense_Drone_Ammo": 1,
             "pursuer_Ammo": 10,
             "shotgun_Ammo": 10,
-            "sniper_Ammo": 10,
+            "sniper_Shot_Ammo": 10,
             "stellaranite_Fragments": 3,
             "stellaranite_Slabs": 1
         },
@@ -38,7 +38,7 @@
             "point_Defense_Drone_Ammo": 2,
             "pursuer_Ammo": 20,
             "shotgun_Ammo": 20,
-            "sniper_Ammo": 20,
+            "sniper_Shot_Ammo": 20,
             "stellaranite_Fragments": 6,
             "stellaranite_Slabs": 2
         }
@@ -57,7 +57,7 @@
                 "point_Defense_Drone_Ammo": 0,
                 "pursuer_Ammo": 0,
                 "shotgun_Ammo": 0,
-                "sniper_Ammo": 0,
+                "sniper_Shot_Ammo": 0,
                 "stellaranite_Fragments": 0,
                 "stellaranite_Slabs": 0
             },
@@ -78,7 +78,7 @@
                 "point_Defense_Drone_Ammo": 0,
                 "pursuer_Ammo": 0,
                 "shotgun_Ammo": 0,
-                "sniper_Ammo": 0,
+                "sniper_Shot_Ammo": 0,
                 "stellaranite_Fragments": 0,
                 "stellaranite_Slabs": 0
             },
@@ -99,7 +99,7 @@
                 "point_Defense_Drone_Ammo": 0,
                 "pursuer_Ammo": 0,
                 "shotgun_Ammo": 0,
-                "sniper_Ammo": 0,
+                "sniper_Shot_Ammo": 0,
                 "stellaranite_Fragments": 0,
                 "stellaranite_Slabs": 0
             },
@@ -120,7 +120,7 @@
                 "point_Defense_Drone_Ammo": 0,
                 "pursuer_Ammo": 0,
                 "shotgun_Ammo": 0,
-                "sniper_Ammo": 0,
+                "sniper_Shot_Ammo": 0,
                 "stellaranite_Fragments": 0,
                 "stellaranite_Slabs": 0
             },
@@ -141,7 +141,7 @@
                 "point_Defense_Drone_Ammo": 0,
                 "pursuer_Ammo": 0,
                 "shotgun_Ammo": 0,
-                "sniper_Ammo": 0,
+                "sniper_Shot_Ammo": 0,
                 "stellaranite_Fragments": 0,
                 "stellaranite_Slabs": 0
             },
@@ -163,7 +163,7 @@
                 "point_Defense_Drone_Ammo": 0,
                 "pursuer_Ammo": 0,
                 "shotgun_Ammo": 0,
-                "sniper_Ammo": 0,
+                "sniper_Shot_Ammo": 0,
                 "stellaranite_Fragments": 0,
                 "stellaranite_Slabs": 0
             },
@@ -183,7 +183,7 @@
         "point_Defense_Drone_Ammo": 0,
         "pursuer_Ammo": 10,
         "shotgun_Ammo": 10,
-        "sniper_Ammo": 10,
+        "sniper_Shot_Ammo": 10,
         "stellaranite_Fragments": 0,
         "stellaranite_Slabs": 0
     },
@@ -214,7 +214,7 @@
             "point_Defense_Drone_Ammo": 0,
             "pursuer_Ammo": 0,
             "shotgun_Ammo": 0,
-            "sniper_Ammo": 0,
+            "sniper_Shot_Ammo": 0,
             "stellaranite_Fragments": 0,
             "stellaranite_Slabs": 0
         },
@@ -228,7 +228,7 @@
             "point_Defense_Drone_Ammo": 0,
             "pursuer_Ammo": 0,
             "shotgun_Ammo": 0,
-            "sniper_Ammo": 0,
+            "sniper_Shot_Ammo": 0,
             "stellaranite_Fragments": 5,
             "stellaranite_Slabs": 2
         },
@@ -240,9 +240,9 @@
         "shield_recharge_time": 30,
         "ship_base_health": 100,
         "ship_base_shield": 100,
-        "shots_fired": 31
+        "shots_fired": 73
     },
-    "playtime": 203,
+    "playtime": 289,
     "size": "Large",
     "upgrades": {
         "barrier_Duration_Level": 0,

@@ -59,8 +59,7 @@ namespace game {
 		weaponStats = m;
 		for (int i = 0; i < 6; i++) {
 			unlockedWeapons[i] = true; // usually false, true for testing
-			std::string s = projectileTypes[i];
-			rof[i] = weaponStats->at(s.append("_ROF"));
+			rof[i] = weaponStats->at(projectileTypes[i] +"_ROF");
 		}
 	}
 	
@@ -94,7 +93,8 @@ namespace game {
 	void Player::nextWeapon() {
 		std::cout << "weapon-change";
 		projType = (projType + 1) % numWeapons;
-		if (!unlockedWeapons[projType]) {
+		std::cout << projectileTypes[projType] + "_Ammo";
+		if (!unlockedWeapons[projType] || playerInventory->at(projectileTypes[projType] + "_Ammo") == 0) {
 			nextWeapon();
 		}
 		else {
@@ -105,6 +105,12 @@ namespace game {
 
 	void Player::Fire() {
 		std::string weapon = projectileTypes[projType];
+		if (playerInventory->at(weapon+"_Ammo") == 0) {
+			std::cout << "OUT OF AMMO, SWAPPING TO NEXT AVAILABLE WEAPON\n";
+			nextWeapon();
+			weapon = projectileTypes[projType];
+		}
+
 
 		double shotModifier = 1;
 		if (projectileTypes[projType].compare("pursuer") == 0) {
@@ -139,6 +145,9 @@ namespace game {
 				missiles.push_back(missile);
 			}
 			playerStats->at("shots_fired")++;
+			if (projType != 0) {
+				playerInventory->at(weapon + "_Ammo")--;
+			}
 			lastShotTime = glfwGetTime();
 		}
 	}
