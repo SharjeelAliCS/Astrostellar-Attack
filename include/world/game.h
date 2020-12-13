@@ -94,6 +94,7 @@ namespace game {
 
             std::map<std::string, float> loadedWeaponStats;
             std::map<std::string, std::map<std::string, int>> loadedBountyStats;
+            std::map<std::string, std::map<std::string, int>> loadedUpgradeCosts;
 
             int startTime;
             int startKills;

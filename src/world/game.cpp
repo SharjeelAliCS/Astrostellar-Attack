@@ -232,6 +232,13 @@ void Game::LoadSaveFile(void) {
 			loadedBountyStats[bounty.key()][gameData.key()] = gameData.value();
 		}
 	}
+
+	for (auto& upgrade_levels : saveData["upgrade_costs"].items()) {
+		for (auto& gameData : saveData["upgrade_costs"][upgrade_levels.key()].items()) {
+			std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
+			loadedUpgradeCosts[upgrade_levels.key()][gameData.key()] = gameData.value();
+		}
+	}
 	
 	startTime = saveData["playtime"];
 	startKills = loadedPlayerStats["kills"];
