@@ -27,7 +27,7 @@ SceneGraph::SceneGraph(void){
 		screen_.insert({static_cast<ScreenType>(i), screen });
 		button_.insert({ static_cast<ScreenType>(i), button });
 	}
-	active_menu_ = HUD_MENU;
+	active_menu_ = MAIN_MENU;
 
 	radar_distance_ = 1000;
 	enemy_healthbar_distance_ = 300;
@@ -254,6 +254,7 @@ void SceneGraph::SetupDrawToTexture(float frame_width, float frame_height) {
 
 void SceneGraph::Draw(Camera *camera, bool to_texture,float frame_width, float frame_height){
 	GLint viewport[4];
+
 	if (to_texture) {
 		// Save current viewport	
 		glGetIntegerv(GL_VIEWPORT, viewport);
@@ -270,50 +271,50 @@ void SceneGraph::Draw(Camera *camera, bool to_texture,float frame_width, float f
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Draw all scene nodes
+	if (active_menu_ == PAUSE_MENU || active_menu_ == HUD_MENU) {
+		if (skybox_ != NULL)skybox_->Draw(camera);
 
-	if (skybox_ != NULL)skybox_->Draw(camera);
+		for (int i = 0; i < node_->size(); i++) {
+			(*node_)[i]->Draw(camera);
+		}
 
-    for (int i = 0; i < node_->size(); i++){
-		(*node_)[i]->Draw(camera);
-    }
+		float radius = 0.05;
+		for (int i = 0; i < enemy_->size(); i++) {
+			(*enemy_)[i]->Draw(camera);
 
-	float radius = 0.05;
-	for (int i = 0; i < enemy_->size(); i++) {
-		(*enemy_)[i]->Draw(camera);
+			if (glm::distance((*enemy_)[i]->GetPosition(), player_->GetPosition()) < enemy_healthbar_distance_) {
+				glm::vec3 screen_pos = (*enemy_)[i]->GetScreenSpacePos(true, camera);
 
-		if (glm::distance((*enemy_)[i]->GetPosition(), player_->GetPosition()) < enemy_healthbar_distance_) {
-			glm::vec3 screen_pos = (*enemy_)[i]->GetScreenSpacePos(true, camera);
-			
-			if (abs(screen_pos.z) <= 1) {
+				if (abs(screen_pos.z) <= 1) {
+					float per = (*enemy_)[i]->getHealthPercent();
+					GetScreen("enemyHealthBar")->SetProgressX(per);
+					DrawEnemyHealth(camera, glm::vec2(screen_pos.x, screen_pos.y));
+				}
+			}
+			/*
+			glm::vec2 screen_pos = (*enemy_)[i]->GetScreenSpacePos(false, camera);
+			bool within_length = glm::length(screen_pos) < radius;
+
+			if ((*enemy_)[i]->SeeHealth(within_length)) {
+				screen_pos = (*enemy_)[i]->GetScreenSpacePos(true, camera);
 				float per = (*enemy_)[i]->getHealthPercent();
 				GetScreen("enemyHealthBar")->SetProgressX(per);
-				DrawEnemyHealth(camera, glm::vec2(screen_pos.x, screen_pos.y));
+				DrawEnemyHealth(camera, screen_pos);
 			}
+			*/
 		}
-		/*
-		glm::vec2 screen_pos = (*enemy_)[i]->GetScreenSpacePos(false, camera);
-		bool within_length = glm::length(screen_pos) < radius;
-
-		if ((*enemy_)[i]->SeeHealth(within_length)) {
-			screen_pos = (*enemy_)[i]->GetScreenSpacePos(true, camera);
-			float per = (*enemy_)[i]->getHealthPercent();
-			GetScreen("enemyHealthBar")->SetProgressX(per);
-			DrawEnemyHealth(camera, screen_pos);
+		for (int i = 0; i < asteroid_->size(); i++) {
+			asteroid_->at(i)->Draw(camera);
 		}
-		*/
-	}
-	for (int i = 0; i < asteroid_->size(); i++) {
-		asteroid_->at(i)->Draw(camera);
-	}
-	for (int i = 0; i < comet_->size(); i++) {
-		comet_->at(i)->Draw(camera);
-	}
-	for (int i = 0; i < death_animations_->size(); i++) {
-		death_animations_->at(i)->Draw(camera);
-	}
-	if(player_!=NULL)player_->Draw(camera);
+		for (int i = 0; i < comet_->size(); i++) {
+			comet_->at(i)->Draw(camera);
+		}
+		for (int i = 0; i < death_animations_->size(); i++) {
+			death_animations_->at(i)->Draw(camera);
+		}
+		if (player_ != NULL)player_->Draw(camera);
 
-
+	}
 	if (active_menu_ == HUD_MENU || active_menu_ == PAUSE_MENU) {
 
 		for (int i = 0; i < screen_.at(NONE).size(); i++) {
@@ -558,53 +559,57 @@ void SceneGraph::SetDeathAnimation(NodeResources dm) {
 	death_animation_rsc = dm;
 }
 void SceneGraph::Update(float deltaTime){
-	Collision(player_, true);
-	ProjectileCollision(player_, true);
+	if (active_menu_ == PAUSE_MENU || active_menu_ == HUD_MENU) {
 
-	if (player_ != NULL)player_->Update(deltaTime);
-	if (skybox_ != NULL)skybox_->Update(deltaTime);
+		Collision(player_, true);
+		ProjectileCollision(player_, true);
 
-    for (int i = 0; i < node_->size(); i++){
-		(*node_)[i]->Update(deltaTime);
-    }
-	for (int i = 0; i < enemy_->size(); i++) {
-		(*enemy_)[i]->Update(deltaTime);
-		ProjectileCollision((*enemy_)[i], false);
-	}
-	for (int i = 0; i < asteroid_->size(); i++) {
-		asteroid_->at(i)->Update(deltaTime);
-	}
-	for (int i = 0; i < comet_->size(); i++) {
-		comet_->at(i)->Update(deltaTime);
-	}
-	for (int i = 0; i < screen_.at(NONE).size(); i++) {
-		screen_.at(NONE)[i]->Update(deltaTime);
-	}
 
-	for (int i = 0; i < screen_.at(active_menu_).size(); i++) {
-		screen_.at(active_menu_)[i]->Update(deltaTime);
-	}
-	if (active_menu_ == PAUSE_MENU) {
-		for (int i = 0; i < screen_.at(HUD_MENU).size(); i++) {
-			screen_.at(HUD_MENU)[i]->Update(deltaTime);
+		if (player_ != NULL)player_->Update(deltaTime);
+		if (skybox_ != NULL)skybox_->Update(deltaTime);
+
+		for (int i = 0; i < node_->size(); i++) {
+			(*node_)[i]->Update(deltaTime);
 		}
-	}
-	if (active_menu_ == HUD_MENU || active_menu_ == PAUSE_MENU) {
-		radar_->Update(deltaTime);
+		for (int i = 0; i < enemy_->size(); i++) {
+			(*enemy_)[i]->Update(deltaTime);
+			ProjectileCollision((*enemy_)[i], false);
+		}
+		for (int i = 0; i < asteroid_->size(); i++) {
+			asteroid_->at(i)->Update(deltaTime);
+		}
+		for (int i = 0; i < comet_->size(); i++) {
+			comet_->at(i)->Update(deltaTime);
+		}
 		for (int i = 0; i < screen_.at(NONE).size(); i++) {
 			screen_.at(NONE)[i]->Update(deltaTime);
 		}
-	}
-	for (auto ast = death_animations_->begin(); ast != death_animations_->end(); ) {
-		(*ast)->Update(deltaTime);
-		if (!(*ast)->GetExists()) {
-			ast = death_animations_->erase(ast);
+
+		for (int i = 0; i < screen_.at(active_menu_).size(); i++) {
+			screen_.at(active_menu_)[i]->Update(deltaTime);
 		}
-		else {
-			++ast;
+		if (active_menu_ == PAUSE_MENU) {
+			for (int i = 0; i < screen_.at(HUD_MENU).size(); i++) {
+				screen_.at(HUD_MENU)[i]->Update(deltaTime);
+			}
 		}
+		if (active_menu_ == HUD_MENU || active_menu_ == PAUSE_MENU) {
+			radar_->Update(deltaTime);
+			for (int i = 0; i < screen_.at(NONE).size(); i++) {
+				screen_.at(NONE)[i]->Update(deltaTime);
+			}
+		}
+		for (auto ast = death_animations_->begin(); ast != death_animations_->end(); ) {
+			(*ast)->Update(deltaTime);
+			if (!(*ast)->GetExists()) {
+				ast = death_animations_->erase(ast);
+			}
+			else {
+				++ast;
+			}
+		}
+		UpdateRadar();
 	}
-	UpdateRadar();
 }
 
 void SceneGraph::UpdateRadar() {
