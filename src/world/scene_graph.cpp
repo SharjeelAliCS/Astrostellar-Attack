@@ -33,6 +33,8 @@ SceneGraph::SceneGraph(void){
 	enemy_healthbar_distance_ = 300;
 	audio_ = NULL;
 	secondsSlow = 0;
+	enemiesKilled=0;
+	asteroidsDestroyed=0;
 
 }
 
@@ -426,6 +428,27 @@ void SceneGraph::DisplayScreenSpace(GLuint program, std::string name,bool to_tex
 	}
 }
 
+void SceneGraph::SetBounty(std::string bountyType, std::map<std::string, int> reward) {
+	currentBounty = bountyType;
+	bountyReward = reward;
+}
+
+void SceneGraph::CheckBounty() {
+	if (currentBounty.compare("destroy_60_asteroids_reward") == 0 && asteroidsDestroyed>=60) {
+		player_->CollectLoot(bountyReward);
+		SetCurrentScreen(MAIN_MENU);
+		asteroidsDestroyed = 0;
+		enemiesKilled = 0;
+		//reset the world for the next level TODO shar
+	}else if (currentBounty.compare("kill_40_enemies_reward") == 0 && enemiesKilled >= 40) {
+		player_->CollectLoot(bountyReward);
+		SetCurrentScreen(MAIN_MENU);
+		asteroidsDestroyed = 0;
+		enemiesKilled = 0;
+		//reset the world for the next level TODO shar
+	}
+}
+
 
 void SceneGraph::CreateDeathAnimation(SceneNode* node) {
 	std::string name = node->GetName() + "_death";
@@ -486,6 +509,7 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 				collided = true;
 				player_->CollectLoot((*ast)->GetDrops());
 				if (player) { audio_->playAgain("asteroidExplosion"); }
+				asteroidsDestroyed++;
 			}
 			else {
 				++ast;
@@ -534,6 +558,7 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 				else {
 					CreateDeathAnimation((*en));
 					player_->CollectLoot((*en)->GetDrops());
+					enemiesKilled++;
 					if (player) { audio_->playAgain("asteroidExplosion"); }
 				}
 				en = enemy_->erase(en);
@@ -583,6 +608,7 @@ void SceneGraph::SlowTime(double seconds) {
 }
 
 void SceneGraph::Update(float dt){
+	CheckBounty();
 	float playerDeltaTime = dt;
 	float deltaTime = dt;
 	if (secondsSlow > 0) {

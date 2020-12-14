@@ -596,15 +596,15 @@ void Game::GetUserInput(float deltaTime) {
 			}
 			else if (btn == "bounty1Button") {
 				std::cout << "bounty1Button clicked!" << std::endl;
-				//david todo
+				scene_.SetBounty("destroy_60_asteroids_reward", loadedBountyStats["destroy_60_asteroids_reward"]);
 			}
 			else if (btn == "bounty2Button") {
 				std::cout << "bounty2Button clicked!" << std::endl;
-				//david todo
+				scene_.SetBounty("kill_40_enemies_reward", loadedBountyStats["kill_40_enemies_reward"]);
 			}
 			else if (btn == "bounty3Button") {
 				std::cout << "bounty3Button clicked!" << std::endl;
-				//david todo
+				scene_.SetBounty("kill_boss_reward", loadedBountyStats["kill_boss_reward"]);
 			}
 			else if (btn == "shipHealthButton") {
 				std::cout << "shipHealthButton clicked!" << std::endl;

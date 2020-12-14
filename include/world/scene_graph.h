@@ -96,6 +96,9 @@ namespace game {
 
 			void SlowTime(double seconds);
 
+			void SetBounty(std::string bountyType, std::map<std::string, int> reward);
+			void CheckBounty();
+
 			// Setup the texture
 			void SetupDrawToTexture(float frame_width, float frame_height);
             // Draw the entire scene
@@ -143,6 +146,11 @@ namespace game {
 			std::vector<AsteroidNode*>* asteroid_;
 			std::vector<CometNode*>* comet_;
 			std::vector<ParticleNode*>* death_animations_;
+
+			std::string currentBounty;
+			std::map<std::string, int> bountyReward;
+			int enemiesKilled;
+			int asteroidsDestroyed;
 
 			NodeResources death_animation_rsc;
 			Text text;
