@@ -34,6 +34,7 @@ namespace game {
 		void SetMaxHealth(float h);
 		float GetHealth(void) const;
 		float getHealthPercent(void) const;
+		float GetMaxHealth(void) { return max_health_; }
 
 		void SetSpeed(float s);
 		float GetSpeed(void) const;

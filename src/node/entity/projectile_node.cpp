@@ -130,14 +130,14 @@ namespace game {
 					this->Scale(glm::vec3(5,6,5)); //kaboom
 					ttl = glfwGetTime() + 0.2;
 				}
-				return stats["charge_Blast_baseDmg"] * pow(1.1, upg["charge_Damage_Level"]);
+				return stats["charge_Blast_baseDmg"] * pow(1.1, upg["charge_Blast_Damage_Level"]);
 			};
 
 			this->Scale(glm::vec3(5));
 			move = [this](float deltaTime) {
 				position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
-				if(this->GetScale().x<70+10*upg["charge_Radius_Level"]){
-					this->Scale(glm::vec3(max(1.025, pow(1.01, 1+upg["charge_Radius_Level"]))));
+				if(this->GetScale().x<70+10*upg["charge_Blast_Radius_Level"]){
+					this->Scale(glm::vec3(max(1.025, pow(1.01, 1+upg["charge_Blast_Radius_Level"]))));
 				}
 			};
 			
@@ -147,11 +147,11 @@ namespace game {
 			speed *= 3.5;
 			this->Scale(glm::vec3(3));
 			//travels 15 seconds +10% per level
-			ttl = glfwGetTime() + stats["sniper_Shot_baseTTL"] * pow(1.1, upg["sniper_Range_Level"]);
+			ttl = glfwGetTime() + stats["sniper_Shot_baseTTL"] * pow(1.1, upg["sniper_Shot_Range_Level"]);
 			//deals (1 damage + 60 per second travelled) + 10% per level
 			int damageFactor = stats["sniper_Shot_baseDmg"];
 			dmg = [this, damageFactor]() {
-				return (1 - damageFactor *(ttl - glfwGetTime() - (damageFactor * pow(1.1, upg["sniper_Range_Level"])))) * pow(1.1, upg["sniper_Damage_Level"]);
+				return (1 - damageFactor *(ttl - glfwGetTime() - (damageFactor * pow(1.1, upg["sniper_Shot_Range_Level"])))) * pow(1.1, upg["sniper_Shot_Damage_Level"]);
 			};
 			move = [this](float deltaTime) {
 				position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;

@@ -109,6 +109,8 @@ namespace game {
 			//Camera input for mouse (See .cpp file for more info)
 			void GetMouseCameraInput(float xpos, float ypos);
 
+            void BuySomething(std::string thing, std::string type);
+
             // Methods to handle events
             static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
             static void ResizeCallback(GLFWwindow* window, int width, int height);

@@ -276,8 +276,8 @@
         "barrier_Duration_Level": 0,
         "barrier_Size_Level": 0,
         "battery_Overcharge_Level": 0,
-        "charge_Damage_Level": 0,
-        "charge_Radius_Level": 0,
+        "charge_Blast_Damage_Level": 0,
+        "charge_Blast_Radius_Level": 0,
         "chrono_Surge_Level": 0,
         "emergency_Warp_Level": 0,
         "evasive_Maneuvers_Level": 0,
@@ -303,8 +303,8 @@
         "ship_Speed_Level": 0,
         "shotgun_Damage_Level": 0,
         "shotgun_NumShots_Level": 0,
-        "sniper_Damage_Level": 0,
-        "sniper_Range_Level": 0
+        "sniper_Shot_Damage_Level": 0,
+        "sniper_Shot_Range_Level": 0
     },
     "weapon_stats": {
         "charge_Blast_ROF": 2,

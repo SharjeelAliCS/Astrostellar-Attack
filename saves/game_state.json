@@ -202,33 +202,6 @@
         "shotgun": 1,
         "sniper": 1
     },
-    "upgrade_costs":{
-      "level_1": {
-        "credits": 25,
-        "stellaranite_Fragments": 1,
-        "stellaranite_Slabs": 0
-      },
-      "level_2": {
-        "credits": 50,
-        "stellaranite_Fragments": 2,
-        "stellaranite_Slabs": 0
-      },
-      "level_3": {
-        "credits": 75,
-        "stellaranite_Fragments": 3,
-        "stellaranite_Slabs": 0
-      },
-      "level_4": {
-        "credits": 100,
-        "stellaranite_Fragments": 4,
-        "stellaranite_Slabs": 0
-      },
-      "level_5": {
-        "credits": 150,
-        "stellaranite_Fragments": 5,
-        "stellaranite_Slabs": 1
-      }
-    },
     "mouse_speed": 1250,
     "obstacle_stats": {
         "asteroid_drops": {
@@ -262,22 +235,49 @@
         "damage": 20
     },
     "player_stats": {
-        "kills": 0,
+        "kills": 1,
         "level": 1,
-        "shield_recharge_time": 30,
         "repair_cost_per_hp": 1,
+        "shield_recharge_time": 30,
         "ship_base_health": 100,
         "ship_base_shield": 100,
-        "shots_fired": 0
+        "shots_fired": 11
     },
-    "playtime": 0,
+    "playtime": 306,
     "size": "Large",
+    "upgrade_costs": {
+        "level_1": {
+            "credits": 25,
+            "stellaranite_Fragments": 1,
+            "stellaranite_Slabs": 0
+        },
+        "level_2": {
+            "credits": 50,
+            "stellaranite_Fragments": 2,
+            "stellaranite_Slabs": 0
+        },
+        "level_3": {
+            "credits": 75,
+            "stellaranite_Fragments": 3,
+            "stellaranite_Slabs": 0
+        },
+        "level_4": {
+            "credits": 100,
+            "stellaranite_Fragments": 4,
+            "stellaranite_Slabs": 0
+        },
+        "level_5": {
+            "credits": 150,
+            "stellaranite_Fragments": 5,
+            "stellaranite_Slabs": 1
+        }
+    },
     "upgrades": {
         "barrier_Duration_Level": 0,
         "barrier_Size_Level": 0,
         "battery_Overcharge_Level": 0,
-        "charge_Damage_Level": 0,
-        "charge_Radius_Level": 0,
+        "charge_Blast_Damage_Level": 0,
+        "charge_Blast_Radius_Level": 0,
         "chrono_Surge_Level": 0,
         "emergency_Warp_Level": 0,
         "evasive_Maneuvers_Level": 0,
@@ -303,28 +303,35 @@
         "ship_Speed_Level": 0,
         "shotgun_Damage_Level": 0,
         "shotgun_NumShots_Level": 0,
-        "sniper_Damage_Level": 0,
-        "sniper_Range_Level": 0
+        "sniper_Shot_Damage_Level": 0,
+        "sniper_Shot_Range_Level": 0
     },
     "weapon_stats": {
+        "charge_Blast_Cost": 5,
         "charge_Blast_ROF": 2,
         "charge_Blast_baseDmg": 60,
         "charge_Blast_baseTTL": 12,
+        "chrono_Surge_Cost": 50,
+        "emergency_Warp_Cost": 30,
         "enemy_ROF": 1,
         "enemy_baseDmg": 5,
         "enemy_baseTTL": 5,
         "laser_Battery_ROF": 0.6,
         "laser_Battery_baseDmg": 20,
         "laser_Battery_baseTTL": 5,
+        "nanite_Torpedo_Cost": 3,
         "nanite_Torpedo_ROF": 1,
         "nanite_Torpedo_baseDmg": 5,
         "nanite_Torpedo_baseTTL": 10,
+        "pursuer_Cost": 1,
         "pursuer_ROF": 1,
         "pursuer_baseDmg": 10,
         "pursuer_baseTTL": 20,
+        "shotgun_Cost": 2,
         "shotgun_ROF": 1,
         "shotgun_baseDmg": 7,
         "shotgun_baseTTL": 0.7,
+        "sniper_Shot_Cost": 7,
         "sniper_Shot_ROF": 1,
         "sniper_Shot_baseDmg": 40,
         "sniper_Shot_baseTTL": 15

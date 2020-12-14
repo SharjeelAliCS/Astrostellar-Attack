@@ -473,6 +473,55 @@ void Game::MainLoop(void){
     }
 }
 
+//type is one of upgrade, ammo, repair
+void Game::BuySomething(std::string thing, std::string type) {
+	std::cout << "thing: " << thing << "\ntype: " << type << "\n";
+	Player* player = scene_.GetPlayer();
+	if (type.compare("repair")==0) {
+		int cost = loadedPlayerStats["repair_cost_per_hp"] * (player->GetMaxHealth() - player->GetHealth());
+		if (cost > loadedPlayerInventory["credits"]) {
+			float hpRestored = loadedPlayerInventory["credits"] / loadedPlayerStats["repair_cost_per_hp"];
+			player->SetHealth(player->GetHealth() + hpRestored);
+			loadedPlayerInventory["credits"] = 0;
+		}
+		else {
+			player->SetHealth(player->GetMaxHealth());
+			loadedPlayerInventory["credits"] -= cost;
+		}
+	}
+	else if (type.compare("ammo")==0) { //purchased in units of 10
+		int cost = loadedWeaponStats[thing + "_Cost"] * 10;
+		std::cout << "cost is: "<<cost <<" player has: " <<loadedPlayerInventory["credits"] << "\n";
+		if (cost <= loadedPlayerInventory["credits"]) {
+			loadedPlayerInventory[thing + "_Ammo"] += 10;
+			loadedPlayerInventory["credits"] -= cost;
+		}
+	}
+	else if (type.compare("upgrade")==0) {
+		int currentLevel = loadedPlayerUpgrades[thing]+1;
+		if (currentLevel == 6) { return; }
+		std::cout << "level_" + std::to_string(currentLevel) << "\n";
+		std::map<std::string, int> cost = loadedUpgradeCosts["level_" + std::to_string(currentLevel)];
+		if( cost["credits"] <= loadedPlayerInventory["credits"] && 
+			cost["stellaranite_Fragments"] <= loadedPlayerInventory["stellaranite_Fragments"] &&
+			cost["stellaranite_Slabs"] <= loadedPlayerInventory["stellaranite_Slabs"])
+		{
+			std::cout << "credits: " << cost["credits"] << std::endl;
+			std::cout << "stellaranite_Fragments: " << cost["stellaranite_Fragments"] << std::endl;
+			std::cout << "stellaranite_Slabs: " << cost["stellaranite_Slabs"] << std::endl;
+			loadedPlayerUpgrades[thing]++;
+			loadedPlayerInventory["credits"] -= cost["credits"];
+			loadedPlayerInventory["stellaranite_Fragments"] -= cost["stellaranite_Fragments"];
+			loadedPlayerInventory["stellaranite_Slabs"] -= cost["stellaranite_Slabs"];
+		}
+
+	}
+
+	//calculate price
+	//if upgrade check level, if level is 5 disallow purchase
+	//if user can afford, buy it
+}
+
 void Game::GetUserInput(float deltaTime) {
 
 	//quit game
@@ -536,114 +585,147 @@ void Game::GetUserInput(float deltaTime) {
 			}
 			else if (btn == "bounty1Button") {
 				std::cout << "bounty1Button clicked!" << std::endl;
+				//david todo
 			}
 			else if (btn == "bounty2Button") {
 				std::cout << "bounty2Button clicked!" << std::endl;
+				//david todo
 			}
 			else if (btn == "bounty3Button") {
 				std::cout << "bounty3Button clicked!" << std::endl;
+				//david todo
 			}
 			else if (btn == "shipHealthButton") {
 				std::cout << "shipHealthButton clicked!" << std::endl;
+				BuySomething("ship_Health_Level", "upgrade");
+			}
+			else if (btn == "RepairBtn") {
+				std::cout << "RepairBtn clicked!" << std::endl;
+				BuySomething("repair", "repair");
 			}
 			else if (btn == "shipShieldButton") {
 				std::cout << "shipShieldButton clicked!" << std::endl;
+				BuySomething("ship_Shield_Level", "upgrade");
 			}
 			else if (btn == "shipSpeedButton") {
 				std::cout << "shipSpeedButton clicked!" << std::endl;
+				BuySomething("ship_Speed_Level", "upgrade");
 			}
 			else if (btn == "laserRangeBtn") {
 				std::cout << "laserRangeBtn clicked!" << std::endl;
+				BuySomething("laser_Battery_Range_Level", "upgrade");
 			}
 			else if (btn == "laserDmgBtn") {
 				std::cout << "laserDmgBtn clicked!" << std::endl;
+				BuySomething("laser_Battery_Damage_Level", "upgrade");
 			}
 			else if (btn == "laserPierceBtn") {
 				std::cout << "laserPierceBtn clicked!" << std::endl;
+				BuySomething("laser_Battery_Pierce_Level", "upgrade");
 			}
 			else if (btn == "NaniteAmmoBtn") {
 				std::cout << "NaniteAmmoBtn clicked!" << std::endl;
+				BuySomething("nanite_Torpedo", "ammo");
 			}
 			else if (btn == "NaniteDmgBtn") {
 				std::cout << "NaniteDmgBtn clicked!" << std::endl;
+				BuySomething("nanite_Torpedo_Damage_Level", "upgrade");
 			}
 			else if (btn == "NaniteDurBtn") {
 				std::cout << "NaniteDurBtn clicked!" << std::endl;
+				BuySomething("nanite_Torpedo_Duration_Level", "upgrade");
 			}
 			else if (btn == "NaniteStackBtn") {
 				std::cout << "NaniteStackBtn clicked!" << std::endl;
+				BuySomething("nanite_Torpedo_Stack_Level", "upgrade");
 			}
 			else if (btn == "chargeAmmoBtn") {
 				std::cout << "chargeAmmoBtn clicked!" << std::endl;
+				BuySomething("charge_Blast", "ammo");
 			}
 			else if (btn == "chargeDmgBtn") {
 				std::cout << "chargeDmgBtn clicked!" << std::endl;
+				BuySomething("charge_Blast_Damage_Level", "upgrade");
 			}
 			else if (btn == "chargeSizeBtn") {
 				std::cout << "chargeSizeBtn clicked!" << std::endl;
+				BuySomething("charge_Blast_Radius_Level", "upgrade");
 			}
 			else if (btn == "sniperAmmoBtn") {
 				std::cout << "sniperAmmoBtn clicked!" << std::endl;
+				BuySomething("sniper_shot", "ammo");
 			}
 			else if (btn == "sniperDmgBtn") {
 				std::cout << "sniperDmgBtn clicked!" << std::endl;
+				BuySomething("sniper_Shot_Damage_Level", "upgrade");
 			}
 			else if (btn == "sniperRangeBtn") {
 				std::cout << "sniperRangeBtn clicked!" << std::endl;
+				BuySomething("sniper_Shot_Range_Level", "upgrade");
 			}
 			else if (btn == "shotgunAmmoBtn") {
 				std::cout << "shotgunAmmoBtn clicked!" << std::endl;
+				BuySomething("shotgun", "ammo");
 			}
 			else if (btn == "shotgunDmgBtn") {
 				std::cout << "shotgunDmgBtn clicked!" << std::endl;
+				BuySomething("shotgun_Damage_Level", "upgrade");
 			}
 			else if (btn == "shotgunNumBtn") {
 				std::cout << "shotgunNumBtn clicked!" << std::endl;
+				BuySomething("shotgun_NumShots_Level", "upgrade");
 			}
 			else if (btn == "pursuerAmmoBtn") {
 				std::cout << "pursuerAmmoBtn clicked!" << std::endl;
+				BuySomething("pursuer", "ammo");
 			}
 			else if (btn == "pursuerROFBtn") {
 				std::cout << "pursuerROFBtn clicked!" << std::endl;
-			}
-			else if (btn == "NaniteStackBtn") {
-				std::cout << "NaniteStackBtn clicked!" << std::endl;
+				BuySomething("pursuer_ROF_Level", "upgrade");
 			}
 			else if (btn == "naniteSwarmDmgBtn") {
 				std::cout << "naniteSwarmDmgBtn clicked!" << std::endl;
+				BuySomething("nanite_Swarm_Damage_Level", "upgrade");
 			}
 			else if (btn == "naniteSwarmRadiusBtn") {
 				std::cout << "naniteSwarmRadiusBtn clicked!" << std::endl;
+				BuySomething("nanite_Swarm_Radius_Level", "upgrade");
 			}
 			else if (btn == "naniteSwarmDurBtn") {
 				std::cout << "naniteSwarmDurBtn clicked!" << std::endl;
+				BuySomething("nanite_Swarm_Duration_Level", "upgrade");
 			}
 			else if (btn == "emgWarpAmmoBtn") {
 				std::cout << "emgWarpAmmoBtn clicked!" << std::endl;
+				BuySomething("emergency_Warp", "ammo");
 			}
 			else if (btn == "chronoSurgeAmmoBtn") {
 				std::cout << "chronoSurgeAmmoBtn clicked!" << std::endl;
-			}
-			else if (btn == "chronoSurgeAmmoBtn") {
-			std::cout << "chronoSurgeAmmoBtn clicked!" << std::endl;
+				BuySomething("chrono_Surge", "ammo");
 			}
 			else if (btn == "barrierDurBtn") {
-			std::cout << "barrierDurBtn clicked!" << std::endl;
+				std::cout << "barrierDurBtn clicked!" << std::endl;
+				BuySomething("barrier_Duration_Level", "upgrade");
 			}
 			else if (btn == "barrierSizeBtn") {
-			std::cout << "barrierSizeBtn clicked!" << std::endl;
+				std::cout << "barrierSizeBtn clicked!" << std::endl;
+				BuySomething("barrier_Size_Level", "upgrade");
 			}
 			else if (btn == "batteryOverChargeBtn") {
-			std::cout << "batteryOverChargeBtn clicked!" << std::endl;
+				std::cout << "batteryOverChargeBtn clicked!" << std::endl;
+				BuySomething("battery_Overcharge_Level", "upgrade");
 			}
 			else if (btn == "emergencyWarpBtn") {
-			std::cout << "emergencyWarpBtn clicked!" << std::endl;
+				std::cout << "emergencyWarpBtn clicked!" << std::endl;
+				BuySomething("emergency_Warp_Level", "upgrade");
 			}
 			else if (btn == "emergencyManuBtn") {
-			std::cout << "emergencyManuBtn clicked!" << std::endl;
+				std::cout << "emergencyManuBtn clicked!" << std::endl;
+				BuySomething("evasive_Maneuvers_Level", "upgrade");
 			}
 			else if (btn == "chronoSurgeBtn") {
-			std::cout << "chronoSurgeBtn clicked!" << std::endl;
+				std::cout << "chronoSurgeBtn clicked!" << std::endl;
+				BuySomething("chrono_Surge_Level", "upgrade");
 			}
 			//shopButton
 	//startButton
@@ -1268,6 +1350,11 @@ void Game::CreateHUD(void) {
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0.4, -0.9, 0));
 	btn->SetText(new Text("Emg Manu", glm::vec2(-1.0, 0), 0.2, glm::vec3(1.0, 1.0, 1.0)));
+
+	btn = CreateButtonInstance("RepairBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
+	btn->SetPosition(glm::vec3(0.65, -0.9, 0));
+	btn->SetText(new Text("Repair", glm::vec2(-1.0, 0), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
 	//shopButton
 	//startButton
