@@ -311,7 +311,7 @@
         "charge_Blast_ROF": 2,
         "charge_Blast_baseDmg": 60,
         "charge_Blast_baseTTL": 12,
-        "chrono_Surge_Cost": 50,
+        "chrono_Surge_Cost": 70,
         "emergency_Warp_Cost": 30,
         "enemy_ROF": 1,
         "enemy_baseDmg": 5,

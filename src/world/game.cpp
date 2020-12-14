@@ -816,8 +816,8 @@ void Game::GetUserInput(float deltaTime) {
 		if (oneNotPressedLastFrame && glfwGetKey(window_, GLFW_KEY_1) == GLFW_PRESS) {
 			//if ammo use ability 
 			if (loadedPlayerInventory["chrono_Surge_Ammo"] > 0) {
-				//slow time for 5 seconds, up to 15 at max level
-				scene_.SlowTime(5 * pow(1.25, loadedPlayerUpgrades["chrono_Surge_Level"]));
+				//slow time for 10 seconds, up to 25 at max level
+				scene_.SlowTime(10 * pow(1.2, loadedPlayerUpgrades["chrono_Surge_Level"]));
 			}
 		}
 		oneNotPressedLastFrame = glfwGetKey(window_, GLFW_KEY_1) == GLFW_RELEASE;
