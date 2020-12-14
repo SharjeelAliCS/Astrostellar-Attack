@@ -1,6 +1,6 @@
 {
     "bounty_data": {
-        "destroy_100_asteroids_reward": {
+        "destroy_60_asteroids_reward": {
             "charge_Blast_Ammo": 0,
             "chrono_Surge_Ammo": 0,
             "credits": 100,
@@ -235,8 +235,8 @@
         "damage": 20
     },
     "player_stats": {
-        "kills": 0,
         "bounties_completed": 0,
+        "kills": 0,
         "repair_cost_per_hp": 1,
         "shield_recharge_time": 30,
         "ship_base_health": 100,

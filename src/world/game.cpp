@@ -540,11 +540,11 @@ void Game::GetUserInput(float deltaTime) {
 		glfwSetWindowShouldClose(window_, true);
 	}
 	//save game
-	if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS) {
+	if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS && scene_.GetCurrentMenu() == MAIN_MENU) {
 		SaveGame();
 	}
 	//load last save (will be option on death)
-	if (glfwGetKey(window_, GLFW_KEY_L) == GLFW_PRESS) {
+	if (glfwGetKey(window_, GLFW_KEY_L) == GLFW_PRESS && scene_.GetCurrentMenu() == MAIN_MENU) {
 		LoadLastSave();
 	}
 
