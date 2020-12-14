@@ -24,7 +24,7 @@ namespace game {
 
 	public:
 		// Create game object
-		Projectile(const std::string name, const std::string type, std::map<std::string, int> upgrades, std::map<std::string, float> weaponStats,
+		Projectile(const std::string name, const std::string type, std::map<std::string, int> upgrades, std::map<std::string, float> weaponStats, bool boosted,
 			const Resource *geometry, const Resource *material,const Resource *texture = NULL, const Resource *normal = NULL);
 
 		// Destructor
@@ -59,6 +59,7 @@ namespace game {
 		float dotDuration;
 		int dotStackMax;
 		float speed;
+		bool boosted;
 		SceneNode *target;
 		std::map<std::string, int> upg;
 		std::map<std::string, float> stats;

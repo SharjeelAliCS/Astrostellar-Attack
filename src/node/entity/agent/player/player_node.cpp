@@ -42,7 +42,8 @@ namespace game {
 		nuclear_buildup_duration_ = 25;
 		nuclear_buildup_left_ = nuclear_buildup_duration_;
 
-	
+		invulnFor = 0;
+		boostNextShot = false;
 
 		unlockedWeapons[0] = true; //laser battery always unlocked
 		projType = 0; //default to laser battery
@@ -126,7 +127,7 @@ namespace game {
 
 			}
 			for (int i = 0; i < numShots; i++) {
-				missile = new Projectile("missile", weapon, *upgrades, *weaponStats, proj_rsc_->geom, proj_rsc_->mat, proj_rsc_->tex);
+				missile = new Projectile("missile", weapon, *upgrades, *weaponStats, boostNextShot, proj_rsc_->geom, proj_rsc_->mat, proj_rsc_->tex);
 				missile->SetAsteroids(asteroids);
 				missile->SetComets(comets);
 				missile->SetEnemies(enemies);
@@ -148,6 +149,7 @@ namespace game {
 			if (projType != 0) {
 				playerInventory->at(weapon + "_Ammo")--;
 			}
+			boostNextShot = false;
 			lastShotTime = glfwGetTime();
 		}
 	}
@@ -170,7 +172,13 @@ namespace game {
 
 	}
 
-	bool Player::damage(float dmg,bool health) {
+	void Player::MakeInvuln(double t) {
+		invulnFor += t;
+	}
+
+	bool Player::damage(float dmg, bool health) {
+		if (invulnFor > 0) { return false; }
+
 		if (shields_ > 0) {
 			shields_ -= dmg;
 		}
@@ -201,7 +209,13 @@ namespace game {
 		return (boosted_ && boost_duration_left_ <= 0) ||
 			(nuclear_buildup_left_<nuclear_buildup_duration_);
 	}
+
+	void Player::ImproveNextShot() {
+		boostNextShot = true;
+	}
+
 	void Player::Update(float deltaTime) {
+		if (invulnFor > 0) { invulnFor -= deltaTime; }
 
 		if (boosted_) {
 			boost_duration_left_ -= deltaTime;

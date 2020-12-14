@@ -85,7 +85,14 @@ namespace game {
 			int window_width;
 			int window_height;
 			float timeOfLastMove;
-			bool tabPressedLastFrame;
+			bool tabNotPressedLastFrame; //change guns
+			bool spaceNotPressedLastFrame; //evasive maneuvers
+			bool oneNotPressedLastFrame; //chrono surge
+			bool twoNotPressedLastFrame; // emergency warp
+			bool threeNotPressedLastFrame; //reactor overload TODO
+			bool fourNotPressedLastFrame; //whatever we have time for TODO
+
+            double evasiveManeuversCooldown;
 
 			std::map<std::string, int> loadedPlayerUpgrades;
             std::map<std::string, int> loadedPlayerInventory;
@@ -94,6 +101,7 @@ namespace game {
 
             std::map<std::string, float> loadedWeaponStats;
             std::map<std::string, std::map<std::string, int>> loadedBountyStats;
+            std::map<std::string, std::map<std::string, int>> loadedUpgradeCosts;
 
             int startTime;
             int startKills;
@@ -107,6 +115,8 @@ namespace game {
 
 			//Camera input for mouse (See .cpp file for more info)
 			void GetMouseCameraInput(float xpos, float ypos);
+
+            void BuySomething(std::string thing, std::string type);
 
             // Methods to handle events
             static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);

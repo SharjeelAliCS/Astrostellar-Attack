@@ -77,7 +77,7 @@ namespace game {
 		}
 		time_since_fire_ = 0;
 
-		Projectile* missile = new Projectile("missile", "enemy", *upgrades, *weaponStats, proj_rsc_->geom, proj_rsc_->mat, proj_rsc_->tex);
+		Projectile* missile = new Projectile("missile", "enemy", *upgrades, *weaponStats, false, proj_rsc_->geom, proj_rsc_->mat, proj_rsc_->tex);
 		missile->SetPlayer(player_);
 
 		missile->SetOrientation(GetOrientation());

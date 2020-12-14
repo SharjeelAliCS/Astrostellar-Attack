@@ -46,8 +46,15 @@ void Game::Init(void){
 
     // Set variables
 	timeOfLastMove = 0.0;
-	tabPressedLastFrame = false;
+	tabNotPressedLastFrame = false;
+	spaceNotPressedLastFrame = false;
+	oneNotPressedLastFrame = false;
+	twoNotPressedLastFrame = false;
+	threeNotPressedLastFrame = false;
+	fourNotPressedLastFrame = false;
+
 	first_person_ = true;
+	evasiveManeuversCooldown = 0;
 
 }
 
@@ -231,6 +238,13 @@ void Game::LoadSaveFile(void) {
 		for (auto& gameData : saveData["bounty_data"][bounty.key()].items()) {
 			std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
 			loadedBountyStats[bounty.key()][gameData.key()] = gameData.value();
+		}
+	}
+
+	for (auto& upgrade_levels : saveData["upgrade_costs"].items()) {
+		for (auto& gameData : saveData["upgrade_costs"][upgrade_levels.key()].items()) {
+			std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
+			loadedUpgradeCosts[upgrade_levels.key()][gameData.key()] = gameData.value();
 		}
 	}
 	
@@ -466,6 +480,59 @@ void Game::MainLoop(void){
     }
 }
 
+//type is one of upgrade, ammo, repair
+void Game::BuySomething(std::string thing, std::string type) {
+	std::cout << "thing: " << thing << "\ntype: " << type << "\n";
+	Player* player = scene_.GetPlayer();
+	if (type.compare("repair")==0) {
+		int cost = loadedPlayerStats["repair_cost_per_hp"] * (player->GetMaxHealth() - player->GetHealth());
+		if (cost > loadedPlayerInventory["credits"]) {
+			float hpRestored = loadedPlayerInventory["credits"] / loadedPlayerStats["repair_cost_per_hp"];
+			player->SetHealth(player->GetHealth() + hpRestored);
+			loadedPlayerInventory["credits"] = 0;
+		}
+		else {
+			player->SetHealth(player->GetMaxHealth());
+			loadedPlayerInventory["credits"] -= cost;
+		}
+	}
+	
+	else if (type.compare("upgrade")==0) {
+		int currentLevel = loadedPlayerUpgrades[thing]+1;
+		if (currentLevel == 6) { return; }
+		std::cout << "level_" + std::to_string(currentLevel) << "\n";
+		std::map<std::string, int> cost = loadedUpgradeCosts["level_" + std::to_string(currentLevel)];
+		if( cost["credits"] <= loadedPlayerInventory["credits"] && 
+			cost["stellaranite_Fragments"] <= loadedPlayerInventory["stellaranite_Fragments"] &&
+			cost["stellaranite_Slabs"] <= loadedPlayerInventory["stellaranite_Slabs"])
+		{
+			std::cout << "credits: " << cost["credits"] << std::endl;
+			std::cout << "stellaranite_Fragments: " << cost["stellaranite_Fragments"] << std::endl;
+			std::cout << "stellaranite_Slabs: " << cost["stellaranite_Slabs"] << std::endl;
+			loadedPlayerUpgrades[thing]++;
+			loadedPlayerInventory["credits"] -= cost["credits"];
+			loadedPlayerInventory["stellaranite_Fragments"] -= cost["stellaranite_Fragments"];
+			loadedPlayerInventory["stellaranite_Slabs"] -= cost["stellaranite_Slabs"];
+		}
+
+	}
+	else {
+		int purchaseNumber = 0;
+		if (type.compare("ammo") == 0) { //purchased in units of 10
+			purchaseNumber = 10;
+		}
+		else if (type.compare("ability-ammo") == 0) { //purchased in units of 1
+			purchaseNumber = 1;
+		}
+		int cost = loadedWeaponStats[thing + "_Cost"] * purchaseNumber;
+		std::cout << "cost is: " << cost << " player has: " << loadedPlayerInventory["credits"] << "\n";
+		if (cost <= loadedPlayerInventory["credits"]) {
+			loadedPlayerInventory[thing + "_Ammo"] += purchaseNumber;
+			loadedPlayerInventory["credits"] -= cost;
+		}
+	}
+}
+
 void Game::GetUserInput(float deltaTime) {
 
 	//quit game
@@ -473,11 +540,11 @@ void Game::GetUserInput(float deltaTime) {
 		glfwSetWindowShouldClose(window_, true);
 	}
 	//save game
-	if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS) {
+	if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS && scene_.GetCurrentMenu() == MAIN_MENU) {
 		SaveGame();
 	}
 	//load last save (will be option on death)
-	if (glfwGetKey(window_, GLFW_KEY_L) == GLFW_PRESS) {
+	if (glfwGetKey(window_, GLFW_KEY_L) == GLFW_PRESS && scene_.GetCurrentMenu() == MAIN_MENU) {
 		LoadLastSave();
 	}
 
@@ -529,114 +596,147 @@ void Game::GetUserInput(float deltaTime) {
 			}
 			else if (btn == "bounty1Button") {
 				std::cout << "bounty1Button clicked!" << std::endl;
+				scene_.SetBounty("destroy_60_asteroids_reward", loadedBountyStats["destroy_60_asteroids_reward"]);
 			}
 			else if (btn == "bounty2Button") {
 				std::cout << "bounty2Button clicked!" << std::endl;
+				scene_.SetBounty("kill_40_enemies_reward", loadedBountyStats["kill_40_enemies_reward"]);
 			}
 			else if (btn == "bounty3Button") {
 				std::cout << "bounty3Button clicked!" << std::endl;
+				scene_.SetBounty("kill_boss_reward", loadedBountyStats["kill_boss_reward"]);
 			}
 			else if (btn == "shipHealthButton") {
 				std::cout << "shipHealthButton clicked!" << std::endl;
+				BuySomething("ship_Health_Level", "upgrade");
+			}
+			else if (btn == "RepairBtn") {
+				std::cout << "RepairBtn clicked!" << std::endl;
+				BuySomething("repair", "repair");
 			}
 			else if (btn == "shipShieldButton") {
 				std::cout << "shipShieldButton clicked!" << std::endl;
+				BuySomething("ship_Shield_Level", "upgrade");
 			}
 			else if (btn == "shipSpeedButton") {
 				std::cout << "shipSpeedButton clicked!" << std::endl;
+				BuySomething("ship_Speed_Level", "upgrade");
 			}
 			else if (btn == "laserRangeBtn") {
 				std::cout << "laserRangeBtn clicked!" << std::endl;
+				BuySomething("laser_Battery_Range_Level", "upgrade");
 			}
 			else if (btn == "laserDmgBtn") {
 				std::cout << "laserDmgBtn clicked!" << std::endl;
+				BuySomething("laser_Battery_Damage_Level", "upgrade");
 			}
 			else if (btn == "laserPierceBtn") {
 				std::cout << "laserPierceBtn clicked!" << std::endl;
+				BuySomething("laser_Battery_Pierce_Level", "upgrade");
 			}
 			else if (btn == "NaniteAmmoBtn") {
 				std::cout << "NaniteAmmoBtn clicked!" << std::endl;
+				BuySomething("nanite_Torpedo", "ammo");
 			}
 			else if (btn == "NaniteDmgBtn") {
 				std::cout << "NaniteDmgBtn clicked!" << std::endl;
+				BuySomething("nanite_Torpedo_Damage_Level", "upgrade");
 			}
 			else if (btn == "NaniteDurBtn") {
 				std::cout << "NaniteDurBtn clicked!" << std::endl;
+				BuySomething("nanite_Torpedo_Duration_Level", "upgrade");
 			}
 			else if (btn == "NaniteStackBtn") {
 				std::cout << "NaniteStackBtn clicked!" << std::endl;
+				BuySomething("nanite_Torpedo_Stack_Level", "upgrade");
 			}
 			else if (btn == "chargeAmmoBtn") {
 				std::cout << "chargeAmmoBtn clicked!" << std::endl;
+				BuySomething("charge_Blast", "ammo");
 			}
 			else if (btn == "chargeDmgBtn") {
 				std::cout << "chargeDmgBtn clicked!" << std::endl;
+				BuySomething("charge_Blast_Damage_Level", "upgrade");
 			}
 			else if (btn == "chargeSizeBtn") {
 				std::cout << "chargeSizeBtn clicked!" << std::endl;
+				BuySomething("charge_Blast_Radius_Level", "upgrade");
 			}
 			else if (btn == "sniperAmmoBtn") {
 				std::cout << "sniperAmmoBtn clicked!" << std::endl;
+				BuySomething("sniper_shot", "ammo");
 			}
 			else if (btn == "sniperDmgBtn") {
 				std::cout << "sniperDmgBtn clicked!" << std::endl;
+				BuySomething("sniper_Shot_Damage_Level", "upgrade");
 			}
 			else if (btn == "sniperRangeBtn") {
 				std::cout << "sniperRangeBtn clicked!" << std::endl;
+				BuySomething("sniper_Shot_Range_Level", "upgrade");
 			}
 			else if (btn == "shotgunAmmoBtn") {
 				std::cout << "shotgunAmmoBtn clicked!" << std::endl;
+				BuySomething("shotgun", "ammo");
 			}
 			else if (btn == "shotgunDmgBtn") {
 				std::cout << "shotgunDmgBtn clicked!" << std::endl;
+				BuySomething("shotgun_Damage_Level", "upgrade");
 			}
 			else if (btn == "shotgunNumBtn") {
 				std::cout << "shotgunNumBtn clicked!" << std::endl;
+				BuySomething("shotgun_NumShots_Level", "upgrade");
 			}
 			else if (btn == "pursuerAmmoBtn") {
 				std::cout << "pursuerAmmoBtn clicked!" << std::endl;
+				BuySomething("pursuer", "ammo");
 			}
 			else if (btn == "pursuerROFBtn") {
 				std::cout << "pursuerROFBtn clicked!" << std::endl;
-			}
-			else if (btn == "NaniteStackBtn") {
-				std::cout << "NaniteStackBtn clicked!" << std::endl;
+				BuySomething("pursuer_ROF_Level", "upgrade");
 			}
 			else if (btn == "naniteSwarmDmgBtn") {
 				std::cout << "naniteSwarmDmgBtn clicked!" << std::endl;
+				BuySomething("nanite_Swarm_Damage_Level", "upgrade");
 			}
 			else if (btn == "naniteSwarmRadiusBtn") {
 				std::cout << "naniteSwarmRadiusBtn clicked!" << std::endl;
+				BuySomething("nanite_Swarm_Radius_Level", "upgrade");
 			}
 			else if (btn == "naniteSwarmDurBtn") {
 				std::cout << "naniteSwarmDurBtn clicked!" << std::endl;
+				BuySomething("nanite_Swarm_Duration_Level", "upgrade");
 			}
 			else if (btn == "emgWarpAmmoBtn") {
 				std::cout << "emgWarpAmmoBtn clicked!" << std::endl;
+				BuySomething("emergency_Warp", "ability-ammo");
 			}
 			else if (btn == "chronoSurgeAmmoBtn") {
 				std::cout << "chronoSurgeAmmoBtn clicked!" << std::endl;
-			}
-			else if (btn == "chronoSurgeAmmoBtn") {
-			std::cout << "chronoSurgeAmmoBtn clicked!" << std::endl;
+				BuySomething("chrono_Surge", "ability-ammo");
 			}
 			else if (btn == "barrierDurBtn") {
-			std::cout << "barrierDurBtn clicked!" << std::endl;
+				std::cout << "barrierDurBtn clicked!" << std::endl;
+				BuySomething("barrier_Duration_Level", "upgrade");
 			}
 			else if (btn == "barrierSizeBtn") {
-			std::cout << "barrierSizeBtn clicked!" << std::endl;
+				std::cout << "barrierSizeBtn clicked!" << std::endl;
+				BuySomething("barrier_Size_Level", "upgrade");
 			}
 			else if (btn == "batteryOverChargeBtn") {
-			std::cout << "batteryOverChargeBtn clicked!" << std::endl;
+				std::cout << "batteryOverChargeBtn clicked!" << std::endl;
+				BuySomething("battery_Overcharge_Level", "upgrade");
 			}
 			else if (btn == "emergencyWarpBtn") {
-			std::cout << "emergencyWarpBtn clicked!" << std::endl;
+				std::cout << "emergencyWarpBtn clicked!" << std::endl;
+				BuySomething("emergency_Warp_Level", "upgrade");
 			}
 			else if (btn == "emergencyManuBtn") {
-			std::cout << "emergencyManuBtn clicked!" << std::endl;
+				std::cout << "emergencyManuBtn clicked!" << std::endl;
+				BuySomething("evasive_Maneuvers_Level", "upgrade");
 			}
 			else if (btn == "chronoSurgeBtn") {
-			std::cout << "chronoSurgeBtn clicked!" << std::endl;
+				std::cout << "chronoSurgeBtn clicked!" << std::endl;
+				BuySomething("chrono_Surge_Level", "upgrade");
 			}
 			//shopButton
 	//startButton
@@ -706,11 +806,57 @@ void Game::GetUserInput(float deltaTime) {
 		}
 		
 		
-		if (tabPressedLastFrame && glfwGetKey(window_, GLFW_KEY_TAB) == GLFW_RELEASE) {
+		if (tabNotPressedLastFrame && glfwGetKey(window_, GLFW_KEY_TAB) == GLFW_PRESS) {
 			player->nextWeapon();
 			timeOfLastMove = glfwGetTime();
 		}
-		tabPressedLastFrame = glfwGetKey(window_, GLFW_KEY_TAB) == GLFW_PRESS;
+		tabNotPressedLastFrame = glfwGetKey(window_, GLFW_KEY_TAB) == GLFW_RELEASE;
+
+		//slow time
+		if (oneNotPressedLastFrame && glfwGetKey(window_, GLFW_KEY_1) == GLFW_PRESS) {
+			//if ammo use ability 
+			if (loadedPlayerInventory["chrono_Surge_Ammo"] > 0) {
+				//slow time for 10 seconds, up to 25 at max level
+				scene_.SlowTime(10 * pow(1.2, loadedPlayerUpgrades["chrono_Surge_Level"]));
+			}
+		}
+		oneNotPressedLastFrame = glfwGetKey(window_, GLFW_KEY_1) == GLFW_RELEASE;
+		
+		//emergency warp, levels increase distance travelled.
+		if (twoNotPressedLastFrame && glfwGetKey(window_, GLFW_KEY_2) == GLFW_PRESS) {
+			//if ammo use ability 
+			if (loadedPlayerInventory["emergency_Warp_Ammo"] > 0) {
+				//slow time for 5 seconds, up to 15 at max level
+				int range = (int)(150 * pow(1.22, loadedPlayerUpgrades["emergency_Warp_Level"]));
+				scene_.SlowTime(1);    //slow time during the effect
+				player->MakeInvuln(1); //player immune to damage during effect
+				player->SetPosition(player->GetPosition() + glm::vec3((rand() % range) - (range * 0.5), (rand() % range) - (range * 0.5), (rand() % range) - (range * 0.5)));
+			}
+		}
+		twoNotPressedLastFrame = glfwGetKey(window_, GLFW_KEY_2) == GLFW_RELEASE;
+		
+		if (spaceNotPressedLastFrame && glfwGetTime()>evasiveManeuversCooldown && glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS) {
+			//evasive manuvers
+			//if success, 1 sec cooldown and bonus damage next attack, else 5 second cooldown no bonus
+			if (scene_.EvasiveManeuversSuccessCheck()) {
+				std::cout << "success! cooldown 1 second\n";
+				//bonus damage next attack
+				//barrel roll! I wasn't able to get to this, if you got time it would def make the ability cooler. shar todo
+
+				scene_.SlowTime(1.5);    //slow time during the effect
+				player->MakeInvuln(1.5); //player immune to damage during effect
+				player->ImproveNextShot(); //next bullet does increased damage
+
+				evasiveManeuversCooldown = glfwGetTime() + 1;
+			}
+			else {
+				std::cout << "failure! cooldown 5 seconds\n";
+				evasiveManeuversCooldown = glfwGetTime() + 5;
+			}
+		}
+		spaceNotPressedLastFrame = glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_RELEASE;
+
+
 		//move the player forward as well as the camera
 		if (glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
 		//if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS) {
@@ -1261,6 +1407,11 @@ void Game::CreateHUD(void) {
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0.4, -0.9, 0));
 	btn->SetText(new Text("Emg Manu", glm::vec2(-1.0, 0), 0.2, glm::vec3(1.0, 1.0, 1.0)));
+
+	btn = CreateButtonInstance("RepairBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
+	btn->SetPosition(glm::vec3(0.65, -0.9, 0));
+	btn->SetText(new Text("Repair", glm::vec2(-1.0, 0), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
 	//shopButton
 	//startButton

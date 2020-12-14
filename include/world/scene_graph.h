@@ -92,6 +92,13 @@ namespace game {
 
 			void SetCurrentScreen(ScreenType t);
 
+			bool EvasiveManeuversSuccessCheck(void);
+
+			void SlowTime(double seconds);
+
+			void SetBounty(std::string bountyType, std::map<std::string, int> reward);
+			void CheckBounty();
+
 			// Setup the texture
 			void SetupDrawToTexture(float frame_width, float frame_height);
             // Draw the entire scene
@@ -140,6 +147,11 @@ namespace game {
 			std::vector<CometNode*>* comet_;
 			std::vector<ParticleNode*>* death_animations_;
 
+			std::string currentBounty;
+			std::map<std::string, int> bountyReward;
+			int enemiesKilled;
+			int asteroidsDestroyed;
+
 			NodeResources death_animation_rsc;
 			Text text;
 			std::map <ScreenType, std::vector<ScreenNode *>> screen_;
@@ -149,6 +161,7 @@ namespace game {
 			void CreateDeathAnimation(SceneNode* node);
 			bool Collision(Entity* node, bool player);
 			bool ProjectileCollision(AgentNode* node, bool player);
+			double secondsSlow;
 
 			void UpdateRadar();
 			void UpdateRadarNode(glm::vec3 direction, glm::vec3 pos, glm::vec3 color, bool edge = false);
