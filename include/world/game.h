@@ -85,7 +85,14 @@ namespace game {
 			int window_width;
 			int window_height;
 			float timeOfLastMove;
-			bool tabPressedLastFrame;
+			bool tabNotPressedLastFrame; //change guns
+			bool spaceNotPressedLastFrame; //evasive maneuvers
+			bool oneNotPressedLastFrame; //chrono surge
+			bool twoNotPressedLastFrame; // emergency warp
+			bool threeNotPressedLastFrame; //reactor overload TODO
+			bool fourNotPressedLastFrame; //whatever we have time for TODO
+
+            double evasiveManeuversCooldown;
 
 			std::map<std::string, int> loadedPlayerUpgrades;
             std::map<std::string, int> loadedPlayerInventory;

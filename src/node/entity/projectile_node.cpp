@@ -19,7 +19,7 @@ namespace game {
 
 
 
-	Projectile::Projectile(const std::string name, const std::string t, std::map<std::string, int> upgrades, std::map<std::string, float> weaponStats,
+	Projectile::Projectile(const std::string name, const std::string t, std::map<std::string, int> upgrades, std::map<std::string, float> weaponStats, bool boosted,
 		const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal)
 		: Entity(name, geometry, material, texture,normal) {
 		//default all to zero
@@ -34,6 +34,7 @@ namespace game {
 		target = NULL;
 		health_ = 10000000000;
 		speed = 450;
+		this->boosted = boosted;
 		dmg = []() {return 0;};
 		move = [this](float deltaTime) { /*do nothing*/ };
 		// this->SetScale(glm::vec3(0.6));
@@ -54,11 +55,12 @@ namespace game {
 	void Projectile::init() {
 		//damage upgrades are multiplictive 
 		if (type.compare("enemy") == 0) {
+			speed -= 350;
 			//travels 5 seconds
 			ttl = glfwGetTime() + 5;
 			pierce = 0;
 			dmg = [this]() {
-				return 5;
+				return 5 ;
 			};
 			move = [this](float deltaTime) { //minor player tracking
 				orientation_->FaceTowards(position_, player_->GetPosition(), true);
@@ -80,7 +82,7 @@ namespace game {
 			pierce = upg["laser_Battery_Pierce_Level"];
 			//deals 10 damage + 10% per level
 			dmg = [this]() {
-				return stats["laser_Battery_baseDmg"] * pow(1.1, upg["laser_Battery_Damage_Level"]);
+				return stats["laser_Battery_baseDmg"] * pow(1.1, upg["laser_Battery_Damage_Level"]) * max(1, boosted * pow(1.25, 1+upg["evasive_Maneuvers_Level"]));
 			};
 			move = [this](float deltaTime) {
 				position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
@@ -91,7 +93,7 @@ namespace game {
 			//travels 20 seconds
 			ttl = glfwGetTime() + stats["pursuer_baseTTL"];
 			dmg = [this]() {
-				return stats["pursuer_baseDmg"];
+				return stats["pursuer_baseDmg"] * max(1, boosted * pow(1.25, 1+upg["evasive_Maneuvers_Level"]));
 			};
 			move = [this](float deltaTime) {
 				//will need access to enemy vector, determine nearest enemy and then go
@@ -130,7 +132,7 @@ namespace game {
 					this->Scale(glm::vec3(5,6,5)); //kaboom
 					ttl = glfwGetTime() + 0.2;
 				}
-				return stats["charge_Blast_baseDmg"] * pow(1.1, upg["charge_Blast_Damage_Level"]);
+				return stats["charge_Blast_baseDmg"] * pow(1.1, upg["charge_Blast_Damage_Level"]) * max(1, boosted * pow(1.25, 1+upg["evasive_Maneuvers_Level"]));
 			};
 
 			this->Scale(glm::vec3(5));
@@ -151,7 +153,7 @@ namespace game {
 			//deals (1 damage + 60 per second travelled) + 10% per level
 			int damageFactor = stats["sniper_Shot_baseDmg"];
 			dmg = [this, damageFactor]() {
-				return (1 - damageFactor *(ttl - glfwGetTime() - (damageFactor * pow(1.1, upg["sniper_Shot_Range_Level"])))) * pow(1.1, upg["sniper_Shot_Damage_Level"]);
+				return (1 - damageFactor *(ttl - glfwGetTime() - (damageFactor * pow(1.1, upg["sniper_Shot_Range_Level"])))) * pow(1.1, upg["sniper_Shot_Damage_Level"]) * max(1, boosted * pow(1.25, 1+upg["evasive_Maneuvers_Level"]));
 			};
 			move = [this](float deltaTime) {
 				position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
@@ -163,7 +165,7 @@ namespace game {
 			ttl = glfwGetTime() + stats["shotgun_baseTTL"];
 			//deals 5 damage + 10% per level
 			dmg = [this]() {
-				return stats["shotgun_baseDmg"] * pow(1.1, upg["shotgun_Damage_Level"]);
+				return stats["shotgun_baseDmg"] * pow(1.1, upg["shotgun_Damage_Level"]) * max(1, boosted * pow(1.25, 1+upg["evasive_Maneuvers_Level"]));
 			};
 			//random spread
 			this->Rotate(rand() % 14 - 7, glm::vec3(1, 0, 0));
@@ -184,7 +186,7 @@ namespace game {
 				return 0;
 			};
 			//5dps per stack up to 5 stacks, lasts for 5 seconds
-			dotDmg = stats["nanite_Torpedo_baseDmg"] * pow(1.1, upg["nanite_Torpedo_Damage_Level"]);
+			dotDmg = stats["nanite_Torpedo_baseDmg"] * pow(1.1, upg["nanite_Torpedo_Damage_Level"]) * max(1, boosted * pow(1.25, 1+upg["evasive_Maneuvers_Level"]));
 			dotDuration = glfwGetTime() + 5 *pow(1.1, upg["nanite_Torpedo_Duration_Level"]);
 			dotStackMax = 5 + upg["nanite_Torpedo_Stack_Level"];
 			move = [this](float deltaTime) {

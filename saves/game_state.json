@@ -235,15 +235,15 @@
         "damage": 20
     },
     "player_stats": {
-        "kills": 1,
-        "level": 1,
+        "kills": 0,
+        "bounties_completed": 0,
         "repair_cost_per_hp": 1,
         "shield_recharge_time": 30,
         "ship_base_health": 100,
         "ship_base_shield": 100,
-        "shots_fired": 11
+        "shots_fired": 0
     },
-    "playtime": 306,
+    "playtime": 0,
     "size": "Large",
     "upgrade_costs": {
         "level_1": {

@@ -32,6 +32,7 @@ SceneGraph::SceneGraph(void){
 	radar_distance_ = 1000;
 	enemy_healthbar_distance_ = 300;
 	audio_ = NULL;
+	secondsSlow = 0;
 
 }
 
@@ -454,6 +455,24 @@ bool SceneGraph::ProjectileCollision(AgentNode* node, bool player) {
 
 
 }
+
+bool SceneGraph::EvasiveManeuversSuccessCheck(void) {
+	for (int i = 0; i < enemy_->size(); i++) {
+		std::vector<Projectile*>* missiles = enemy_->at(i)->GetMissiles();
+		for (auto it = missiles->begin(); it != missiles->end(); ) {
+
+
+			if ((player_->Hit((*it)->GetPosition(), player_->GetScale().x * 13))) {
+				return true;
+			}
+			else {
+				++it;
+			}
+		}
+	}
+	return false;
+}
+
 bool SceneGraph::Collision(Entity* node, bool player) {
 	bool collided = false;
 	std::vector<Enemy*> splitter_list;
@@ -538,7 +557,7 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 		}
 	}
 	else {
-		if ((player_->Hit(node->GetPosition(), glm::length(player_->GetScale()) * 0.9))) {
+		if ((player_->Hit(node->GetPosition(), player_->GetScale().x * 0.9))) {
 			player_->damage(node->GetDamage());
 			node->damage(player_->GetDamage());
 			collided = true;
@@ -558,14 +577,27 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 void SceneGraph::SetDeathAnimation(NodeResources dm) {
 	death_animation_rsc = dm;
 }
-void SceneGraph::Update(float deltaTime){
+
+void SceneGraph::SlowTime(double seconds) {
+	secondsSlow += seconds;
+}
+
+void SceneGraph::Update(float dt){
+	float playerDeltaTime = dt;
+	float deltaTime = dt;
+	if (secondsSlow > 0) {
+		deltaTime /= 17;
+		secondsSlow -= dt;
+	}
+	
+	
 	if (active_menu_ == PAUSE_MENU || active_menu_ == HUD_MENU) {
 
 		Collision(player_, true);
 		ProjectileCollision(player_, true);
 
 
-		if (player_ != NULL)player_->Update(deltaTime);
+		if (player_ != NULL)player_->Update(playerDeltaTime);
 		if (skybox_ != NULL)skybox_->Update(deltaTime);
 
 		for (int i = 0; i < node_->size(); i++) {

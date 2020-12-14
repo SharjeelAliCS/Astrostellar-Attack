@@ -92,6 +92,10 @@ namespace game {
 
 			void SetCurrentScreen(ScreenType t);
 
+			bool EvasiveManeuversSuccessCheck(void);
+
+			void SlowTime(double seconds);
+
 			// Setup the texture
 			void SetupDrawToTexture(float frame_width, float frame_height);
             // Draw the entire scene
@@ -149,6 +153,7 @@ namespace game {
 			void CreateDeathAnimation(SceneNode* node);
 			bool Collision(Entity* node, bool player);
 			bool ProjectileCollision(AgentNode* node, bool player);
+			double secondsSlow;
 
 			void UpdateRadar();
 			void UpdateRadarNode(glm::vec3 direction, glm::vec3 pos, glm::vec3 color, bool edge = false);

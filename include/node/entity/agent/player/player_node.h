@@ -68,6 +68,8 @@ namespace game {
 		// Update the node
 		void SetFirstPerson(bool f) { first_person_ = f; }
 
+		void MakeInvuln(double seconds);
+		void ImproveNextShot(void);
 
 		void SetPlayerInventory(std::map<std::string, int>* m) { playerInventory = m; }
 		void SetPlayerLoadout(std::map<std::string, int>* m) { playerLoadout = m; }
@@ -90,7 +92,8 @@ namespace game {
 		std::map<int, bool> unlockedWeapons;
 		std::map<int, float> rof;
 		double lastShotTime;
-
+		double invulnFor;
+		bool boostNextShot;
 		//0: no boost. 1: boosted. 2: boost off
 		int boosted_;
 		float boost_duration_;

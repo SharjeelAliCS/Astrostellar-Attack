@@ -46,8 +46,15 @@ void Game::Init(void){
 
     // Set variables
 	timeOfLastMove = 0.0;
-	tabPressedLastFrame = false;
+	tabNotPressedLastFrame = false;
+	spaceNotPressedLastFrame = false;
+	oneNotPressedLastFrame = false;
+	twoNotPressedLastFrame = false;
+	threeNotPressedLastFrame = false;
+	fourNotPressedLastFrame = false;
+
 	first_person_ = true;
+	evasiveManeuversCooldown = 0;
 
 }
 
@@ -489,14 +496,7 @@ void Game::BuySomething(std::string thing, std::string type) {
 			loadedPlayerInventory["credits"] -= cost;
 		}
 	}
-	else if (type.compare("ammo")==0) { //purchased in units of 10
-		int cost = loadedWeaponStats[thing + "_Cost"] * 10;
-		std::cout << "cost is: "<<cost <<" player has: " <<loadedPlayerInventory["credits"] << "\n";
-		if (cost <= loadedPlayerInventory["credits"]) {
-			loadedPlayerInventory[thing + "_Ammo"] += 10;
-			loadedPlayerInventory["credits"] -= cost;
-		}
-	}
+	
 	else if (type.compare("upgrade")==0) {
 		int currentLevel = loadedPlayerUpgrades[thing]+1;
 		if (currentLevel == 6) { return; }
@@ -516,10 +516,21 @@ void Game::BuySomething(std::string thing, std::string type) {
 		}
 
 	}
-
-	//calculate price
-	//if upgrade check level, if level is 5 disallow purchase
-	//if user can afford, buy it
+	else {
+		int purchaseNumber = 0;
+		if (type.compare("ammo") == 0) { //purchased in units of 10
+			purchaseNumber = 10;
+		}
+		else if (type.compare("ability-ammo") == 0) { //purchased in units of 1
+			purchaseNumber = 1;
+		}
+		int cost = loadedWeaponStats[thing + "_Cost"] * purchaseNumber;
+		std::cout << "cost is: " << cost << " player has: " << loadedPlayerInventory["credits"] << "\n";
+		if (cost <= loadedPlayerInventory["credits"]) {
+			loadedPlayerInventory[thing + "_Ammo"] += purchaseNumber;
+			loadedPlayerInventory["credits"] -= cost;
+		}
+	}
 }
 
 void Game::GetUserInput(float deltaTime) {
@@ -697,11 +708,11 @@ void Game::GetUserInput(float deltaTime) {
 			}
 			else if (btn == "emgWarpAmmoBtn") {
 				std::cout << "emgWarpAmmoBtn clicked!" << std::endl;
-				BuySomething("emergency_Warp", "ammo");
+				BuySomething("emergency_Warp", "ability-ammo");
 			}
 			else if (btn == "chronoSurgeAmmoBtn") {
 				std::cout << "chronoSurgeAmmoBtn clicked!" << std::endl;
-				BuySomething("chrono_Surge", "ammo");
+				BuySomething("chrono_Surge", "ability-ammo");
 			}
 			else if (btn == "barrierDurBtn") {
 				std::cout << "barrierDurBtn clicked!" << std::endl;
@@ -795,11 +806,57 @@ void Game::GetUserInput(float deltaTime) {
 		}
 		
 		
-		if (tabPressedLastFrame && glfwGetKey(window_, GLFW_KEY_TAB) == GLFW_RELEASE) {
+		if (tabNotPressedLastFrame && glfwGetKey(window_, GLFW_KEY_TAB) == GLFW_PRESS) {
 			player->nextWeapon();
 			timeOfLastMove = glfwGetTime();
 		}
-		tabPressedLastFrame = glfwGetKey(window_, GLFW_KEY_TAB) == GLFW_PRESS;
+		tabNotPressedLastFrame = glfwGetKey(window_, GLFW_KEY_TAB) == GLFW_RELEASE;
+
+		//slow time
+		if (oneNotPressedLastFrame && glfwGetKey(window_, GLFW_KEY_1) == GLFW_PRESS) {
+			//if ammo use ability 
+			if (loadedPlayerInventory["chrono_Surge_Ammo"] > 0) {
+				//slow time for 5 seconds, up to 15 at max level
+				scene_.SlowTime(5 * pow(1.25, loadedPlayerUpgrades["chrono_Surge_Level"]));
+			}
+		}
+		oneNotPressedLastFrame = glfwGetKey(window_, GLFW_KEY_1) == GLFW_RELEASE;
+		
+		//emergency warp, levels increase distance travelled.
+		if (twoNotPressedLastFrame && glfwGetKey(window_, GLFW_KEY_2) == GLFW_PRESS) {
+			//if ammo use ability 
+			if (loadedPlayerInventory["emergency_Warp_Ammo"] > 0) {
+				//slow time for 5 seconds, up to 15 at max level
+				int range = (int)(150 * pow(1.22, loadedPlayerUpgrades["emergency_Warp_Level"]));
+				scene_.SlowTime(1);    //slow time during the effect
+				player->MakeInvuln(1); //player immune to damage during effect
+				player->SetPosition(player->GetPosition() + glm::vec3((rand() % range) - (range * 0.5), (rand() % range) - (range * 0.5), (rand() % range) - (range * 0.5)));
+			}
+		}
+		twoNotPressedLastFrame = glfwGetKey(window_, GLFW_KEY_2) == GLFW_RELEASE;
+		
+		if (spaceNotPressedLastFrame && glfwGetTime()>evasiveManeuversCooldown && glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS) {
+			//evasive manuvers
+			//if success, 1 sec cooldown and bonus damage next attack, else 5 second cooldown no bonus
+			if (scene_.EvasiveManeuversSuccessCheck()) {
+				std::cout << "success! cooldown 1 second\n";
+				//bonus damage next attack
+				//barrel roll! I wasn't able to get to this, if you got time it would def make the ability cooler. shar todo
+
+				scene_.SlowTime(1.5);    //slow time during the effect
+				player->MakeInvuln(1.5); //player immune to damage during effect
+				player->ImproveNextShot(); //next bullet does increased damage
+
+				evasiveManeuversCooldown = glfwGetTime() + 1;
+			}
+			else {
+				std::cout << "failure! cooldown 5 seconds\n";
+				evasiveManeuversCooldown = glfwGetTime() + 5;
+			}
+		}
+		spaceNotPressedLastFrame = glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_RELEASE;
+
+
 		//move the player forward as well as the camera
 		if (glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
 		//if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS) {
