@@ -131,7 +131,7 @@ namespace game {
 		glUniformMatrix4fv(glGetUniformLocation(material_, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
 		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glUniform3f(glGetUniformLocation(material_, "textColor"), color.x, color.y, color.z);
 		glActiveTexture(GL_TEXTURE0);
@@ -175,6 +175,6 @@ namespace game {
 			}
 			glBindVertexArray(0);
 			glBindTexture(GL_TEXTURE_2D, 0);
-		
+			glDisable(GL_BLEND);
 	}
 }

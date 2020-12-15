@@ -69,7 +69,9 @@ namespace game {
 			playerInventory->at(it->first) += it->second;
 		}
 	}
-
+	int Player::getCurrentWeaponAmmo(void) {
+		return playerInventory->at(GetCurrentWeapon() + "_Ammo");
+	}
 	void Player::SetBoosted(int i) {
 		boosted_ = i;
 	}

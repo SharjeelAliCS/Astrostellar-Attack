@@ -184,7 +184,7 @@ void Game::SetupResources(void){
 		filename = std::string(ASSET_DIRECTORY) + "/fonts" + std::string(asset.value());
 		text = TextRenderer(filename, resman_.GetResource("textMaterial"));
 	}
-
+	scene_.SetTextRenderer(&text);
 	//load soundtrack
 	for (auto& asset : assets["Soundtrack"].items()) {
 		filename = std::string(ASSET_DIRECTORY) + "/sounds/soundtrack/" + std::string(asset.value());
@@ -424,13 +424,14 @@ void Game::MainLoop(void){
 					float s = player->GetShields();
 					scene_.GetScreen("healthBar")->SetProgressX(player->getHealthPercent());
 					scene_.GetScreen("shieldBar")->SetProgressX(player->GetShieldPercent());
-
-					last_time = current_time;
-					t += 0.01;
-
+					scene_.GetScreen("bountyBar")->SetProgressX(scene_.GetBountyProgress());
 					std::string currWeapon = player->GetCurrentWeapon() + "Texture";
 					scene_.GetScreen("weaponsHUD")->SetTexture(resman_.GetResource(currWeapon));
 					scene_.GetScreen("boostBar")->SetProgressY(player->getBoostPercent());
+					last_time = current_time;
+					t += 0.01;
+
+					
 					break;
 					
 				}
@@ -451,10 +452,8 @@ void Game::MainLoop(void){
 
 		//gen the screen
 		//bool genScreen = true;//change this value
-		scene_.Draw(&camera_, true, window_width, window_height);
-
 		bool genScreen = player->NuclearOverload();
-
+		scene_.Draw(&camera_, fps, true, window_width, window_height);
 		scene_.DisplayScreenSpace(resman_.GetResource("ScreenHealthMaterial")->GetResource(),"health", genScreen, window_width, window_height);
 
 		//the "nuclear" overload bool is used to check when to apply the screen effect or not.
@@ -469,9 +468,9 @@ void Game::MainLoop(void){
 
 		}
 
-
-		text.RenderText(new Text(player->GetCurrentWeapon(), glm::vec2(0.6, -0.78), 0.4f, glm::vec3(0.0941, 0.698, 0.921)));
-		text.RenderText(new Text(std::to_string(fps), glm::vec2(-1, 0.9), 0.5f, glm::vec3(1.0, 1.0, 0)));
+		//std::cout << loadedPlayerInventory[player->GetCurrentWeapon()+"_Ammo"]<< std::endl;
+		//text.RenderText(new Text(player->GetCurrentWeapon(), glm::vec2(0.6, -0.78), 0.4f, glm::vec3(0.0941, 0.698, 0.921)));
+		//text.RenderText(new Text(std::to_string(fps), glm::vec2(-1, 0.9), 0.5f, glm::vec3(1.0, 1.0, 0)));
 
         glfwSwapBuffers(window_);
 
@@ -595,16 +594,17 @@ void Game::GetUserInput(float deltaTime) {
 				std::cout << "shop clicked!" << std::endl;
 			}
 			else if (btn == "bounty1Button") {
+				
 				std::cout << "bounty1Button clicked!" << std::endl;
-				scene_.SetBounty("destroy_60_asteroids_reward", loadedBountyStats["destroy_60_asteroids_reward"]);
+				scene_.SetBounty("destroy_60_asteroids_reward",10, loadedBountyStats["destroy_60_asteroids_reward"]);
 			}
 			else if (btn == "bounty2Button") {
 				std::cout << "bounty2Button clicked!" << std::endl;
-				scene_.SetBounty("kill_40_enemies_reward", loadedBountyStats["kill_40_enemies_reward"]);
+				scene_.SetBounty("kill_40_enemies_reward", 40,loadedBountyStats["kill_40_enemies_reward"]);
 			}
 			else if (btn == "bounty3Button") {
 				std::cout << "bounty3Button clicked!" << std::endl;
-				scene_.SetBounty("kill_boss_reward", loadedBountyStats["kill_boss_reward"]);
+				scene_.SetBounty("kill_boss_reward", 1,loadedBountyStats["kill_boss_reward"]);
 			}
 			else if (btn == "shipHealthButton") {
 				std::cout << "shipHealthButton clicked!" << std::endl;
@@ -1191,6 +1191,14 @@ void Game::CreateHUD(void) {
 	node->SetScale(glm::vec3(0.063, 0.063 *3.6, 1));//multiply by 17.72
 	node->SetPosition(glm::vec3(-0.9, 0.045, 0));
 
+	//bounty progress
+	node = CreateScreenInstance("bountyBox", "FlatSurface", "ScreenMaterial", HUD_MENU, "bountyBoxTexture");
+	node->SetScale(glm::vec3(0.4, 0.04, 1));//multiply by 10
+	node->SetPosition(glm::vec3(-0.75, 0.85, 0));
+
+	node = CreateScreenInstance("bountyBar", "FlatSurface", "ScreenMaterial", HUD_MENU, "bountyBarTexture");
+	node->SetScale(glm::vec3(0.397, 0.037, 1));//multiply by 10
+	node->SetPosition(glm::vec3(-0.75, 0.85, 0));
 	//enemy health bar
 	node = CreateScreenInstance("enemyHealthBox", "FlatSurface", "ScreenMaterial", ENEMY_HEALTH, "enemyHealthBoxTexture");
 	node->SetScale(glm::vec3(0.1, 0.1*0.1,1));//multiply by 0.2
@@ -1208,6 +1216,19 @@ void Game::CreateHUD(void) {
 	node->SetScale(glm::vec3(0.25));
 	node->SetPosition(glm::vec3(-0.85, -0.6, 0));
 
+	//currancy
+	node = CreateScreenInstance("creditsIcon", "FlatSurface", "ScreenMaterial", HUD_MENU, "creditsTexture");
+	node->SetScale(glm::vec3(0.1));
+	node->SetPosition(glm::vec3(0.93, 0.9, 0));
+
+	node = CreateScreenInstance("shardsIcon", "FlatSurface", "ScreenMaterial", HUD_MENU, "shardsTexture");
+	node->SetScale(glm::vec3(0.1));
+	node->SetPosition(glm::vec3(0.93, 0.77, 0));
+
+	node = CreateScreenInstance("slabsIcon", "FlatSurface", "ScreenMaterial", HUD_MENU, "slabsTexture");
+	node->SetScale(glm::vec3(0.1));
+	node->SetPosition(glm::vec3(0.93, 0.64, 0));
+
 	//WEAPONS
 	node = CreateScreenInstance("weaponsHUD", "FlatSurface", "ScreenMaterial", HUD_MENU, "laser_BatteryTexture");
 	node->SetScale(glm::vec3(0.384,0.08,1));//multiply by 4.8
@@ -1219,6 +1240,8 @@ void Game::CreateHUD(void) {
 	ButtonNode* btn = CreateButtonInstance("resumeButton", "FlatSurface", "ScreenMaterial", PAUSE_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.25,0.25,1));//multiply by 17.72crosshairDefaultTexture
 
+
+	//buttons
 	btn->SetPosition(glm::vec3(-0.8, 0.5, 0));
 	btn->SetText(new Text("Resume", glm::vec2(-1.0,-1.7), 0.3, glm::vec3(0,0.6,0.83)));
 

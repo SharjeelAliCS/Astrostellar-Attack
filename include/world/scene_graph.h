@@ -96,13 +96,13 @@ namespace game {
 
 			void SlowTime(double seconds);
 
-			void SetBounty(std::string bountyType, std::map<std::string, int> reward);
+			void SetBounty(std::string bountyType, int total, std::map<std::string, int> reward);
 			void CheckBounty();
 
 			// Setup the texture
 			void SetupDrawToTexture(float frame_width, float frame_height);
             // Draw the entire scene
-            void Draw(Camera *camera,bool to_texture = false,float frame_width=0, float frame_height=0);
+            void Draw(Camera *camera, int fps, bool to_texture = false,float frame_width=0, float frame_height=0);
 
 			// Process and draw the texture on the screen
 			void DisplayScreenSpace(GLuint program,std::string name, bool to_texture = false, float frame_width = 0, float frame_height = 0);
@@ -123,6 +123,11 @@ namespace game {
 			ScreenType GetCurrentMenu(void) { return active_menu_; }
 			void SetCurrentMenu(ScreenType t) { active_menu_ = t; }
 
+			void SetTextRenderer(TextRenderer* t) { text_renderer_ = t; }
+
+			int GetCurrentBountyKills(void);
+			float GetBountyProgress(void);
+
 		private:
 
 			// Frame buffer for drawing to texture
@@ -141,6 +146,8 @@ namespace game {
 			Player* player_;
 			SkyBox* skybox_;
 			RadarNode* radar_;
+
+			TextRenderer* text_renderer_;
 			std::vector<SceneNode*>* node_;
 			std::vector<Enemy *>* enemy_;
 			std::vector<AsteroidNode*>* asteroid_;
@@ -148,6 +155,7 @@ namespace game {
 			std::vector<ParticleNode*>* death_animations_;
 
 			std::string currentBounty;
+			int currentBountyTotal;
 			std::map<std::string, int> bountyReward;
 			int enemiesKilled;
 			int asteroidsDestroyed;
@@ -165,11 +173,13 @@ namespace game {
 
 			void UpdateRadar();
 			void UpdateRadarNode(glm::vec3 direction, glm::vec3 pos, glm::vec3 color, bool edge = false);
+			void DrawAllText(Camera* camera, int fps);
 			void DrawEnemyHealth(Camera* camera,glm::vec2 pos);
 			glm::vec3 CalculateDistanceFromPlayer(glm::vec3 pos);
 
 			float enemy_healthbar_distance_;
 			float radar_distance_;
+
 
     }; // class SceneGraph
 

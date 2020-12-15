@@ -83,6 +83,8 @@ namespace game {
 		Camera* GetCam(void) { return c_; }
 		bool IsFirstPerson(void){return first_person_;}
 		
+		int getCurrentWeaponAmmo(void);
+		int getCurrency(std::string type) { return playerInventory->at(type); }
 	private:
 		bool first_person_;
 		int projType;

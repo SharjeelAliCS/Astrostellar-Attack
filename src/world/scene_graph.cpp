@@ -35,6 +35,7 @@ SceneGraph::SceneGraph(void){
 	secondsSlow = 0;
 	enemiesKilled=0;
 	asteroidsDestroyed=0;
+	currentBountyTotal = -1;
 
 }
 
@@ -203,7 +204,33 @@ ButtonNode *SceneGraph::GetButton(std::string node_name) const {
 
 }
 
+void SceneGraph::DrawAllText(Camera* camera, int fps) {
+	text_renderer_->RenderText(new Text(std::to_string(fps), glm::vec2(-1, 0.95), 0.2f, glm::vec3(1.0, 1.0, 0)));
+	std::string weapon_name = player_->GetCurrentWeapon();
+	std::replace(weapon_name.begin(), weapon_name.end(), '_', ' ');
+	text_renderer_->RenderText(new Text(weapon_name, glm::vec2(0.5, -0.78), 0.35f, glm::vec3(0.0941, 0.698, 0.921)));
 
+	int ammo = player_->getCurrentWeaponAmmo();
+	if (ammo > -1) {
+		text_renderer_->RenderText(new Text(std::to_string(ammo), glm::vec2(0.9, -0.78), 0.35f, glm::vec3(0.0941, 0.698, 0.921)));
+	}
+
+	text_renderer_->RenderText(new Text(std::to_string(player_->getCurrency("credits")), glm::vec2(0.8, 0.88), 0.3f, glm::vec3(0.0941, 0.698, 0.921)));
+
+	text_renderer_->RenderText(new Text(std::to_string(player_->getCurrency("stellaranite_Fragments")), glm::vec2(0.8, 0.75), 0.3f, glm::vec3(0.0941, 0.64, 0.921)));
+
+	text_renderer_->RenderText(new Text(std::to_string(player_->getCurrency("stellaranite_Slabs")), glm::vec2(0.8, 0.62), 0.3f, glm::vec3(0.0941, 0.698, 0.921)));
+
+	if (currentBounty != "") {
+		std::string bounty_screen = currentBounty;
+		std::replace(bounty_screen.begin(), bounty_screen.end(), '_', ' ');
+		text_renderer_->RenderText(new Text(bounty_screen, glm::vec2(-0.95, 0.9), 0.2, glm::vec3(0.0941, 0.698, 0.921)));
+
+		std::string bounty_progress = std::to_string(GetCurrentBountyKills()) + "/" + std::to_string(currentBountyTotal);
+		text_renderer_->RenderText(new Text(bounty_progress, glm::vec2(-0.8, 0.83), 0.2, glm::vec3(1)));
+	}
+
+}
 void SceneGraph::SetupDrawToTexture(float frame_width, float frame_height) {
 
 	// Set up frame buffer
@@ -254,8 +281,7 @@ void SceneGraph::SetupDrawToTexture(float frame_width, float frame_height) {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertex_data), quad_vertex_data, GL_STATIC_DRAW);
 }
 
-
-void SceneGraph::Draw(Camera *camera, bool to_texture,float frame_width, float frame_height){
+void SceneGraph::Draw(Camera *camera, int fps,bool to_texture,float frame_width, float frame_height){
 	GLint viewport[4];
 
 	if (to_texture) {
@@ -323,6 +349,7 @@ void SceneGraph::Draw(Camera *camera, bool to_texture,float frame_width, float f
 		for (int i = 0; i < screen_.at(NONE).size(); i++) {
 			screen_.at(NONE)[i]->Draw(camera);
 		}
+		DrawAllText(camera, fps);
 		radar_->Draw(camera);
 
 		//DrawEnemyHealth(camera);
@@ -331,7 +358,7 @@ void SceneGraph::Draw(Camera *camera, bool to_texture,float frame_width, float f
 		for (int i = 0; i < screen_.at(HUD_MENU).size(); i++) {
 			screen_.at(HUD_MENU)[i]->Draw(camera);
 		}
-
+		DrawAllText(camera,fps);
 		//DrawEnemyHealth(camera);
 	}
 
@@ -428,19 +455,20 @@ void SceneGraph::DisplayScreenSpace(GLuint program, std::string name,bool to_tex
 	}
 }
 
-void SceneGraph::SetBounty(std::string bountyType, std::map<std::string, int> reward) {
+void SceneGraph::SetBounty(std::string bountyType, int total, std::map<std::string, int> reward) {
 	currentBounty = bountyType;
+	currentBountyTotal = total;
 	bountyReward = reward;
 }
 
 void SceneGraph::CheckBounty() {
-	if (currentBounty.compare("destroy_60_asteroids_reward") == 0 && asteroidsDestroyed>=60) {
+	if (currentBounty.compare("destroy_60_asteroids_reward") == 0 && asteroidsDestroyed>=currentBountyTotal) {
 		player_->CollectLoot(bountyReward);
 		SetCurrentScreen(MAIN_MENU);
 		asteroidsDestroyed = 0;
 		enemiesKilled = 0;
 		//reset the world for the next level TODO shar
-	}else if (currentBounty.compare("kill_40_enemies_reward") == 0 && enemiesKilled >= 40) {
+	}else if (currentBounty.compare("kill_40_enemies_reward") == 0 && enemiesKilled >= currentBountyTotal) {
 		player_->CollectLoot(bountyReward);
 		SetCurrentScreen(MAIN_MENU);
 		asteroidsDestroyed = 0;
@@ -448,7 +476,6 @@ void SceneGraph::CheckBounty() {
 		//reset the world for the next level TODO shar
 	}
 }
-
 
 void SceneGraph::CreateDeathAnimation(SceneNode* node) {
 	std::string name = node->GetName() + "_death";
@@ -598,7 +625,23 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 	}
 	return collided;
 }
-
+int SceneGraph::GetCurrentBountyKills(void) {
+	if (currentBounty == "destroy_60_asteroids_reward") {
+		return asteroidsDestroyed;
+	}
+	else if (currentBounty == "kill_40_enemies_reward") {
+		return enemiesKilled;
+	}
+	else if (currentBounty == "kill_boss_reward") {
+		return 0;
+	}
+	return -1;
+}
+float SceneGraph::GetBountyProgress(void) {
+	if (currentBountyTotal == -1) return 0;
+	return(float)GetCurrentBountyKills() / (float)currentBountyTotal;
+	
+}
 void SceneGraph::SetDeathAnimation(NodeResources dm) {
 	death_animation_rsc = dm;
 }
