@@ -529,6 +529,12 @@ bool SceneGraph::ProjectileCollision(AgentNode* node, bool player) {
 
 }
 
+void SceneGraph::DisableAllEnemiesFor(double sec) {
+	for (int i = 0; i < enemy_->size(); i++) {
+		enemy_->at(i)->DisableAttackFor(sec);
+	}
+}
+
 bool SceneGraph::EvasiveManeuversSuccessCheck(void) {
 	for (int i = 0; i < enemy_->size(); i++) {
 		std::vector<Projectile*>* missiles = enemy_->at(i)->GetMissiles();

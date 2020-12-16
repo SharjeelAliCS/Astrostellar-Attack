@@ -873,17 +873,15 @@ void Game::GetUserInput(float deltaTime) {
 		}
 		twoNotPressedLastFrame = glfwGetKey(window_, GLFW_KEY_2) == GLFW_RELEASE;
 		//nanite_swarm, levels increase duration. all enemies cannot shoot while this effect lasts
-		if (threeNotPressedLastFrame && glfwGetKey(window_, GLFW_KEY_2) == GLFW_PRESS) {
+		if (threeNotPressedLastFrame && glfwGetKey(window_, GLFW_KEY_3) == GLFW_PRESS) {
 			//if ammo use ability 
 			if (loadedPlayerInventory["nanite_Swarm_Ammo"] > 0) {
 				loadedPlayerInventory["nanite_Swarm_Ammo"]--;
-				float disableFor = loadedPlayerUpgrades["nanite_Swarp_BaseDisableDuration"] * pow(1.25, loadedPlayerUpgrades["nanite_Swarm_Duration_Level"]);
-				for (auto en = scene_.GetEnemies()->begin(); en != scene_.GetEnemies()->end(); ) {
-					(*en)->DisableAttackFor(disableFor);
-				}
+				std::cout << "swarm active\n";
+				scene_.DisableAllEnemiesFor(loadedWeaponStats["nanite_Swarm_BaseDisableDuration"] * pow(1.25, loadedPlayerUpgrades["nanite_Swarm_Duration_Level"]));
 			}
 		}
-		threeNotPressedLastFrame = glfwGetKey(window_, GLFW_KEY_2) == GLFW_RELEASE;
+		threeNotPressedLastFrame = glfwGetKey(window_, GLFW_KEY_3) == GLFW_RELEASE;
 		
 		if (spaceNotPressedLastFrame && glfwGetTime()>evasiveManeuversCooldown && glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS) {
 			//evasive manuvers

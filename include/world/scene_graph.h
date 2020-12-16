@@ -132,6 +132,8 @@ namespace game {
 			int GetCurrentBountyKills(void);
 			float GetBountyProgress(void);
 
+			void DisableAllEnemiesFor(double sec);
+
 			std::string GetCurrentBounty(void) { return currentBounty; }
 
 			void SetResetWorld(bool b) { reset_world_ = b; }
