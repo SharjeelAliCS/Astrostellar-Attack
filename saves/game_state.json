@@ -328,6 +328,8 @@
         "laser_Battery_ROF": 0.6,
         "laser_Battery_baseDmg": 20,
         "laser_Battery_baseTTL": 2.5,
+        "nanite_Swarm_BaseDisableDuration": 5,
+        "nanite_Swarm_Cost": 100,
         "nanite_Torpedo_BaseDisableDuration": 5,
         "nanite_Torpedo_Cost": 1,
         "nanite_Torpedo_ROF": 1,

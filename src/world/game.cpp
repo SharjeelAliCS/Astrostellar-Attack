@@ -852,6 +852,7 @@ void Game::GetUserInput(float deltaTime) {
 			if (loadedPlayerInventory["chrono_Surge_Ammo"] > 0) {
 				//slow time for 10 seconds, up to 25 at max level
 				scene_.SlowTime(10 * pow(1.2, loadedPlayerUpgrades["chrono_Surge_Level"]));
+				loadedPlayerInventory["chrono_Surge_Ammo"]--;
 			}
 		}
 		oneNotPressedLastFrame = glfwGetKey(window_, GLFW_KEY_1) == GLFW_RELEASE;
@@ -860,14 +861,29 @@ void Game::GetUserInput(float deltaTime) {
 		if (twoNotPressedLastFrame && glfwGetKey(window_, GLFW_KEY_2) == GLFW_PRESS) {
 			//if ammo use ability 
 			if (loadedPlayerInventory["emergency_Warp_Ammo"] > 0) {
-				//slow time for 5 seconds, up to 15 at max level
-				int range = (int)(150 * pow(1.22, loadedPlayerUpgrades["emergency_Warp_Level"]));
+				loadedPlayerInventory["emergency_Warp_Ammo"]--;
+				int range = (int)(200 * pow(1.22, loadedPlayerUpgrades["emergency_Warp_Level"]));
 				scene_.SlowTime(1);    //slow time during the effect
 				player->MakeInvuln(1); //player immune to damage during effect
-				player->SetPosition(player->GetPosition() + glm::vec3((rand() % range) - (range * 0.5), (rand() % range) - (range * 0.5), (rand() % range) - (range * 0.5)));
+				//warp the player to a random position within +/-[range/2, range]
+				player->SetPosition(player->GetPosition() + glm::vec3(((((rand() % range) * 0.5) + (range * 0.5)) * ((double)(rand() % 2) - 1)),
+																	  ((((rand() % range) * 0.5) + (range * 0.5)) * ((double)(rand() % 2) - 1)), 
+																	  ((((rand() % range) * 0.5) + (range * 0.5)) * ((double)(rand() % 2) - 1))));
 			}
 		}
 		twoNotPressedLastFrame = glfwGetKey(window_, GLFW_KEY_2) == GLFW_RELEASE;
+		//nanite_swarm, levels increase duration. all enemies cannot shoot while this effect lasts
+		if (threeNotPressedLastFrame && glfwGetKey(window_, GLFW_KEY_2) == GLFW_PRESS) {
+			//if ammo use ability 
+			if (loadedPlayerInventory["nanite_Swarm_Ammo"] > 0) {
+				loadedPlayerInventory["nanite_Swarm_Ammo"]--;
+				float disableFor = loadedPlayerUpgrades["nanite_Swarp_BaseDisableDuration"] * pow(1.25, loadedPlayerUpgrades["nanite_Swarm_Duration_Level"]);
+				for (auto en = scene_.GetEnemies()->begin(); en != scene_.GetEnemies()->end(); ) {
+					(*en)->DisableAttackFor(disableFor);
+				}
+			}
+		}
+		threeNotPressedLastFrame = glfwGetKey(window_, GLFW_KEY_2) == GLFW_RELEASE;
 		
 		if (spaceNotPressedLastFrame && glfwGetTime()>evasiveManeuversCooldown && glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS) {
 			//evasive manuvers
