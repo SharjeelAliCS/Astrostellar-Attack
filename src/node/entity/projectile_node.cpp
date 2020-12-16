@@ -57,7 +57,7 @@ namespace game {
 		if (type.compare("enemy") == 0) {
 			speed -= 350;
 			//travels 5 seconds
-			ttl = glfwGetTime() + 5;
+			ttl = glfwGetTime() + 10;
 			pierce = 0;
 			dmg = [this]() {
 				return 5 ;
@@ -70,6 +70,26 @@ namespace game {
 				}
 				else {
 					rot_speed*=0.05;
+				}
+				orientation_->RotateTowards(rot_speed);
+				position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
+			};
+		}else if (type.compare("boss") == 0) {
+			speed -= 400;
+			//travels 5 seconds
+			ttl = glfwGetTime() + 10;
+			pierce = 0;
+			dmg = [this]() {
+				return 10;
+			};
+			move = [this](float deltaTime) { //minor player tracking
+				orientation_->FaceTowards(position_, player_->GetPosition(), true);
+				float rot_speed = deltaTime;
+				if (player_->GetBoosted()) {
+					rot_speed *= 2;
+				}
+				else {
+					rot_speed *= 0.2;
 				}
 				orientation_->RotateTowards(rot_speed);
 				position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;

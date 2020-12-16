@@ -33,6 +33,8 @@ namespace game {
 		this->Scale(glm::vec3(6));
 		upgrades = new std::map<std::string, int>();
 		weaponStats = new std::map<std::string, float>();
+		proj_color_ = glm::vec3(0, 1, 0.18);
+
 	}
 
 	Enemy::~Enemy() {
@@ -41,7 +43,12 @@ namespace game {
 	void Enemy::InitState(void) {
 
 		FindNewDirection(0);
-		active_state_ = &Enemy::FindPlayer;
+		if (name_.compare("bossOrb") == 0) {
+			active_state_ = &Enemy::Fire;
+		}
+		else {
+			active_state_ = &Enemy::FindPlayer;
+		}
 	}
 
 	std::map<std::string, int> Enemy::GetDrops(void) {
@@ -77,21 +84,37 @@ namespace game {
 		}
 		time_since_fire_ = 0;
 
-		Projectile* missile = new Projectile("missile", "enemy", *upgrades, *weaponStats, false, proj_rsc_->geom, proj_rsc_->mat, proj_rsc_->tex);
+		std::string proj_type;
+		if (name_.compare("bossOrb") == 0) {
+			proj_type = "boss";
+		}
+		else {
+			proj_type = "enemy";
+		}
+		Projectile* missile = new Projectile("missile", proj_type, *upgrades, *weaponStats, false, proj_rsc_->geom, proj_rsc_->mat, proj_rsc_->tex);
 		missile->SetPlayer(player_);
 
 		missile->SetOrientation(GetOrientation());
 
+		glm::vec3 proj_pos = CalculateParentChildPos();
 		missile->SetSpeed(missile->GetSpeed() +this->getCurSpeed());
 		missile->init();
-		missile->SetPosition(position_);
-		missile->SetColor(glm::vec3(0, 1, 0.18));
+		missile->SetPosition(proj_pos);
+		missile->SetColor(proj_color_);
 		glm::vec3 pos = CalculateAimPosition(missile->GetSpeed());
 		float speed = player_->getCurSpeed()*0.1;
 
-		missile->GetOrientationObj()->FaceTowards(position_, pos);
+		missile->GetOrientationObj()->FaceTowards(proj_pos, pos);
 
 		missiles.push_back(missile);
+
+		if (name_.compare("Boss") == 0) {
+			std::cout << "boss is firing! " << missiles.size() << std::endl;
+		}
+		else {
+			std::cout << "enemies is firing! " << missiles.size() << std::endl;
+
+		}
 	}
 
 	void Enemy::FindNewDirection(float deltaTime) {
@@ -198,7 +221,7 @@ namespace game {
 
 		glm::vec3 player_pos = player_->GetPosition();
 
-		glm::vec3 delta = player_pos - position_;
+		glm::vec3 delta = player_pos - CalculateParentChildPos();
 
 		float a = glm::dot(player_velocity, player_velocity) - pow(speed, 2);
 		float b = 2 * glm::dot(player_velocity, delta);
@@ -222,15 +245,22 @@ namespace game {
 		return aim_spot;
 
 	}
+	void Enemy::DoNothing(float deltaTime) {
+
+	}
+	void Enemy::PoisonAura(float deltaTime) {
+		if (glm::distance(position_, player_->GetPosition()) < min_distance_) {
+			player_->damage(deltaTime * 20);
+		}
+	}
 
 	void Enemy::Update(float deltaTime) {
-		
+		if(name_.compare("Boss")==0)PoisonAura(deltaTime);
 		(this->*active_state_)(deltaTime);
 		time_since_last_move_ += deltaTime;
 
 		AgentNode::Update(deltaTime);
 	}
-
 
 	void Enemy::Draw(Camera* camera) {
 		AgentNode::Draw(camera);

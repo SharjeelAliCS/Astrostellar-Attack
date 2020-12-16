@@ -15,6 +15,7 @@
 #include "projectile_node.h"
 #include "screen_node.h"
 #include "skybox_node.h"
+#include "boss_node.h"
 #include "radar_node.h"
 #include "asteroid_node.h"
 #include "particle_node.h"
@@ -128,8 +129,11 @@ namespace game {
             // Create instance of one asteroid
 
             // Create entire random asteroid field
+			void ResetWorld(void);
+			void SetUpWorld(bool restart);
 
 			void CreateEnemies(int num_enemies = 100);
+			void CreateBoss(void);
 			void CreateAsteroids(int num_asteroids = 1500);
 			void CreateComets(int num_comets = 10);
 			// Create entire random asteroid field
@@ -142,6 +146,8 @@ namespace game {
 			CometNode *CreateCometNode(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name = std::string(""), std::string normal_name = std::string(""));
 
 			ParticleNode* CreateParticleInstance(int count, std::string particle_name, std::string object_name, std::string material_name, std::string texture_name = std::string(""));
+
+			Boss* CreateBossInstance(std::string entity_name, std::string object_name, std::string material_name, std::string normal_name = std::string(""));
 
 			Enemy *CreateEnemyInstance(std::string entity_name, std::string object_name, std::string material_name, std::string normal_name = std::string(""));
 

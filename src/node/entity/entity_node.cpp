@@ -82,6 +82,7 @@ namespace game {
 		if (particles_ != NULL) {
 			//particles_->Rotate(deltaTime * 30, glm::vec3(0,0,1));
 		}
+		SceneNode::Update(deltaTime);
 	}
 
 	glm::mat4 Entity::CalculateFinalTransformation(Camera* camera) {

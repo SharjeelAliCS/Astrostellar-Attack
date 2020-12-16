@@ -58,7 +58,6 @@ SceneNode::SceneNode(const std::string name, const Resource *geometry, const Res
 	color_ = glm::vec3(1);
 	exists_ = true;
 	parent_ = NULL;
-
 	node_resources_ = new NodeResources();
 
 }
@@ -148,12 +147,26 @@ void SceneNode::Translate(glm::vec3 trans){
     position_ += trans;
 }
 
+glm::vec3 SceneNode::CalculateParentChildPos(void) {
+	glm::vec3 position = this->GetPosition();
+	if (parent_ != NULL) {
+		glm::mat4 Orientation = glm::mat4_cast(orientation_->GetOrientation());
+		glm::mat4 GeomOrientation = glm::mat4_cast(geom_orientation_->GetOrientation());
+		glm::mat4 translation = glm::translate(glm::mat4(1.0), position);
+		glm::mat4 trans_joint = glm::translate(glm::mat4(1.0), joint_);
+		glm::mat4 trans_joint_inv = glm::translate(glm::mat4(1.0), -joint_);
 
+		glm::mat4 orbit = trans_joint_inv * Orientation * trans_joint*GeomOrientation;
+		glm::mat4 transf = parentTransform_ * translation * orbit;
+		position = glm::vec3(transf[3]);
+	}
+	return position;
+}
 bool SceneNode::Hit(glm::vec3 pos, float range) {
 	//std::cout << "distance is: " << glm::distance(pos, this->GetPosition()) << std::endl;
 	//std::cout << "range is: " <<  range + glm::length(this->GetScale()) << std::endl<< std::endl;
-
-	return glm::distance(pos, this->GetPosition()) <= range +this->GetScale().x;
+	glm::vec3 position = CalculateParentChildPos();
+	return glm::distance(pos, position) <= range +this->GetScale().x;
 }
 
 
@@ -275,13 +288,7 @@ void SceneNode::Draw(Camera *camera){
 	
 	glm::vec3 view_plane = camera->GetSide();
 	glm::vec3 screen_pos = GetScreenSpacePos(false, camera);
-	if (glm::dot(view_plane, (position_-camera->GetPosition())) < 0 &&
-		glm::distance(camera->GetPosition(), position_)< camera->GetFarDistance() &&
-		parent_!=NULL &&
-		parent_->GetName()!="player") {
-		return;
-	}
-	if (abs(screen_pos.x) > 1 || abs(screen_pos.y) > 1 || abs(screen_pos.z) > 1) {
+	if ( (abs(screen_pos.x) > 1 || abs(screen_pos.y) > 1 || abs(screen_pos.z) > 1) && name_.compare("Boss")) {
 		return;
 	}
     // Select proper material (shader program)
@@ -314,10 +321,18 @@ void SceneNode::Draw(Camera *camera){
 
 
 void SceneNode::Update(float deltaTime){
+	orientation_->RotateOverTime(deltaTime);
 
+	for (std::vector<SceneNode*>::iterator it = children_.begin(); it != children_.end(); ++it) {
+		(*it)->Update(deltaTime);
+	}
     // Do nothing for this generic type of scene node
 }
 
+void SceneNode::RotateOrientationInit(float speed, glm::vec3 axis) {
+	std::cout << "rotate initated" << std::endl;
+	orientation_->RotateOverTimeInit(speed, axis);
+}
 glm::mat4 SceneNode::CalculateFinalTransformation(Camera* camera) {
 	// World transformation
 	glm::mat4 Orientation = glm::mat4_cast(orientation_->GetOrientation());

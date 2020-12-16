@@ -21,8 +21,8 @@ void main()
 	float hazeIntensity = 1.65*(1-healthPercent)*d;
 
 	//required texture look up effect. Honestly I don't think this adds much to the effect but it was a requirement so here we are.
-	vec4 offx = texture(texture_map,uv0+vec2(0.005,0));
-	vec4 offy = texture(texture_map,uv0+vec2(0,0.005));
+	vec4 offx = texture(texture_map,uv0+vec2(0.002,0));
+	vec4 offy = texture(texture_map,uv0+vec2(0,0.002));
 	vec4 diff = abs(pixel-offx)+abs(pixel-offy);
 
 	//add the haze Intensity to the red attribute
