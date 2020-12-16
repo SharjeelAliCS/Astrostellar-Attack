@@ -23,13 +23,14 @@ namespace game {
 		Enemy(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture = NULL, const Resource *normal = NULL);
 		~Enemy();
 
-		void InitState(void);
+		virtual void InitState(void);
 
 		void FollowPlayer(float deltaTime);
 		void AttackPlayer(float deltaTime);
 		void FindPlayer(float deltaTime);
 		void MoveToRandomDirection(float deltaTime);
 		void MoveAwayFromPlayer(float deltaTime);
+		void DoNothing(float deltaTime);
 
 		void RamPlayer(float deltaTime);
 
@@ -44,10 +45,14 @@ namespace game {
 		std::string GetEnemyType(void) { return enemy_type_; }
 		void SetProjectileDmg(float d) { projectile_dmg_ = d; }
 
+		void PoisonAura(float deltaTime);
 		std::map<std::string, int> GetDrops(void);
 
 		void SetPhase(float p) { phase_ = p; }
 		float GetPhase(void){return phase_; }
+
+		void SetRateOfFire(float f) { rate_of_fire_ = f; }
+		void SetProjColor(glm::vec3 c) { proj_color_ = c; }
 	protected:
 		int phase_;
 		EnemyState active_state_;
@@ -65,6 +70,8 @@ namespace game {
 		float min_distance_;
 		glm::vec3 rotation_axis_;
 		glm::vec3 CalculateAimPosition(float speed);
+		glm::vec3 proj_color_;
+
 
 	}; // class GameObj
 

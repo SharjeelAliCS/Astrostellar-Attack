@@ -295,6 +295,7 @@ void Game::LoadLastSave(void) {
 
 void Game::SetupScene(void){
 
+	
 	scene_.SetAudio(audio_);
 	NodeResources* rsc = GetResources("particleExplosion", "ExplosionParticleMaterial", "jetParticleTexture", "");
 
@@ -303,45 +304,46 @@ void Game::SetupScene(void){
     // Set background color for the scene
     scene_.SetBackgroundColor(viewport_background_color_g);
 
+	SceneNode* skybox = CreateInstance("skybox", "skybox", "SkyBoxMaterial", SKYBOX, "skyboxTexture");
+	skybox->SetScale(glm::vec3(0.25));
+
+	CreateHUD();
+
+	scene_.UpdateScreenSizeNodes(window_width, window_height);
+	// Setup drawing to texture
+	scene_.SetupDrawToTexture(window_width, window_height);
+
+	SetUpWorld(true);
+
+}
+
+void Game::SetUpWorld(bool restart) {
+
+	glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	animating_ = false;
 	//create player object
-	Player* player = dynamic_cast<Player*>(CreateInstance("player", "ship", "TextureShader", PLAYER,"shipTexture"));
-	NodeResources* proj_rsc = GetResources("SimpleCylinderMesh", "ColoredMaterial", "","");
+	Player* player = dynamic_cast<Player*>(CreateInstance("player", "ship", "TextureShader", PLAYER, "shipTexture"));
+	NodeResources* proj_rsc = GetResources("SimpleCylinderMesh", "ColoredMaterial", "", "");
 	scene_.GetPlayer()->SetProjRsc(proj_rsc);
 	player->SetScale(glm::vec3(2));
 	player->SetOrientation(-90, glm::vec3(0, 1, 0));
 	player->SetAudio(audio_);
 
-	player->SetUpgrades(&loadedPlayerUpgrades);
-	player->SetPlayerLoadout(&loadedPlayerLoadout);
-	player->SetPlayerStats(&loadedPlayerStats);
-	player->SetPlayerInventory(&loadedPlayerInventory);
+	LoadLastSave();
 
-	player->SetWeaponStats(&loadedWeaponStats);
-
-	std::cout << "\nplayer created\n";
-
-    // Create an object for showing the texture
-	// instance contains identifier, geometry, shader, and texture
-
-	//skybox->SetOrientation(180, glm::vec3(1, 0, 0));
-	//create enemies
 	CreateEnemies(numEnemies);
 	numEnemies = scene_.GetEnemies()->size(); //accounts for any rounding errors, should be handled by chosen number (60) but just in case that changes later
 	CreateAsteroids(numAsteroids);
 	CreateComets();
 	//ame::SceneNode *wall = CreateInstance("Canvas", "FlatSurface", "Procedural", "RockyTexture"); // must supply a texture, even if not used
 	//create skybox
-	SceneNode* skybox = CreateInstance("skybox", "skybox", "SkyBoxMaterial", SKYBOX, "skyboxTexture");
-	skybox->SetScale(glm::vec3(0.25));
-
-	CreateHUD();
 
 	//create particles:
-	ParticleNode* pn = CreateParticleInstance(20000, "jetstream", "particleStream", "ParticleMaterial","jetParticleTexture");
+	ParticleNode* pn = CreateParticleInstance(20000, "jetstream", "particleStream", "ParticleMaterial", "jetParticleTexture");
 	pn->SetOrientation(90, glm::vec3(0, 1, 0));
 	pn->Rotate(-90, glm::vec3(1, 0, 0));
 	pn->Translate(glm::vec3(1, 0.5, -3));
-	pn->SetJoint(glm::vec3(0,0.2,-1));
+	pn->SetJoint(glm::vec3(0, 0.2, -1));
 	pn->SetScale(glm::vec3(8));
 	pn->SetDraw(false);
 	pn->SetBlending(true);
@@ -354,13 +356,20 @@ void Game::SetupScene(void){
 	scene_.GetScreen("cockpit")->SetDraw(true);
 	scene_.GetPlayer()->SetDraw(false);
 	camera_.SetZoom(0);
+	camera_.SetView(camera_position_1st_g, camera_look_at_g, camera_up_g);
+	// Set projection
+
+	player->setAsteroids(scene_.GetAsteroids());
+	player->setComets(scene_.GetComets());
+	player->setEnemies(scene_.GetEnemies());
+	player->setDeathAnimations(scene_.GetDeathAnimations());
+	player->setCam(&camera_);
+
 	SetSaveState();
-
-	scene_.UpdateScreenSizeNodes(window_width, window_height);
-
-	// Setup drawing to texture
-	scene_.SetupDrawToTexture(window_width, window_height);
-
+}
+void Game::ResetWorld(void) {
+	scene_.ClearData();
+	SetUpWorld(true);
 }
 
 void Game::SetSaveState(void) {
@@ -376,6 +385,7 @@ void Game::SetSaveState(void) {
 	std::cout << data << std::endl;
 	//std::string fruit = (*data)["fruit"];
 }
+
 void Game::MainLoop(void){
 
     // Loop while the user did not close the window
@@ -385,13 +395,17 @@ void Game::MainLoop(void){
 	int fps = 0.0;
 	Player* player = scene_.GetPlayer();
 
-	player->setAsteroids(scene_.GetAsteroids());
-	player->setComets(scene_.GetComets());
-	player->setEnemies(scene_.GetEnemies());
-	player->setDeathAnimations(scene_.GetDeathAnimations());
-	player->setCam(&camera_);
-
     while (!glfwWindowShouldClose(window_)){
+
+		if (scene_.GetResetWorld()) {
+			ResetWorld();
+			player = scene_.GetPlayer();
+			scene_.SetResetWorld(false);
+		}
+		else if (scene_.GetCurrentMenu() == DEATH_MENU) {
+			animating_ = false;
+			glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
 
 		static double last_time = glfwGetTime();
 		static double last_update = glfwGetTime();
@@ -410,7 +424,6 @@ void Game::MainLoop(void){
 				scene_.Update(deltaTime);
 
 				ScreenType menu = scene_.GetCurrentMenu();
-
 				switch (menu) {
 				case MAIN_MENU:
 					break;
@@ -425,6 +438,8 @@ void Game::MainLoop(void){
 					scene_.GetScreen("healthBar")->SetProgressX(player->getHealthPercent());
 					scene_.GetScreen("shieldBar")->SetProgressX(player->GetShieldPercent());
 					scene_.GetScreen("bountyBar")->SetProgressX(scene_.GetBountyProgress());
+					Boss* boss = scene_.GetBoss();
+					if(boss!=NULL)scene_.GetScreen("bossHealthBar")->SetProgressX(boss->getHealthPercent());
 					std::string currWeapon = player->GetCurrentWeapon() + "Texture";
 					scene_.GetScreen("weaponsHUD")->SetTexture(resman_.GetResource(currWeapon));
 					scene_.GetScreen("boostBar")->SetProgressY(player->getBoostPercent());
@@ -584,19 +599,37 @@ void Game::GetUserInput(float deltaTime) {
 				scene_.SetCurrentScreen(HUD_MENU);
 				animating_ = true;
 				glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+			
+			}
+			else if (btn == "mainMenuRestartButton" || btn =="mainMenuRestartDeathButton") {
+				scene_.SetCurrentScreen(MAIN_MENU);
+				animating_ = false;
+				scene_.SetResetWorld(true);
+				glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				
+			}
+			else if (btn == "quitDesktopButton" || btn=="quitDesktopDeathButton") {
+				glfwSetWindowShouldClose(window_, true);
 			}
 			else if (btn == "startButton") {
-				scene_.SetCurrentScreen(HUD_MENU);
-				animating_ = true;
-				glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+				if (scene_.GetCurrentBounty().compare("")) {
+					scene_.SetCurrentScreen(HUD_MENU);
+					animating_ = true;
+					glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+				}
 			}
 			else if (btn == "shopButton") {
+				scene_.SetCurrentScreen(SHOP_MENU);
 				std::cout << "shop clicked!" << std::endl;
+			}
+			else if (btn == "menuButton") {
+				scene_.SetCurrentScreen(MAIN_MENU);
+				std::cout << "menu clicked!" << std::endl;
 			}
 			else if (btn == "bounty1Button") {
 				
 				std::cout << "bounty1Button clicked!" << std::endl;
-				scene_.SetBounty("destroy_60_asteroids_reward",10, loadedBountyStats["destroy_60_asteroids_reward"]);
+				scene_.SetBounty("destroy_60_asteroids_reward",60, loadedBountyStats["destroy_60_asteroids_reward"]);
 			}
 			else if (btn == "bounty2Button") {
 				std::cout << "bounty2Button clicked!" << std::endl;
@@ -604,6 +637,7 @@ void Game::GetUserInput(float deltaTime) {
 			}
 			else if (btn == "bounty3Button") {
 				std::cout << "bounty3Button clicked!" << std::endl;
+				CreateBoss();
 				scene_.SetBounty("kill_boss_reward", 1,loadedBountyStats["kill_boss_reward"]);
 			}
 			else if (btn == "shipHealthButton") {
@@ -983,8 +1017,10 @@ Game::~Game(){
 void Game::SetEnemyStats(std::string type, Enemy* en, json data) {
 
 	en->SetEnemyType(type);
+
 	en->SetMovementSpeed(data[type]["speed"]);
 	en->SetMaxHealth(data[type]["health"]);
+
 	en->SetProjectileDmg(data[type]["bullet_damage"]);
 	en->SetDamage(data[type]["ram_damage"]);
 
@@ -994,6 +1030,51 @@ void Game::SetEnemyStats(std::string type, Enemy* en, json data) {
 		drops[gameData.key()] = gameData.value();
 	}
 	en->SetDrops(drops);
+}
+
+void Game::CreateBoss(void) {
+	Resource* dataResource = resman_.GetResource("save");
+	json data = dataResource->GetJSON()["enemies"];
+
+	Boss *en = CreateBossInstance("Boss", "bossMesh", "TextureShader", "bossTexture");
+	NodeResources* proj = GetResources("SimpleCylinderMesh", "ColoredMaterial", "", "");
+	en->SetScale(glm::vec3(30));
+	en->SetPosition(glm::vec3(-1000, 0, 0));
+	SetEnemyStats("Boss", en, data);
+	en->SetProjRsc(proj);
+	en->SetPlayer(scene_.GetPlayer());
+	en->SetProjectileDmg(data["Boss"]["orbs"]["bullet_damage"]);
+	en->SetProjColor(glm::vec3(1, 1, 0));
+	NodeResources* rsc = GetResources("bossOrbMesh", "TextureShader", "bossOrbTexture", "");
+	// Create asteroid instance
+	int total_orbs = data["Boss"]["orbs"]["count"];
+	en->SetRateOfFire(1);
+
+	en->SetPlayer(scene_.GetPlayer());
+
+	for (int i = 0; i < total_orbs; i++) {
+		Enemy *pn = new Enemy("bossOrb", rsc->geom, rsc->mat, rsc->tex);
+		pn->SetPosition(glm::vec3(100, 0, 0));
+		pn->SetJoint(glm::vec3(100, 0, 0));
+		pn->Rotate(360/total_orbs*i, glm::vec3(0, 0, 1));
+
+		pn->RotateOrientationInit(40, glm::vec3(0, 0, 1));
+		pn->SetScale(glm::vec3(10));
+		pn->AddParent(en);
+
+		pn->SetNodeResources(rsc);
+		pn->SetProjRsc(proj);
+		pn->SetPlayer(scene_.GetPlayer());
+		pn->SetProjectileDmg(data["Boss"]["orbs"]["bullet_damage"]);
+		pn->SetProjColor(glm::vec3(1, 1, 0));
+		float rof = data["Boss"]["orbs"]["rof"];
+		rof += -1 + 1 * ((float)rand() / RAND_MAX);
+		pn->SetRateOfFire(rof);
+
+		en->AddOrb(pn);
+
+
+	}
 }
 void Game::CreateEnemies(int num_enemies) {
 
@@ -1206,6 +1287,15 @@ void Game::CreateHUD(void) {
 	node = CreateScreenInstance("enemyHealthBar", "FlatSurface", "ScreenMaterial", ENEMY_HEALTH, "enemyHealthBarTexture");
 	node->SetScale(glm::vec3(0.1, 0.1*0.1, 1));//multiply by 0.2
 
+	//boss health bar
+	node = CreateScreenInstance("bossHealthBox", "FlatSurface", "ScreenMaterial", HUD_MENU, "bossBoxTexture");
+	node->SetScale(glm::vec3(0.8, 0.04, 1));//multiply by 0.2
+	node->SetPosition(glm::vec3(0, -0.87, 0));
+
+	node = CreateScreenInstance("bossHealthBar", "FlatSurface", "ScreenMaterial", HUD_MENU, "bossBarTexture");
+	node->SetScale(glm::vec3(0.79, 0.034, 1));//multiply by 0.2
+	node->SetPosition(glm::vec3(0, -0.87, 0));
+
 	//crosshair
 	node = CreateScreenInstance("crosshair", "FlatSurface", "ScreenMaterial", HUD_MENU, "crosshairDefaultTexture");
 	node->SetScale(glm::vec3(0.1));
@@ -1239,16 +1329,41 @@ void Game::CreateHUD(void) {
 
 	ButtonNode* btn = CreateButtonInstance("resumeButton", "FlatSurface", "ScreenMaterial", PAUSE_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.25,0.25,1));//multiply by 17.72crosshairDefaultTexture
-
-
-	//buttons
 	btn->SetPosition(glm::vec3(-0.8, 0.5, 0));
 	btn->SetText(new Text("Resume", glm::vec2(-1.0,-1.7), 0.3, glm::vec3(0,0.6,0.83)));
 
+	btn = CreateButtonInstance("quitDesktopButton", "FlatSurface", "ScreenMaterial", PAUSE_MENU, "pauseButton");
+	btn->SetScale(glm::vec3(0.25, 0.25, 1));//multiply by 17.72crosshairDefaultTexture
+	btn->SetPosition(glm::vec3(-0.45, 0.5, 0));
+	btn->SetText(new Text("Desktop", glm::vec2(-1.0, -1.7), 0.3, glm::vec3(0, 0.6, 0.83)));
+
+	btn = CreateButtonInstance("mainMenuRestartButton", "FlatSurface", "ScreenMaterial", PAUSE_MENU, "pauseButton");
+	btn->SetScale(glm::vec3(0.25, 0.25, 1));//multiply by 17.72crosshairDefaultTexture
+	btn->SetPosition(glm::vec3(-0.05, 0.5, 0));
+	btn->SetText(new Text("Main Menu", glm::vec2(-1.0, -1.7), 0.3, glm::vec3(0, 0.6, 0.83)));
+
+	//--------------------------DEATH MENU---------------------
+
+	btn = CreateButtonInstance("quitDesktopDeathButton", "FlatSurface", "ScreenMaterial", DEATH_MENU, "pauseButton");
+	btn->SetScale(glm::vec3(0.25, 0.25, 1));//multiply by 17.72crosshairDefaultTexture
+	btn->SetPosition(glm::vec3(-0.45, 0.5, 0));
+	btn->SetText(new Text("Desktop", glm::vec2(-1.0, -1.7), 0.3, glm::vec3(0, 0.6, 0.83)));
+
+	btn = CreateButtonInstance("mainMenuRestartDeathButton", "FlatSurface", "ScreenMaterial", DEATH_MENU, "pauseButton");
+	btn->SetScale(glm::vec3(0.25, 0.25, 1));//multiply by 17.72crosshairDefaultTexture
+	btn->SetPosition(glm::vec3(-0.05, 0.5, 0));
+	btn->SetText(new Text("Main Menu", glm::vec2(-1.0, -1.7), 0.3, glm::vec3(0, 0.6, 0.83)));
+
+	//buttons
 	btn = CreateButtonInstance("shopButton", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(-0.85, 0.7, 0));
 	btn->SetText(new Text("Shop", glm::vec2(-1.0, -1.7), 0.3, glm::vec3(1.0,1.0,1.0)));
+
+	btn = CreateButtonInstance("menuButton", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
+	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
+	btn->SetPosition(glm::vec3(-0.85, 0.7, 0));
+	btn->SetText(new Text("Main Menu", glm::vec2(-1.0, -1.7), 0.3, glm::vec3(1.0, 1.0, 1.0)));
 
 	btn = CreateButtonInstance("startButton", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
@@ -1270,168 +1385,168 @@ void Game::CreateHUD(void) {
 	btn->SetPosition(glm::vec3(0.15, 0.7, 0));
 	btn->SetText(new Text("Bounty 3", glm::vec2(-1.0, -1.7), 0.3, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("shipHealthButton", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("shipHealthButton", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0.4, 0.7, 0));
 	btn->SetText(new Text("Upgrade health", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("shipShieldButton", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("shipShieldButton", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0.65, 0.7, 0));
 	btn->SetText(new Text("Upgrade shields", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("shipSpeedButton", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("shipSpeedButton", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0.9, 0.7, 0));
 	btn->SetText(new Text("Upgrade speeds", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("laserRangeBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("laserRangeBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(-0.85, 0.3, 0));
 	btn->SetText(new Text("laser range", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("laserDmgBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("laserDmgBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(-0.85, -0.1, 0));
 	btn->SetText(new Text("laser dmg", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("laserPierceBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("laserPierceBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(-0.85, -0.5, 0));
 	btn->SetText(new Text("laser pierce", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("NaniteAmmoBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("NaniteAmmoBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(-0.6, 0.3, 0));
 	btn->SetText(new Text("nanite ammo", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("NaniteDmgBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("NaniteDmgBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(-0.6, -0.1, 0));
 	btn->SetText(new Text("nanite dmg", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("NaniteDurBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("NaniteDurBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(-0.6, -0.5, 0));
 	btn->SetText(new Text("nanite duration", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("chargeAmmoBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("chargeAmmoBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(-0.35, 0.3, 0));
 	btn->SetText(new Text("charge ammo", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("chargeDmgBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("chargeDmgBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(-0.35, -0.1, 0));
 	btn->SetText(new Text("charge dmg", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("chargeSizeBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("chargeSizeBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(-0.35, -0.5, 0));
 	btn->SetText(new Text("charge size", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("sniperAmmoBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("sniperAmmoBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(-0.1, 0.3, 0));
 	btn->SetText(new Text("sniper ammo", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("sniperDmgBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("sniperDmgBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(-0.1, -0.1, 0));
 	btn->SetText(new Text("sniper dmg", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("sniperRangeBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("sniperRangeBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(-0.1, -0.5, 0));
 	btn->SetText(new Text("sniper range", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
 
-	btn = CreateButtonInstance("shotgunAmmoBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("shotgunAmmoBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0.15, 0.3, 0));
 	btn->SetText(new Text("shotgun ammo", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("shotgunDmgBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("shotgunDmgBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0.15, -0.1, 0));
 	btn->SetText(new Text("shotgun dmg", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("shotgunNumBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("shotgunNumBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0.15, -0.5, 0));
 	btn->SetText(new Text("shotgun #shot", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("pursuerAmmoBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("pursuerAmmoBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0.40, 0.3, 0));
 	btn->SetText(new Text("pursuer ammo", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("pursuerROFBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("pursuerROFBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0.40, -0.1, 0));
 	btn->SetText(new Text("pursuer ROF", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("NaniteStackBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("NaniteStackBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0.40, -0.5, 0));
 	btn->SetText(new Text("nanite stack", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("naniteSwarmDmgBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("naniteSwarmDmgBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0.65, 0.3, 0));
 	btn->SetText(new Text("naniteS Dmg", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("naniteSwarmDurBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("naniteSwarmDurBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0.65, -0.1, 0));
 	btn->SetText(new Text("naniteS Dur", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("naniteSwarmRadiusBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("naniteSwarmRadiusBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0.65, -0.5, 0));
 	btn->SetText(new Text("naniteS radius", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("emgWarpAmmoBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("emgWarpAmmoBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0.9, 0.3, 0));
 	btn->SetText(new Text("emgWarp Ammo", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("chronoSurgeAmmoBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("chronoSurgeAmmoBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0.9, -0.1, 0));
 	btn->SetText(new Text("chronoSurge Ammo", glm::vec2(-1.0, -1.7), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 	//-------------------
-	btn = CreateButtonInstance("barrierDurBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("barrierDurBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(-0.85, -0.9, 0));
 	btn->SetText(new Text("Barrier Dur", glm::vec2(-1.0, 0), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("barrierSizeBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("barrierSizeBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(-0.60, -0.9, 0));
 	btn->SetText(new Text("Barrier Size", glm::vec2(-1.0, 0), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("batteryOverChargeBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("batteryOverChargeBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(-0.35, -0.9, 0));
 	btn->SetText(new Text("Barrier OChrg", glm::vec2(-1.0, 0), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("chronoSurgeBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("chronoSurgeBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(-0.1, -0.9, 0));
 	btn->SetText(new Text("Chrono Surge", glm::vec2(-1.0, 0), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("emergencyWarpBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("emergencyWarpBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0.15, -0.9, 0));
 	btn->SetText(new Text("Emg Warp", glm::vec2(-1.0, 0), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("emergencyManuBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("emergencyManuBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0.4, -0.9, 0));
 	btn->SetText(new Text("Emg Manu", glm::vec2(-1.0, 0), 0.2, glm::vec3(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("RepairBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "pauseButton");
+	btn = CreateButtonInstance("RepairBtn", "FlatSurface", "ScreenMaterial", SHOP_MENU, "pauseButton");
 	btn->SetScale(glm::vec3(0.20, 0.20, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0.65, -0.9, 0));
 	btn->SetText(new Text("Repair", glm::vec2(-1.0, 0), 0.2, glm::vec3(1.0, 1.0, 1.0)));
@@ -1495,6 +1610,21 @@ ParticleNode* Game::CreateParticleInstance(int count, std::string particle_name,
 	ParticleNode *pn = new ParticleNode(particle_name, rsc->geom, rsc->mat, rsc->tex);
 	return pn;
 }
+Boss *Game::CreateBossInstance(std::string entity_name, std::string object_name, std::string material_name, std::string normal_name) {
+	NodeResources* rsc = GetResources(object_name, material_name, normal_name, "");
+	// Create asteroid instance
+	NodeResources* proj = GetResources("SimpleCylinderMesh", "ColoredMaterial", "", "");
+	Boss *en = new Boss(entity_name, rsc->geom, rsc->mat, rsc->tex, rsc->norm);
+
+	en->SetNodeResources(rsc);
+
+	en->SetProjRsc(proj);
+	scene_.AddBoss(en);
+	en->SetScale(glm::vec3(3));
+	en->SetPlayer(scene_.GetPlayer());
+	return en;
+}
+
 Enemy *Game::CreateEnemyInstance(std::string entity_name, std::string object_name, std::string material_name, std::string normal_name) {
 	NodeResources* rsc = GetResources(object_name, material_name, normal_name,"");
 	// Create asteroid instance

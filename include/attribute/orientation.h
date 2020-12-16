@@ -49,6 +49,9 @@ namespace game {
 
 		void FaceTowards(glm::vec3 cur_pos, glm::vec3 target_pos, bool rotate=false);
 		void RotateTowards(float speed);
+
+		void RotateOverTimeInit(float speed, glm::vec3 axis);
+		void RotateOverTime(float deltatime);
 	private:
 		glm::vec3 forward_; // Initial forward vector
 		glm::vec3 side_; // Initial side vector
@@ -57,6 +60,7 @@ namespace game {
 		glm::vec3 rotate_axis_;
 		float rotate_cur_angle_;
 		float rotate_max_angle_;
+		float rotate_speed_;
 
 	}; // class Orientation
 

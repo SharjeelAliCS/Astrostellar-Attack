@@ -37,7 +37,7 @@ namespace game {
 		float getCurSpeed(void) { return movement_speed; }
 		
 		//Check if the object has been hit using a pos and a range.
-		bool Hit(glm::vec3 pos, float range);
+		virtual bool Hit(glm::vec3 pos, float range);
 		bool HitTorus(glm::vec3 pos, float range);
 
 		// Set node attributes
@@ -88,6 +88,9 @@ namespace game {
 
 		NodeResources* GetNodeResources(void) { return node_resources_; }
 		void SetNodeResources(NodeResources* n) { node_resources_ = n; }
+
+		void RotateOrientationInit(float speed, glm::vec3 axis);
+		glm::vec3 CalculateParentChildPos(void);
 	protected:
 
 		NodeResources* node_resources_;
@@ -130,6 +133,8 @@ namespace game {
 
 		virtual void SetupBlending(void);
 		virtual  glm::mat4 CalculateFinalTransformation(Camera* camera);
+		
+
 
 	}; // class SceneNode
 

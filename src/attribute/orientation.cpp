@@ -19,6 +19,9 @@ namespace game {
 	Orientation::Orientation(void) {
 		rotate_cur_angle_ = 0;
 		rotate_max_angle_ = -1;
+
+		rotate_speed_ = 0;
+		rotate_axis_ = glm::vec3(1);
 	}
 
 
@@ -151,5 +154,14 @@ namespace game {
 		orientation_ = glm::quat();
 	}
 
+	void Orientation::RotateOverTimeInit(float speed, glm::vec3 axis) {
+		rotate_speed_ = speed;
+		rotate_axis_ = axis;
+		std::cout << "inited orienation" << std::endl;
+	}
+	void Orientation::RotateOverTime(float deltatime) {
+		Rotate(rotate_speed_*deltatime, rotate_axis_);
+		//std::cout << "rotated by" << deltatime << " and " << rotate_speed_ << std::endl;
+	}
 
 } // namespace game

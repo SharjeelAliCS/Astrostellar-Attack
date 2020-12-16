@@ -10,6 +10,7 @@
 
 #include "scene_node.h"
 #include "enemy_node.h"
+#include "boss_node.h"
 #include "player_node.h"
 #include "projectile_node.h"
 #include "screen_node.h"
@@ -41,6 +42,7 @@ namespace game {
 	enum ScreenType {
 		HUD_MENU,
 		MAIN_MENU,
+		DEATH_MENU,
 		PAUSE_MENU,
 		CREDITS_MENU,
 		SHOP_MENU,
@@ -90,6 +92,8 @@ namespace game {
 			void AddButton(ButtonNode *node, ScreenType type);
 			ButtonNode *GetButton(std::string node_name) const;
 
+			void AddBoss(Boss* boss) { boss_ = boss; }
+			Boss* GetBoss(void) { return boss_; }
 			void SetCurrentScreen(ScreenType t);
 
 			bool EvasiveManeuversSuccessCheck(void);
@@ -128,6 +132,12 @@ namespace game {
 			int GetCurrentBountyKills(void);
 			float GetBountyProgress(void);
 
+			std::string GetCurrentBounty(void) { return currentBounty; }
+
+			void SetResetWorld(bool b) { reset_world_ = b; }
+			bool GetResetWorld(void) { return reset_world_; }
+			void ClearData(void);
+
 		private:
 
 			// Frame buffer for drawing to texture
@@ -146,6 +156,7 @@ namespace game {
 			Player* player_;
 			SkyBox* skybox_;
 			RadarNode* radar_;
+			Boss* boss_;
 
 			TextRenderer* text_renderer_;
 			std::vector<SceneNode*>* node_;
@@ -179,6 +190,8 @@ namespace game {
 
 			float enemy_healthbar_distance_;
 			float radar_distance_;
+
+			bool reset_world_;
 
 
     }; // class SceneGraph

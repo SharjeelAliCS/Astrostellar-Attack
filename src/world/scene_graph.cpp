@@ -36,6 +36,9 @@ SceneGraph::SceneGraph(void){
 	enemiesKilled=0;
 	asteroidsDestroyed=0;
 	currentBountyTotal = -1;
+	currentBounty = "";
+	boss_ = NULL;
+	reset_world_ = false;
 
 }
 
@@ -307,6 +310,7 @@ void SceneGraph::Draw(Camera *camera, int fps,bool to_texture,float frame_width,
 			(*node_)[i]->Draw(camera);
 		}
 
+		if (boss_ != NULL)boss_->Draw(camera);
 		float radius = 0.05;
 		for (int i = 0; i < enemy_->size(); i++) {
 			(*enemy_)[i]->Draw(camera);
@@ -389,6 +393,20 @@ void SceneGraph::DrawEnemyHealth(Camera* camera, glm::vec2 pos) {
 	
 }
 
+void SceneGraph::ClearData(void) {
+	player_ = NULL;
+	boss_ = NULL;
+
+	node_->clear();
+	enemy_->clear();
+	asteroid_->clear();
+	comet_->clear();
+	death_animations_->clear();
+
+	asteroidsDestroyed = 0;
+	enemiesKilled = 0;
+	currentBounty = "";
+}
 void SceneGraph::DisplayScreenSpace(GLuint program, std::string name,bool to_texture, float frame_width, float frame_height) {
 	GLint viewport[4];
 	if (to_texture) {
@@ -459,21 +477,26 @@ void SceneGraph::SetBounty(std::string bountyType, int total, std::map<std::stri
 	currentBounty = bountyType;
 	currentBountyTotal = total;
 	bountyReward = reward;
+
 }
 
 void SceneGraph::CheckBounty() {
+	//std::cout << currentBounty << " for " << boss_->GetExists() << std::endl;
 	if (currentBounty.compare("destroy_60_asteroids_reward") == 0 && asteroidsDestroyed>=currentBountyTotal) {
 		player_->CollectLoot(bountyReward);
 		SetCurrentScreen(MAIN_MENU);
-		asteroidsDestroyed = 0;
-		enemiesKilled = 0;
+		reset_world_ = true;
 		//reset the world for the next level TODO shar
 	}else if (currentBounty.compare("kill_40_enemies_reward") == 0 && enemiesKilled >= currentBountyTotal) {
 		player_->CollectLoot(bountyReward);
 		SetCurrentScreen(MAIN_MENU);
-		asteroidsDestroyed = 0;
-		enemiesKilled = 0;
+		reset_world_ = true;
 		//reset the world for the next level TODO shar
+	}
+	else if (currentBounty.compare("kill_boss_reward") == 0 && boss_!=NULL && !boss_->Exists()) {
+		player_->CollectLoot(bountyReward);
+		SetCurrentScreen(MAIN_MENU);
+		reset_world_ = true;
 	}
 }
 
@@ -482,7 +505,7 @@ void SceneGraph::CreateDeathAnimation(SceneNode* node) {
 	ParticleNode* pn = new ParticleNode(name,death_animation_rsc.geom, death_animation_rsc.mat, death_animation_rsc.tex);
 	glm::vec3 scale = node->GetScale()*(float)0.1;
 	pn->SetScale(scale);
-	pn->SetPosition(node->GetPosition());
+	pn->SetPosition(node->CalculateParentChildPos());
 	pn->SetBlending(true);
 	pn->SetColor(glm::vec3(0.58,0.29,0));
 	pn->SetDuration(0.5);
@@ -528,15 +551,53 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 	std::vector<Enemy*> splitter_list;
 	bool newSplitters = false;
 	if (player) {
+
+		if (boss_ != NULL) {
+			
+			std::vector<Enemy*>* orbs = boss_->GetOrbs();
+			if (orbs->size() == 0) {
+				if (boss_->Hit(node->GetPosition(), boss_->GetScale().x * 0.2)) {
+					node->damage(boss_->GetDamage());
+					boss_->damage(node->GetDamage());
+					collided = true;
+					audio_->playAgain("enemyHit");
+
+
+					if (!boss_->Exists()) {
+
+						CreateDeathAnimation(boss_);
+						audio_->playAgain("asteroidExplosion");
+					}
+				}
+			}
+			else {
+
+				for (auto ast = orbs->begin(); ast != orbs->end(); ) {
+					if ((*ast)->Hit(node->GetPosition(), (*ast)->GetScale().x)) {
+						collided = true;
+						CreateDeathAnimation((*ast));
+						node->damage(node->GetDamage());
+						audio_->playAgain("asteroidExplosion");
+						ast = orbs->erase(ast);
+						std::cout << "orb hit" << std::endl;
+					}
+					else {
+						++ast;
+					}
+				}
+
+			}
+			
+		}
 		for (auto ast = asteroid_->begin(); ast != asteroid_->end(); ) {
 			if ((*ast)->Hit(node->GetPosition(), (*ast)->GetScale().x * 0.9)) {
 				CreateDeathAnimation((*ast));
-				ast = asteroid_->erase(ast);
 				node->damage(node->GetDamage());
 				collided = true;
 				player_->CollectLoot((*ast)->GetDrops());
 				if (player) { audio_->playAgain("asteroidExplosion"); }
 				asteroidsDestroyed++;
+				ast = asteroid_->erase(ast);
 			}
 			else {
 				++ast;
@@ -651,7 +712,11 @@ void SceneGraph::SlowTime(double seconds) {
 }
 
 void SceneGraph::Update(float dt){
+	if (player_->GetHealth() <= 0) {
+		active_menu_ = DEATH_MENU;
+	}
 	CheckBounty();
+	
 	float playerDeltaTime = dt;
 	float deltaTime = dt;
 	if (secondsSlow > 0) {
@@ -671,6 +736,14 @@ void SceneGraph::Update(float dt){
 
 		for (int i = 0; i < node_->size(); i++) {
 			(*node_)[i]->Update(deltaTime);
+		}
+
+		if (boss_ != NULL) {
+			boss_->Update(deltaTime);
+			std::vector<Enemy*>* orbs = boss_->GetOrbs();
+			for (int i = 0; i < orbs->size(); i++) {
+				ProjectileCollision((*orbs)[i], false);
+			}
 		}
 		for (int i = 0; i < enemy_->size(); i++) {
 			(*enemy_)[i]->Update(deltaTime);
@@ -723,6 +796,9 @@ void SceneGraph::UpdateRadar() {
 	}
 	for (int i = 0; i < enemy_->size(); i++) {
 		UpdateRadarNode(direction, (*enemy_)[i]->GetPosition(), glm::vec3(1, 0, 0),true);
+	}
+	if (boss_ != NULL) {
+		UpdateRadarNode(direction, boss_->GetPosition(), glm::vec3(1.0,0.65,0), true);
 	}
 	UpdateRadarNode(direction, glm::vec3(0) , glm::vec3(1, 1, 1),true);
 

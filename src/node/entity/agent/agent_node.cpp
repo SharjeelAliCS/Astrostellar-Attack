@@ -33,6 +33,7 @@ namespace game {
 	void AgentNode::Update(float deltaTime) {
 
 		for (std::vector<Projectile*>::iterator it = missiles.begin(); it != missiles.end();) {
+			glm::vec3 p = (*it)->GetPosition();
 			(*it)->Update(deltaTime);
 			if ((*it)->Exists()) {
 				++it;
@@ -49,11 +50,12 @@ namespace game {
 		Entity::Update(deltaTime);
 	}
 
-
 	void AgentNode::Draw(Camera* camera) {
 		for (std::vector<Projectile*>::iterator it = missiles.begin(); it != missiles.end(); ++it) {
+			
 			(*it)->Draw(camera);
 		}
+
 		Entity::Draw(camera);
 	}
 
