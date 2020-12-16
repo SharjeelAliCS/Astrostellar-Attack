@@ -41,11 +41,15 @@ namespace game {
 		float GetSpeed(void) { return speed; }
 		void Update(float deltaTime);
 
+		std::string GetType(void) { return type; }
+
 		//Set the max range it can be as a function of time
 		void SetTTL(double t);
 		double GetTTL(void) const { return ttl; }
 		void displayStats();
 		float GetDamage(void);
+
+		std::function<double()> disableFor;
 
 	private:
 		float lastTime=0; //just for debugging
@@ -55,9 +59,6 @@ namespace game {
 		double ttl;
 		//
 		int pierce;
-		float dotDmg;
-		float dotDuration;
-		int dotStackMax;
 		float speed;
 		bool boosted;
 		SceneNode *target;

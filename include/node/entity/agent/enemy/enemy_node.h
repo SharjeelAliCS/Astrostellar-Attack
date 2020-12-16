@@ -45,6 +45,8 @@ namespace game {
 		std::string GetEnemyType(void) { return enemy_type_; }
 		void SetProjectileDmg(float d) { projectile_dmg_ = d; }
 
+		void DisableAttackFor(double sec);
+
 		void PoisonAura(float deltaTime);
 		std::map<std::string, int> GetDrops(void);
 
@@ -63,6 +65,8 @@ namespace game {
 		float follow_duration_;
 		float move_away_duration_;
 		
+		double attackDisabledFor_;
+
 		float time_since_last_move_;
 		float projectile_dmg_;
 
