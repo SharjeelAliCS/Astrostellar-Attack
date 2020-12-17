@@ -32,6 +32,8 @@ namespace game {
 		float GetDamage(void) ;
 		void SetDamage(float d) { damage_ = d; }
 
+		void IncreaseBoostSpeed(float mult) { boost_speed_ *= mult; }
+
 		void SetUpgrades(std::map<std::string, int>* m) { upgrades = m; }
 
 		NodeResources* GetProjRsc(void) { return proj_rsc_; }

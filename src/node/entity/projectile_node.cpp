@@ -49,12 +49,11 @@ namespace game {
 		player_ = p;
 	}
 
-	//TODO: make the movement speed a function of the player speed when fired
+	//sets the stats of the projectile based on the player upgrades and the projectile type.
 	void Projectile::init() {
 		//damage upgrades are multiplictive 
 		if (type.compare("enemy") == 0) {
 			speed -= 350;
-			//travels 5 seconds
 			ttl = glfwGetTime() + 10;
 			pierce = 0;
 			dmg = [this]() {
@@ -94,11 +93,8 @@ namespace game {
 			};
 		}
 		else if (type.compare("laser_Battery") == 0) {
-			//travels 5 seconds +10% per level
 			ttl = glfwGetTime() + stats["laser_Battery_baseTTL"] * pow(1.1, upg["laser_Battery_Range_Level"]);
-			//pierces 0 to 5 targets (+1 per upgrade)
 			pierce = upg["laser_Battery_Pierce_Level"];
-			//deals 10 damage + 10% per level
 			dmg = [this]() {
 				return stats["laser_Battery_baseDmg"] * pow(1.1, upg["laser_Battery_Damage_Level"]) * max(1, boosted * pow(1.25, 1+upg["evasive_Maneuvers_Level"]));
 			};

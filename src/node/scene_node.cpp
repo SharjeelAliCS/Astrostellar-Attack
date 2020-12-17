@@ -163,8 +163,6 @@ glm::vec3 SceneNode::CalculateParentChildPos(void) {
 	return position;
 }
 bool SceneNode::Hit(glm::vec3 pos, float range) {
-	//std::cout << "distance is: " << glm::distance(pos, this->GetPosition()) << std::endl;
-	//std::cout << "range is: " <<  range + glm::length(this->GetScale()) << std::endl<< std::endl;
 	glm::vec3 position = CalculateParentChildPos();
 	return glm::distance(pos, position) <= range +this->GetScale().x;
 }
