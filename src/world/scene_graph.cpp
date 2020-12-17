@@ -208,30 +208,55 @@ ButtonNode *SceneGraph::GetButton(std::string node_name) const {
 }
 
 void SceneGraph::DrawAllText(Camera* camera, int fps) {
-	text_renderer_->RenderText(new Text(std::to_string(fps), glm::vec2(-1, 0.95), 0.2f, glm::vec3(1.0, 1.0, 0)));
-	std::string weapon_name = player_->GetCurrentWeapon();
-	std::replace(weapon_name.begin(), weapon_name.end(), '_', ' ');
-	text_renderer_->RenderText(new Text(weapon_name, glm::vec2(0.5, -0.78), 0.35f, glm::vec3(0.0941, 0.698, 0.921)));
 
-	int ammo = player_->getCurrentWeaponAmmo();
-	if (ammo > -1) {
-		text_renderer_->RenderText(new Text(std::to_string(ammo), glm::vec2(0.9, -0.78), 0.35f, glm::vec3(0.0941, 0.698, 0.921)));
+	switch (active_menu_) {
+	case MAIN_MENU:
+		text_renderer_->RenderText(new Text("Astrostellar Attack", glm::vec2(-0.65, 0.77), 1, glm::vec3(1)));
+		break;
+	case BOUNTY_MENU:
+		text_renderer_->RenderText(new Text("Select Mission", glm::vec2(-0.45, 0.77), 1, glm::vec3(1)));
+		break;
+	case SHOP_ABILITES_MENU:
+	case SHOP_SHIP_MENU:
+	case SHOP_WEAPONS_1_MENU:
+	case SHOP_WEAPONS_2_MENU:
+		text_renderer_->RenderText(new Text(std::to_string(player_->getCurrency("credits")), glm::vec2(-0.84, 0.68), 0.3f, glm::vec3(0.0941, 0.698, 0.921)));
+
+		text_renderer_->RenderText(new Text(std::to_string(player_->getCurrency("stellaranite_Fragments")), glm::vec2(-0.54, 0.68), 0.3f, glm::vec3(0.0941, 0.64, 0.921)));
+
+		text_renderer_->RenderText(new Text(std::to_string(player_->getCurrency("stellaranite_Slabs")), glm::vec2(-0.24, 0.68), 0.3f, glm::vec3(0.0941, 0.698, 0.921)));
+		break;
+
+	case PAUSE_MENU:
+	case HUD_MENU:
+		text_renderer_->RenderText(new Text(std::to_string(fps), glm::vec2(-1, 0.95), 0.2f, glm::vec3(1.0, 1.0, 0)));
+		std::string weapon_name = player_->GetCurrentWeapon();
+		std::replace(weapon_name.begin(), weapon_name.end(), '_', ' ');
+		text_renderer_->RenderText(new Text(weapon_name, glm::vec2(0.5, -0.78), 0.35f, glm::vec3(0.0941, 0.698, 0.921)));
+
+		int ammo = player_->getCurrentWeaponAmmo();
+		if (ammo > -1) {
+			text_renderer_->RenderText(new Text(std::to_string(ammo), glm::vec2(0.9, -0.78), 0.35f, glm::vec3(0.0941, 0.698, 0.921)));
+		}
+
+		text_renderer_->RenderText(new Text(std::to_string(player_->getCurrency("credits")), glm::vec2(0.8, 0.88), 0.3f, glm::vec3(0.0941, 0.698, 0.921)));
+
+		text_renderer_->RenderText(new Text(std::to_string(player_->getCurrency("stellaranite_Fragments")), glm::vec2(0.8, 0.75), 0.3f, glm::vec3(0.0941, 0.64, 0.921)));
+
+		text_renderer_->RenderText(new Text(std::to_string(player_->getCurrency("stellaranite_Slabs")), glm::vec2(0.8, 0.62), 0.3f, glm::vec3(0.0941, 0.698, 0.921)));
+
+		if (currentBounty != "") {
+			std::string bounty_screen = currentBounty;
+			std::replace(bounty_screen.begin(), bounty_screen.end(), '_', ' ');
+			text_renderer_->RenderText(new Text(bounty_screen, glm::vec2(-0.95, 0.9), 0.2, glm::vec3(0.0941, 0.698, 0.921)));
+
+			std::string bounty_progress = std::to_string(GetCurrentBountyKills()) + "/" + std::to_string(currentBountyTotal);
+			text_renderer_->RenderText(new Text(bounty_progress, glm::vec2(-0.8, 0.83), 0.2, glm::vec3(1)));
+		}
+
+		break;
 	}
-
-	text_renderer_->RenderText(new Text(std::to_string(player_->getCurrency("credits")), glm::vec2(0.8, 0.88), 0.3f, glm::vec3(0.0941, 0.698, 0.921)));
-
-	text_renderer_->RenderText(new Text(std::to_string(player_->getCurrency("stellaranite_Fragments")), glm::vec2(0.8, 0.75), 0.3f, glm::vec3(0.0941, 0.64, 0.921)));
-
-	text_renderer_->RenderText(new Text(std::to_string(player_->getCurrency("stellaranite_Slabs")), glm::vec2(0.8, 0.62), 0.3f, glm::vec3(0.0941, 0.698, 0.921)));
-
-	if (currentBounty != "") {
-		std::string bounty_screen = currentBounty;
-		std::replace(bounty_screen.begin(), bounty_screen.end(), '_', ' ');
-		text_renderer_->RenderText(new Text(bounty_screen, glm::vec2(-0.95, 0.9), 0.2, glm::vec3(0.0941, 0.698, 0.921)));
-
-		std::string bounty_progress = std::to_string(GetCurrentBountyKills()) + "/" + std::to_string(currentBountyTotal);
-		text_renderer_->RenderText(new Text(bounty_progress, glm::vec2(-0.8, 0.83), 0.2, glm::vec3(1)));
-	}
+	
 
 }
 void SceneGraph::SetupDrawToTexture(float frame_width, float frame_height) {
@@ -353,7 +378,7 @@ void SceneGraph::Draw(Camera *camera, int fps,bool to_texture,float frame_width,
 		for (int i = 0; i < screen_.at(NONE).size(); i++) {
 			screen_.at(NONE)[i]->Draw(camera);
 		}
-		DrawAllText(camera, fps);
+		
 		radar_->Draw(camera);
 
 		//DrawEnemyHealth(camera);
@@ -362,17 +387,17 @@ void SceneGraph::Draw(Camera *camera, int fps,bool to_texture,float frame_width,
 		for (int i = 0; i < screen_.at(HUD_MENU).size(); i++) {
 			screen_.at(HUD_MENU)[i]->Draw(camera);
 		}
-		DrawAllText(camera,fps);
 		//DrawEnemyHealth(camera);
 	}
 
 	for (int i = 0; i < screen_.at(active_menu_).size(); i++) {
 		screen_.at(active_menu_)[i]->Draw(camera);
 	}
-
+	DrawAllText(camera, fps);
 	for (int i = 0; i < button_.at(active_menu_).size(); i++) {
 		button_.at(active_menu_)[i]->Draw(camera);
 	}
+
 	if (to_texture) {
 		// Reset frame buffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);

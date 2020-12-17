@@ -110,6 +110,8 @@ namespace game {
             int numEnemies = 60;
             int numAsteroids = 500;
 
+			std::string chosen_bounty_;
+
 			void SetSaveState(void);
 			//New user input function more multiple inputs
 			void GetUserInput(float deltaTime);
@@ -137,7 +139,20 @@ namespace game {
 			void CreateAsteroids(int num_asteroids = 1500);
 			void CreateComets(int num_comets = 10);
 			// Create entire random asteroid field
+
+			void CreateScreenMenus(void);
 			void CreateHUD(void);
+			void CreateMainMenu(void);
+			void CreateBountyMenu(void);
+			void CreatePauseMenu(void);
+			void CreateShopShipMenu(void);
+			void CreateShopWeaponsMenu(void);
+			void CreateShopAbilitesMenu(void);
+			
+			void CreateShopHeaders(ScreenType type);
+			void CreateShopButton(std::string obj_name,std::string text_name,ScreenType type, int x, int y);
+			void CreateDeathMenu(void);
+
 
 			void SetEnemyStats(std::string type, Enemy* en, json data);
 
