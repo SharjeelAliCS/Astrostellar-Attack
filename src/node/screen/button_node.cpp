@@ -26,7 +26,6 @@ namespace game {
 
 
 	ButtonNode::ButtonNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : ScreenNode(name, geometry, material, texture, normal) {
-		text_ = NULL;
 		glow_amount_ = glm::vec3(0.1, 0.1, 0.1);
 	}
 
@@ -44,7 +43,7 @@ namespace game {
 		pos.y = (pos.y / 2) * scale_.y;
 
 		t->pos = glm::vec2(position_.x + pos.x, position_.y + pos.y);
-		text_ = t;
+		text_.push_back(t);
 	}
 	bool ButtonNode::WithinButton(float x, float y) {
 		float btn_height = scale_.y*screen_height_;
@@ -82,8 +81,11 @@ namespace game {
 
 	void ButtonNode::Draw(Camera *camera) {
 		ScreenNode::Draw(camera);
-		text_->glow = glow_amount_ * (float)glow_;
-		TextObj_->RenderText(text_);
+
+		for (int i = 0; i < text_.size(); i++) {
+			text_[i]->glow = glow_amount_ * (float)glow_;
+			TextObj_->RenderText(text_[i]);
+		}
 	}
 	void ButtonNode::SetupShader(GLuint program, Camera* camera) {
 		ScreenNode::SetupShader(program, camera);

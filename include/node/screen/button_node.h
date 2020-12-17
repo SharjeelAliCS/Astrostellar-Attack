@@ -35,7 +35,7 @@ namespace game {
 
 	private:
 		TextRenderer* TextObj_;
-		Text* text_;
+		std::vector<Text*> text_;
 		float screen_height_;
 		float screen_width_;
 
