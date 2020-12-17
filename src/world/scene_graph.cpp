@@ -587,7 +587,7 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 			
 			std::vector<Enemy*>* orbs = boss_->GetOrbs();
 			if (orbs->size() == 0) {
-				if (boss_->Hit(node->GetPosition(), boss_->GetScale().x * 0.2)) {
+				if (boss_->Hit(node->GetPosition(), node->GetScale().x * 0.2)) {
 					node->damage(boss_->GetDamage());
 					boss_->damage(node->GetDamage());
 					collided = true;
@@ -604,7 +604,7 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 			else {
 
 				for (auto ast = orbs->begin(); ast != orbs->end(); ) {
-					if ((*ast)->Hit(node->GetPosition(), (*ast)->GetScale().x)) {
+					if ((*ast)->Hit(node->GetPosition(), node->GetScale().x)) {
 						collided = true;
 						CreateDeathAnimation((*ast));
 						node->damage(node->GetDamage());
@@ -621,7 +621,7 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 			
 		}
 		for (auto ast = asteroid_->begin(); ast != asteroid_->end(); ) {
-			if ((*ast)->Hit(node->GetPosition(), (*ast)->GetScale().x * 0.9)) {
+			if ((*ast)->Hit(node->GetPosition(), node->GetScale().x * 0.9)) {
 				CreateDeathAnimation((*ast));
 				node->damage(node->GetDamage());
 				collided = true;
@@ -636,7 +636,7 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 		}
 
 		for (auto en = enemy_->begin(); en != enemy_->end(); ) {
-			if ((*en)->Hit(node->GetPosition(), (*en)->GetScale().x * 0.2)) {
+			if ((*en)->Hit(node->GetPosition(), node->GetScale().x * 0.2)) {
 				node->damage((*en)->GetDamage());
 				(*en)->damage(node->GetDamage());
 				Projectile* bullet = dynamic_cast<Projectile*>(node);
@@ -690,7 +690,7 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 		}
 
 		for (auto ast = comet_->begin(); ast != comet_->end(); ) {
-			if ((*ast)->Hit(node->GetPosition(), (*ast)->GetScale().x * 0.9)) {
+			if ((*ast)->Hit(node->GetPosition(), node->GetScale().x * 0.9)) {
 				CreateDeathAnimation((*ast));
 				ast = comet_->erase(ast);
 				node->damage(node->GetDamage());
@@ -706,7 +706,7 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 		}
 	}
 	else {
-		if ((player_->Hit(node->GetPosition(), player_->GetScale().x * 0.9))) {
+		if ((player_->Hit(node->GetPosition(), node->GetScale().x * 0.9))) {
 			player_->damage(node->GetDamage());
 			node->damage(player_->GetDamage());
 			collided = true;
