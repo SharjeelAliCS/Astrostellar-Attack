@@ -325,7 +325,7 @@
         "enemy_ROF": 1,
         "enemy_baseDmg": 5,
         "enemy_baseTTL": 5,
-        "laser_Battery_ROF": 0.6,
+        "laser_Battery_ROF": 0.60,
         "laser_Battery_baseDmg": 20,
         "laser_Battery_baseTTL": 2.5,
         "nanite_Swarm_BaseDisableDuration": 5,
