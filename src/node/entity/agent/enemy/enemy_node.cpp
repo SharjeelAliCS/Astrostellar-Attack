@@ -20,6 +20,7 @@ namespace game {
 
 	Enemy::Enemy(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : AgentNode(name, geometry, material, texture,normal) {
 		movement_speed = 50;
+		attackDisabledFor_ = 0;
 		InitState();
 		rate_of_fire_ = 1;
 		follow_duration_ = 5;
@@ -34,6 +35,7 @@ namespace game {
 		upgrades = new std::map<std::string, int>();
 		weaponStats = new std::map<std::string, float>();
 		proj_color_ = glm::vec3(0, 1, 0.18);
+		
 
 	}
 
@@ -76,12 +78,17 @@ namespace game {
 		return drops; 
 	}
 
+	void Enemy::DisableAttackFor(double sec) {
+		attackDisabledFor_ += sec;
+	}
+
 	void Enemy::Fire(float deltaTime) {
 
 		time_since_fire_ += deltaTime;
-		if (time_since_fire_< rate_of_fire_) {
+		if (time_since_fire_ < rate_of_fire_ || attackDisabledFor_ > 0) {
 			return;
 		}
+		time_since_fire_ = 0;
 		time_since_fire_ = 0;
 
 		std::string proj_type;
@@ -108,13 +115,6 @@ namespace game {
 
 		missiles.push_back(missile);
 
-		if (name_.compare("Boss") == 0) {
-			std::cout << "boss is firing! " << missiles.size() << std::endl;
-		}
-		else {
-			std::cout << "enemies is firing! " << missiles.size() << std::endl;
-
-		}
 	}
 
 	void Enemy::FindNewDirection(float deltaTime) {
@@ -255,6 +255,9 @@ namespace game {
 	}
 
 	void Enemy::Update(float deltaTime) {
+		if (attackDisabledFor_ > 0) {
+			attackDisabledFor_ -= deltaTime;
+		}
 		if(name_.compare("Boss")==0)PoisonAura(deltaTime);
 		(this->*active_state_)(deltaTime);
 		time_since_last_move_ += deltaTime;

@@ -215,41 +215,34 @@ void Game::LoadSaveFile(void) {
 	json saveData = resman_.GetResource("save")->GetJSON();
 
 	for (auto& gameData : saveData["inventory"].items()) {
-		std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
 		loadedPlayerInventory[gameData.key()] = gameData.value();
 	}
 	for (auto& gameData : saveData["upgrades"].items()) {
-		std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
 		loadedPlayerUpgrades[gameData.key()] = gameData.value();
 	}
 	for (auto& gameData : saveData["loadout"].items()) {
-		std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
 		loadedPlayerLoadout[gameData.key()] = gameData.value();
 	}
 	for (auto& gameData : saveData["player_stats"].items()) {
-		std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
 		loadedPlayerStats[gameData.key()] = gameData.value();
 	}
-	
+
 	for (auto& gameData : saveData["weapon_stats"].items()) {
-		std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
 		loadedWeaponStats[gameData.key()] = gameData.value();
 	}
-	
+
 	for (auto& bounty : saveData["bounty_data"].items()) {
 		for (auto& gameData : saveData["bounty_data"][bounty.key()].items()) {
-			std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
 			loadedBountyStats[bounty.key()][gameData.key()] = gameData.value();
 		}
 	}
 
 	for (auto& upgrade_levels : saveData["upgrade_costs"].items()) {
 		for (auto& gameData : saveData["upgrade_costs"][upgrade_levels.key()].items()) {
-			std::cout << "\nkey: " << gameData.key() << "\nvalue: " << gameData.value() << std::endl;
 			loadedUpgradeCosts[upgrade_levels.key()][gameData.key()] = gameData.value();
 		}
 	}
-	
+
 	startTime = saveData["playtime"];
 	startKills = loadedPlayerStats["kills"];
 	mouse_speed = saveData["mouse_speed"];
@@ -297,7 +290,7 @@ void Game::LoadLastSave(void) {
 
 void Game::SetupScene(void){
 
-	
+
 	scene_.SetAudio(audio_);
 	NodeResources* rsc = GetResources("particleExplosion", "ExplosionParticleMaterial", "jetParticleTexture", "");
 
@@ -419,7 +412,7 @@ void Game::MainLoop(void){
 		// Animate the scene
 
 		GetUserInput(deltaTime);
-		
+
 		if (animating_) {
 			static double last_time = 0;
 			double current_time = glfwGetTime();
@@ -449,11 +442,11 @@ void Game::MainLoop(void){
 					last_time = current_time;
 					t += 0.01;
 
-					
+
 					break;
-					
+
 				}
-				
+
 
 
 
@@ -503,7 +496,7 @@ void Game::BuySomething(std::string thing, std::string type) {
 		loadedPlayerInventory.count(thing)) {
 		std::cout << "thing: " << thing << "\ntype: " << type << "\n";
 		Player* player = scene_.GetPlayer();
-		if (type.compare("repair") == 0) {
+		if (type.compare("repair")==0) {
 			int cost = loadedPlayerStats["repair_cost_per_hp"] * (player->GetMaxHealth() - player->GetHealth());
 			if (cost > loadedPlayerInventory["credits"]) {
 				float hpRestored = loadedPlayerInventory["credits"] / loadedPlayerStats["repair_cost_per_hp"];
@@ -516,12 +509,12 @@ void Game::BuySomething(std::string thing, std::string type) {
 			}
 		}
 
-		else if (type.compare("upgrade") == 0) {
-			int currentLevel = loadedPlayerUpgrades[thing] + 1;
+		else if (type.compare("upgrade")==0) {
+			int currentLevel = loadedPlayerUpgrades[thing]+1;
 			if (currentLevel == 6) { return; }
 			std::cout << "level_" + std::to_string(currentLevel) << "\n";
 			std::map<std::string, int> cost = loadedUpgradeCosts["level_" + std::to_string(currentLevel)];
-			if (cost["credits"] <= loadedPlayerInventory["credits"] &&
+			if( cost["credits"] <= loadedPlayerInventory["credits"] &&
 				cost["stellaranite_Fragments"] <= loadedPlayerInventory["stellaranite_Fragments"] &&
 				cost["stellaranite_Slabs"] <= loadedPlayerInventory["stellaranite_Slabs"])
 			{
@@ -532,7 +525,19 @@ void Game::BuySomething(std::string thing, std::string type) {
 				loadedPlayerInventory["credits"] -= cost["credits"];
 				loadedPlayerInventory["stellaranite_Fragments"] -= cost["stellaranite_Fragments"];
 				loadedPlayerInventory["stellaranite_Slabs"] -= cost["stellaranite_Slabs"];
+
+
+				if (thing.compare("ship_Health_Level") == 0) {
+					player->SetMaxHealth(pow(1.2, loadedPlayerUpgrades[thing]) * loadedPlayerStats["ship_base_health"]);
+				}
+				else if (thing.compare("ship_Shield_Level") == 0) {
+					player->SetMaxShields(pow(1.2, loadedPlayerUpgrades[thing]) * loadedPlayerStats["ship_base_shield"]);
+				}
+				else if (thing.compare("ship_Boost_Speed_Level") == 0) {
+					player->IncreaseBoostSpeed(pow(1.1, loadedPlayerUpgrades[thing]));
+				}
 			}
+
 
 		}
 		else {
@@ -543,11 +548,20 @@ void Game::BuySomething(std::string thing, std::string type) {
 			else if (type.compare("ability-ammo") == 0) { //purchased in units of 1
 				purchaseNumber = 1;
 			}
-			int cost = loadedWeaponStats[thing + "_Cost"] * purchaseNumber;
-			std::cout << "cost is: " << cost << " player has: " << loadedPlayerInventory["credits"] << "\n";
-			if (cost <= loadedPlayerInventory["credits"]) {
-				loadedPlayerInventory[thing + "_Ammo"] += purchaseNumber;
-				loadedPlayerInventory["credits"] -= cost;
+			else {
+				int purchaseNumber = 0;
+				if (type.compare("ammo") == 0) { //purchased in units of 10
+					purchaseNumber = 10;
+				}
+				else if (type.compare("ability-ammo") == 0) { //purchased in units of 1
+					purchaseNumber = 1;
+				}
+				int cost = loadedWeaponStats[thing + "_Cost"] * purchaseNumber;
+				std::cout << "cost is: " << cost << " player has: " << loadedPlayerInventory["credits"] << "\n";
+				if (cost <= loadedPlayerInventory["credits"]) {
+					loadedPlayerInventory[thing + "_Ammo"] += purchaseNumber;
+					loadedPlayerInventory["credits"] -= cost;
+				}
 			}
 		}
 	}
@@ -600,7 +614,7 @@ void Game::GetUserInput(float deltaTime) {
 	std::string btn = scene_.ButtonEvents(xpos, ypos);
 	if (btn != "" && (timeOfLastMove < glfwGetTime() - 0.5) && glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
 			timeOfLastMove = glfwGetTime();
-			
+
 
 			if (btn == "resumeButton") {
 				scene_.SetCurrentScreen(HUD_MENU);
@@ -631,7 +645,7 @@ void Game::GetUserInput(float deltaTime) {
 				animating_ = false;
 				scene_.SetResetWorld(true);
 				glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-				
+
 			}
 			else if (btn == "quitDesktopButton" || btn=="quitDesktopDeathButton" || btn=="mainMenuQuitBtn") {
 				glfwSetWindowShouldClose(window_, true);
@@ -663,7 +677,7 @@ void Game::GetUserInput(float deltaTime) {
 				std::cout << "menu clicked!" << std::endl;
 			}
 			else if (btn == "bounty1Button") {
-				
+
 				std::cout << "bounty1Button clicked!" << std::endl;
 				scene_.SetCurrentScreen(MAIN_MENU);
 				chosen_bounty_ = "destroy_60_asteroids_reward";
@@ -692,7 +706,7 @@ void Game::GetUserInput(float deltaTime) {
 			}
 			else if (btn == "shipSpeedButton") {
 				std::cout << "shipSpeedButton clicked!" << std::endl;
-				BuySomething("ship_Speed_Level", "upgrade");
+				BuySomething("ship_Boost_Speed_Level", "upgrade");
 			}
 			else if (btn == "laserRangeBtn") {
 				std::cout << "laserRangeBtn clicked!" << std::endl;
@@ -828,8 +842,8 @@ void Game::GetUserInput(float deltaTime) {
 			player->Fire();
 			timeOfLastMove = glfwGetTime();
 		}
-		
-		
+
+
 		if (tabNotPressedLastFrame && glfwGetKey(window_, GLFW_KEY_TAB) == GLFW_PRESS) {
 			player->nextWeapon();
 			timeOfLastMove = glfwGetTime();
@@ -838,27 +852,41 @@ void Game::GetUserInput(float deltaTime) {
 
 		//slow time
 		if (oneNotPressedLastFrame && glfwGetKey(window_, GLFW_KEY_1) == GLFW_PRESS) {
-			//if ammo use ability 
+			//if ammo use ability
 			if (loadedPlayerInventory["chrono_Surge_Ammo"] > 0) {
 				//slow time for 10 seconds, up to 25 at max level
 				scene_.SlowTime(10 * pow(1.2, loadedPlayerUpgrades["chrono_Surge_Level"]));
+				loadedPlayerInventory["chrono_Surge_Ammo"]--;
 			}
 		}
 		oneNotPressedLastFrame = glfwGetKey(window_, GLFW_KEY_1) == GLFW_RELEASE;
-		
+
 		//emergency warp, levels increase distance travelled.
 		if (twoNotPressedLastFrame && glfwGetKey(window_, GLFW_KEY_2) == GLFW_PRESS) {
-			//if ammo use ability 
+			//if ammo use ability
 			if (loadedPlayerInventory["emergency_Warp_Ammo"] > 0) {
-				//slow time for 5 seconds, up to 15 at max level
-				int range = (int)(150 * pow(1.22, loadedPlayerUpgrades["emergency_Warp_Level"]));
+				loadedPlayerInventory["emergency_Warp_Ammo"]--;
+				int range = (int)(200 * pow(1.22, loadedPlayerUpgrades["emergency_Warp_Level"]));
 				scene_.SlowTime(1);    //slow time during the effect
 				player->MakeInvuln(1); //player immune to damage during effect
-				player->SetPosition(player->GetPosition() + glm::vec3((rand() % range) - (range * 0.5), (rand() % range) - (range * 0.5), (rand() % range) - (range * 0.5)));
+				//warp the player to a random position within +/-[range/2, range]
+				player->SetPosition(player->GetPosition() + glm::vec3(((((rand() % range) * 0.5) + (range * 0.5)) * ((double)(rand() % 2) - 1)),
+																	  ((((rand() % range) * 0.5) + (range * 0.5)) * ((double)(rand() % 2) - 1)),
+																	  ((((rand() % range) * 0.5) + (range * 0.5)) * ((double)(rand() % 2) - 1))));
 			}
 		}
 		twoNotPressedLastFrame = glfwGetKey(window_, GLFW_KEY_2) == GLFW_RELEASE;
-		
+		//nanite_swarm, levels increase duration. all enemies cannot shoot while this effect lasts
+		if (threeNotPressedLastFrame && glfwGetKey(window_, GLFW_KEY_3) == GLFW_PRESS) {
+			//if ammo use ability
+			if (loadedPlayerInventory["nanite_Swarm_Ammo"] > 0) {
+				loadedPlayerInventory["nanite_Swarm_Ammo"]--;
+				std::cout << "swarm active\n";
+				scene_.DisableAllEnemiesFor(loadedWeaponStats["nanite_Swarm_BaseDisableDuration"] * pow(1.25, loadedPlayerUpgrades["nanite_Swarm_Duration_Level"]));
+			}
+		}
+		threeNotPressedLastFrame = glfwGetKey(window_, GLFW_KEY_3) == GLFW_RELEASE;
+
 		if (spaceNotPressedLastFrame && glfwGetTime()>evasiveManeuversCooldown && glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS) {
 			//evasive manuvers
 			//if success, 1 sec cooldown and bonus damage next attack, else 5 second cooldown no bonus
@@ -1284,7 +1312,7 @@ void Game::CreateMainMenu(void) {
 	btn->SetPosition(glm::vec3(0, -0.15, 0));
 	//btn->SetPosition(glm::vec3(-0.6, 0.7, 0));
 	btn->SetText(new Text("CHOOSE BOUNTY", glm::vec2(-0.6, -0.3), 0.4, glm::vec3(1.0, 1.0, 1.0)));
-	
+
 	btn = CreateButtonInstance("mainMenuQuitBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "longButton");
 	btn->SetScale(glm::vec3(0.7, 0.1, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0, -0.75, 0));
@@ -1370,8 +1398,8 @@ void Game::CreateShopShipMenu(void) {
 	ButtonNode* btn;
 
 	CreateShopHeaders(SHOP_SHIP_MENU);
-	
-	
+
+
 
 	/*
 	btn = CreateButtonInstance("shipHealthButton", "FlatSurface", "ScreenMaterial", SHOP_SHIP_MENU, "pauseButton");
@@ -1397,7 +1425,7 @@ void Game::CreateShopWeaponsMenu(void) {
 
 	CreateShopHeaders(SHOP_WEAPONS_1_MENU);
 	CreateShopHeaders(SHOP_WEAPONS_2_MENU);
-	
+
 
 	btn = CreateButtonInstance("shopWeaponsPage2Menu", "FlatSurface", "ScreenMaterial", SHOP_WEAPONS_1_MENU, "longButton");
 	btn->SetScale(glm::vec3(0.23, 0.06, 1));//multiply by 17.72crosshairDefaultTexture
@@ -1736,7 +1764,7 @@ AsteroidNode *Game::CreateAsteroidInstance(std::string entity_name, std::string 
 
 	NodeResources* rsc = GetResources(object_name, material_name, texture_name, normal_name);
 	AsteroidNode *ast = new AsteroidNode(entity_name, rsc->geom, rsc->mat, rsc->tex, rsc->norm);
-	
+
 	json saveData = resman_.GetResource("save")->GetJSON();
 	std::map<std::string, int> drops;
 	for (auto& gameData : saveData["obstacle_stats"]["asteroid_drops"].items()) {

@@ -47,6 +47,9 @@ namespace game {
 		void nextWeapon();
 
 		void SetBoosted(int i);
+
+		void SetMaxShields(float s) { max_shields_ = s; shields_ = s; }
+
 		int GetBoosted(void) const;
 		float GetBoostSpeed(void) const;
 		std::map<std::string, int>* getUpgrades(void) const {return upgrades;}

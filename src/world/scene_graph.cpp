@@ -554,6 +554,12 @@ bool SceneGraph::ProjectileCollision(AgentNode* node, bool player) {
 
 }
 
+void SceneGraph::DisableAllEnemiesFor(double sec) {
+	for (int i = 0; i < enemy_->size(); i++) {
+		enemy_->at(i)->DisableAttackFor(sec);
+	}
+}
+
 bool SceneGraph::EvasiveManeuversSuccessCheck(void) {
 	for (int i = 0; i < enemy_->size(); i++) {
 		std::vector<Projectile*>* missiles = enemy_->at(i)->GetMissiles();
@@ -633,6 +639,11 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 			if ((*en)->Hit(node->GetPosition(), (*en)->GetScale().x * 0.2)) {
 				node->damage((*en)->GetDamage());
 				(*en)->damage(node->GetDamage());
+				Projectile* bullet = dynamic_cast<Projectile*>(node);
+				if (bullet != NULL && bullet->GetType().compare("nanite_Torpedo")==0) {
+					(*en)->DisableAttackFor(bullet->disableFor());
+				}
+				
 				collided = true;
 				if (player)audio_->playAgain("enemyHit");
 

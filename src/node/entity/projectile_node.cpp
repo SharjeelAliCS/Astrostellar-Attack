@@ -28,14 +28,12 @@ namespace game {
 		stats = weaponStats;
 		ttl    = 0;
 		pierce = 0;
-		dotDmg = 0;
-		dotDuration = 0;
-		dotStackMax = 0;
 		target = NULL;
 		health_ = 10000000000;
 		speed = 450;
 		this->boosted = boosted;
 		dmg = []() {return 0;};
+		disableFor = []() {return 0;};
 		move = [this](float deltaTime) { /*do nothing*/ };
 		// this->SetScale(glm::vec3(0.6));
 		//displayStats();
@@ -51,12 +49,11 @@ namespace game {
 		player_ = p;
 	}
 
-	//TODO: make the movement speed a function of the player speed when fired
+	//sets the stats of the projectile based on the player upgrades and the projectile type.
 	void Projectile::init() {
 		//damage upgrades are multiplictive 
 		if (type.compare("enemy") == 0) {
 			speed -= 350;
-			//travels 5 seconds
 			ttl = glfwGetTime() + 10;
 			pierce = 0;
 			dmg = [this]() {
@@ -96,11 +93,8 @@ namespace game {
 			};
 		}
 		else if (type.compare("laser_Battery") == 0) {
-			//travels 5 seconds +10% per level
 			ttl = glfwGetTime() + stats["laser_Battery_baseTTL"] * pow(1.1, upg["laser_Battery_Range_Level"]);
-			//pierces 0 to 5 targets (+1 per upgrade)
 			pierce = upg["laser_Battery_Pierce_Level"];
-			//deals 10 damage + 10% per level
 			dmg = [this]() {
 				return stats["laser_Battery_baseDmg"] * pow(1.1, upg["laser_Battery_Damage_Level"]) * max(1, boosted * pow(1.25, 1+upg["evasive_Maneuvers_Level"]));
 			};
@@ -142,11 +136,9 @@ namespace game {
 			};
 
 		}else if (type.compare("charge_Blast") == 0) {
-			//travels 12 seconds
 			int chargePierce = 50;
 			pierce = chargePierce;
 			ttl = glfwGetTime() + stats["charge_Blast_baseTTL"];
-			//deals 100 damage + 10% per level
 			dmg = [this, chargePierce]() {
 				if (pierce == chargePierce-1) {
 					this->Scale(glm::vec3(5,6,5)); //kaboom
@@ -168,9 +160,7 @@ namespace game {
 		}else if (type.compare("sniper_Shot") == 0) {
 			speed *= 3.5;
 			this->Scale(glm::vec3(3));
-			//travels 15 seconds +10% per level
 			ttl = glfwGetTime() + stats["sniper_Shot_baseTTL"] * pow(1.1, upg["sniper_Shot_Range_Level"]);
-			//deals (1 damage + 60 per second travelled) + 10% per level
 			int damageFactor = stats["sniper_Shot_baseDmg"];
 			dmg = [this, damageFactor]() {
 				return (1 - damageFactor *(ttl - glfwGetTime() - (damageFactor * pow(1.1, upg["sniper_Shot_Range_Level"])))) * pow(1.1, upg["sniper_Shot_Damage_Level"]) * max(1, boosted * pow(1.25, 1+upg["evasive_Maneuvers_Level"]));
@@ -181,9 +171,7 @@ namespace game {
 
 					   
 		}else if (type.compare("shotgun") == 0) { // multiple of these will be created on the player side
-			//travels 0.7 seconds
 			ttl = glfwGetTime() + stats["shotgun_baseTTL"];
-			//deals 5 damage + 10% per level
 			dmg = [this]() {
 				return stats["shotgun_baseDmg"] * pow(1.1, upg["shotgun_Damage_Level"]) * max(1, boosted * pow(1.25, 1+upg["evasive_Maneuvers_Level"]));
 			};
@@ -197,18 +185,16 @@ namespace game {
 		
 					   
 		}else if (type.compare("nanite_Torpedo") == 0) { // multiple of these will be created on the player side
-			
 			speed += 20;
-			//travels 10 seconds
 			ttl = glfwGetTime() + stats["nanite_Torpedo_baseTTL"];
-			//deals 0 impact damage
 			dmg = [this]() {
-				return 0;
+				return  stats["nanite_Torpedo_baseDmg"] * max(1, boosted * pow(1.25, 1 + upg["evasive_Maneuvers_Level"]));
 			};
-			//5dps per stack up to 5 stacks, lasts for 5 seconds
-			dotDmg = stats["nanite_Torpedo_baseDmg"] * pow(1.1, upg["nanite_Torpedo_Damage_Level"]) * max(1, boosted * pow(1.25, 1+upg["evasive_Maneuvers_Level"]));
-			dotDuration = glfwGetTime() + 5 *pow(1.1, upg["nanite_Torpedo_Duration_Level"]);
-			dotStackMax = 5 + upg["nanite_Torpedo_Stack_Level"];
+			//disables enemy weapons 
+			disableFor = [this]() {
+				return stats["nanite_Torpedo_BaseDisableDuration"] *pow(1.25, upg["nanite_Torpedo_Duration_Level"]); 
+			};
+
 			move = [this](float deltaTime) {
 				position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
 			};
@@ -225,9 +211,6 @@ namespace game {
 			<< "ttl: " << ttl << std::endl
 			<< "dmg: " << dmg() << std::endl
 			<< "pierce: " << pierce << std::endl
-			<< "dotDmg: " << dotDmg << std::endl
-			<< "dotDuration: " << dotDuration << std::endl
-			<< "dotStackMax: " << dotStackMax << std::endl
 			<< "posbefore: " << position_.x << " " << position_.y << " " << position_.z << std::endl
 			<< "orient: " <<orientation_->GetForward().x << " "<<orientation_->GetForward().y << " "<<orientation_->GetForward().z << " " << std::endl;
 	}
