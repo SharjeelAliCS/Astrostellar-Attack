@@ -150,9 +150,11 @@ namespace game {
 			void CreateShopAbilitesMenu(void);
 			
 			void CreateShopHeaders(ScreenType type);
-			void CreateShopButton(std::string obj_name,std::string text_name,ScreenType type, int x, int y);
+			void CreateShopButton(std::string obj_name,std::string text_name,ScreenType type, int x, int y,std::string upgrade_type);
+			void UpdateShopText(std::string obj_name, std::string upgrade_type);
 			void CreateDeathMenu(void);
 
+			ScreenType prev_menu_;
 
 			void SetEnemyStats(std::string type, Enemy* en, json data);
 

@@ -34,6 +34,9 @@ namespace game {
 	ButtonNode::~ButtonNode() {
 	}
 
+	Text* ButtonNode::GetText(int i) {
+		return text_[i];
+	}
 	void ButtonNode::SetTextObj(TextRenderer* t) {
 		TextObj_ = t;
 	}

@@ -32,12 +32,16 @@ namespace game {
 		void UpdateScreenSize(float x, float y);
 		glm::mat4 CalculateFinalTransformation(Camera* camera);
 		
+		Text* GetText(int i = 0);
+		void SetType(std::string t) { type_ = t; }
+		std::string GetType(void) { return type_; }
 
 	private:
 		TextRenderer* TextObj_;
 		std::vector<Text*> text_;
 		float screen_height_;
 		float screen_width_;
+		std::string type_;
 
 	}; // class GameObj
 
