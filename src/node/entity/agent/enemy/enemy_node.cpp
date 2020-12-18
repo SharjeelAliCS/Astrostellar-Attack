@@ -26,8 +26,9 @@ namespace game {
 		follow_duration_ = 5;
 		move_away_duration_ = 5;
 		time_since_last_move_ = 0;
-		min_distance_ = 50;
-		detect_distance_ = 750;
+		min_distance_ = 20;
+		detect_distance_ = 600;
+		max_stationary_distance_ = 800;
 		time_since_fire_ = 0;
 		boost_speed_ = 50;
 		phase_ = 0;
@@ -130,7 +131,7 @@ namespace game {
 			active_state_ = &Enemy::FindPlayer;
 			return;
 		}
-		if (glm::distance(position_, player_->GetPosition()) < min_distance_) {
+		if (glm::distance(position_, player_->GetPosition()) < min_distance_*glm::length(scale_)) {
 			time_since_last_move_ = 0;
 			active_state_ = &Enemy::MoveToRandomDirection;
 			return;
@@ -154,14 +155,18 @@ namespace game {
 		if (glm::distance(position_, player_->GetPosition() )< detect_distance_) {
 			
 			glm::vec3 pos = CalculateAimPosition(getCurSpeed());
-			//orientation_->FaceTowards(position_, pos,true);
-			
 			if (enemy_type_ == "Ram") {
 				active_state_ = &Enemy::RamPlayer;
 			}
 			else {
 				active_state_ = &Enemy::FollowPlayer;
 			}
+		}
+		else if (glm::distance(position_, player_->GetPosition()) > max_stationary_distance_) {
+			orientation_->FaceTowards(position_, player_->GetPosition(), true);
+			orientation_->RotateTowards(deltaTime * 3);
+			position_ += orientation_->GetForward()*movement_speed*deltaTime;
+
 		}
 		else {
 			Rotate(deltaTime*30, rotation_axis_);
@@ -196,7 +201,7 @@ namespace game {
 			return;
 		}
 		float speed = movement_speed;
-		if (glm::distance(position_, player_->GetPosition()) < min_distance_) {
+		if (glm::distance(position_, player_->GetPosition()) < min_distance_*glm::length(scale_)) {
 			speed += boost_speed_;
 		}
 		position_ += orientation_->GetForward()*speed*deltaTime;

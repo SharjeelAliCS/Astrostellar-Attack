@@ -20,6 +20,7 @@ SceneGraph::SceneGraph(void){
 	comet_ = new std::vector<CometNode*>;
 	asteroid_ = new std::vector<AsteroidNode*>;
 	death_animations_ = new std::vector<ParticleNode*>;
+	satellite_ = new std::vector<SatelliteNode*>;
 
 	for (int i = HUD_MENU; i != NONE+1; i++){
 		std::vector<ScreenNode*> screen;
@@ -39,6 +40,7 @@ SceneGraph::SceneGraph(void){
 	currentBounty = "";
 	boss_ = NULL;
 	reset_world_ = false;
+	satellite_shop_ = false;
 
 }
 
@@ -165,7 +167,7 @@ CometNode *SceneGraph::GetComet(std::string node_name) const {
 	// Find node with the specified name
 	for (int i = 0; i < comet_->size(); i++) {
 		if (comet_->at(i)->GetName() == node_name) {
-			return comet_->at(i);
+return comet_->at(i);
 		}
 	}
 	return NULL;
@@ -177,7 +179,7 @@ void SceneGraph::AddScreen(ScreenNode *node, ScreenType type) {
 
 ScreenNode *SceneGraph::GetScreen(std::string node_name) const {
 	// Find node with the specified name
-	for (auto it = screen_.begin(); it != screen_.end(); it++){
+	for (auto it = screen_.begin(); it != screen_.end(); it++) {
 		for (int i = 0; i < it->second.size(); i++) {
 			if (it->second[i]->GetName() == node_name) {
 				return it->second[i];
@@ -207,6 +209,16 @@ ButtonNode *SceneGraph::GetButton(std::string node_name) const {
 
 }
 
+void SceneGraph::AddSatellite(SatelliteNode *node) {
+	satellite_->push_back(node);
+}
+SatelliteNode *SceneGraph::GetSatellite(std::string node_name) const {
+	for (int i = 0; i < satellite_->size(); i++) {
+		if (satellite_->at(i)->GetName() == node_name) {
+			return satellite_->at(i);
+		}
+	}
+}
 void SceneGraph::DrawAllText(Camera* camera, int fps) {
 
 	switch (active_menu_) {
@@ -225,6 +237,12 @@ void SceneGraph::DrawAllText(Camera* camera, int fps) {
 		text_renderer_->RenderText(new Text(std::to_string(player_->getCurrency("stellaranite_Fragments")), glm::vec2(-0.54, 0.68), 0.3f, glm::vec3(0.0941, 0.64, 0.921)));
 
 		text_renderer_->RenderText(new Text(std::to_string(player_->getCurrency("stellaranite_Slabs")), glm::vec2(-0.24, 0.68), 0.3f, glm::vec3(0.0941, 0.698, 0.921)));
+		break;
+	case DEATH_MENU:
+		text_renderer_->RenderText(new Text("YOU ARE DEFEATED", glm::vec2(-0.5, 0.8), 0.7, glm::vec3(1,0,0)));
+		break;
+	case COMPLETE_MENU:
+		text_renderer_->RenderText(new Text("MISSION COMPLETE", glm::vec2(-0.5, 0.8), 0.7, glm::vec3(1)));
 		break;
 
 	case PAUSE_MENU:
@@ -245,6 +263,12 @@ void SceneGraph::DrawAllText(Camera* camera, int fps) {
 
 		text_renderer_->RenderText(new Text(std::to_string(player_->getCurrency("stellaranite_Slabs")), glm::vec2(0.8, 0.62), 0.3f, glm::vec3(0.0941, 0.698, 0.921)));
 
+		text_renderer_->RenderText(new Text("Surges Left: "+std::to_string(player_->getCurrency("chrono_Surge_Ammo")), glm::vec2(0.7, -0.1), 0.2f, glm::vec3(0.0941, 0.698, 0.921)));
+
+		text_renderer_->RenderText(new Text("Warps Left:  " + std::to_string(player_->getCurrency("chrono_Surge_Ammo")), glm::vec2(0.7, -0.25), 0.2f, glm::vec3(0.0941, 0.698, 0.921)));
+
+		text_renderer_->RenderText(new Text("Swarms Left: " + std::to_string(player_->getCurrency("nanite_Swarm_Ammo")), glm::vec2(0.7, -0.4), 0.2f, glm::vec3(0.0941, 0.698, 0.921)));
+
 		if (currentBounty != "") {
 			std::string bounty_screen = currentBounty;
 			std::replace(bounty_screen.begin(), bounty_screen.end(), '_', ' ');
@@ -253,6 +277,14 @@ void SceneGraph::DrawAllText(Camera* camera, int fps) {
 			std::string bounty_progress = std::to_string(GetCurrentBountyKills()) + "/" + std::to_string(currentBountyTotal);
 			text_renderer_->RenderText(new Text(bounty_progress, glm::vec2(-0.8, 0.83), 0.2, glm::vec3(1)));
 		}
+		satellite_shop_ = false;
+		for (int i = 0; i < satellite_->size(); i++) {
+			if (glm::distance(satellite_->at(i)->GetPosition(), player_->GetPosition()) < 200){
+				text_renderer_->RenderText(new Text("Press E to open satellite shop", glm::vec2(-0.4, -0.5), 0.3, glm::vec3(1)));
+				satellite_shop_ = true;
+				break;
+			}
+		}
 
 		break;
 	}
@@ -260,7 +292,7 @@ void SceneGraph::DrawAllText(Camera* camera, int fps) {
 
 }
 void SceneGraph::SetupDrawToTexture(float frame_width, float frame_height) {
-
+	if (frame_width == 0 || frame_height == 0)return;
 	// Set up frame buffer
 	glGenFramebuffers(1, &frame_buffer_);
 	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_);
@@ -349,20 +381,13 @@ void SceneGraph::Draw(Camera *camera, int fps,bool to_texture,float frame_width,
 					DrawEnemyHealth(camera, glm::vec2(screen_pos.x, screen_pos.y));
 				}
 			}
-			/*
-			glm::vec2 screen_pos = (*enemy_)[i]->GetScreenSpacePos(false, camera);
-			bool within_length = glm::length(screen_pos) < radius;
 
-			if ((*enemy_)[i]->SeeHealth(within_length)) {
-				screen_pos = (*enemy_)[i]->GetScreenSpacePos(true, camera);
-				float per = (*enemy_)[i]->getHealthPercent();
-				GetScreen("enemyHealthBar")->SetProgressX(per);
-				DrawEnemyHealth(camera, screen_pos);
-			}
-			*/
 		}
 		for (int i = 0; i < asteroid_->size(); i++) {
 			asteroid_->at(i)->Draw(camera);
+		}
+		for (int i = 0; i < satellite_->size(); i++) {
+			satellite_->at(i)->Draw(camera);
 		}
 		for (int i = 0; i < comet_->size(); i++) {
 			comet_->at(i)->Draw(camera);
@@ -427,6 +452,7 @@ void SceneGraph::ClearData(void) {
 	asteroid_->clear();
 	comet_->clear();
 	death_animations_->clear();
+	satellite_->clear();
 
 	asteroidsDestroyed = 0;
 	enemiesKilled = 0;
@@ -509,19 +535,19 @@ void SceneGraph::CheckBounty() {
 	//std::cout << currentBounty << " for " << boss_->GetExists() << std::endl;
 	if (currentBounty.compare("destroy_60_asteroids_reward") == 0 && asteroidsDestroyed>=currentBountyTotal) {
 		player_->CollectLoot(bountyReward);
-		SetCurrentScreen(MAIN_MENU);
-		reset_world_ = true;
+		SetCurrentScreen(COMPLETE_MENU);
+		level_complete_ = true;
 		//reset the world for the next level TODO shar
 	}else if (currentBounty.compare("kill_40_enemies_reward") == 0 && enemiesKilled >= currentBountyTotal) {
 		player_->CollectLoot(bountyReward);
-		SetCurrentScreen(MAIN_MENU);
-		reset_world_ = true;
+		SetCurrentScreen(COMPLETE_MENU);
+		level_complete_ = true;
 		//reset the world for the next level TODO shar
 	}
 	else if (currentBounty.compare("kill_boss_reward") == 0 && boss_!=NULL && !boss_->Exists()) {
 		player_->CollectLoot(bountyReward);
-		SetCurrentScreen(MAIN_MENU);
-		reset_world_ = true;
+		SetCurrentScreen(COMPLETE_MENU);
+		level_complete_ = true;
 	}
 }
 
@@ -781,6 +807,9 @@ void SceneGraph::Update(float dt){
 				ProjectileCollision((*orbs)[i], false);
 			}
 		}
+		for (int i = 0; i < satellite_->size(); i++) {
+			(*satellite_)[i]->Update(deltaTime);
+		}
 		for (int i = 0; i < enemy_->size(); i++) {
 			(*enemy_)[i]->Update(deltaTime);
 			ProjectileCollision((*enemy_)[i], false);
@@ -832,6 +861,8 @@ void SceneGraph::UpdateRadar() {
 	}
 	for (int i = 0; i < enemy_->size(); i++) {
 		UpdateRadarNode(direction, (*enemy_)[i]->GetPosition(), glm::vec3(1, 0, 0),true);
+	}for (int i = 0; i < satellite_->size(); i++) {
+		UpdateRadarNode(direction, (*satellite_)[i]->GetPosition(), glm::vec3(0,1,0), true);
 	}
 	if (boss_ != NULL) {
 		UpdateRadarNode(direction, boss_->GetPosition(), glm::vec3(1.0,0.65,0), true);

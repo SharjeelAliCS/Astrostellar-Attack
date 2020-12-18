@@ -13,6 +13,7 @@
 #include "enemy_node.h"
 #include "player_node.h"
 #include "projectile_node.h"
+#include "satellite_node.h"
 #include "screen_node.h"
 #include "skybox_node.h"
 #include "boss_node.h"
@@ -77,8 +78,8 @@ namespace game {
             void InitView(void);
             void InitEventHandlers(void);
 
-            void LoadSaveFile(void);
-            void LoadLastSave(void);
+            void LoadSaveFile(bool restart = false);
+            void LoadLastSave(bool restart = false);
             void SaveGame(void);
  
 			bool first_person_;
@@ -137,6 +138,7 @@ namespace game {
 			void CreateEnemies(int num_enemies = 100);
 			void CreateBoss(void);
 			void CreateAsteroids(int num_asteroids = 1500);
+			void CreateSatellites(int num_satellites = 10);
 			void CreateComets(int num_comets = 10);
 			// Create entire random asteroid field
 
@@ -148,6 +150,7 @@ namespace game {
 			void CreateShopShipMenu(void);
 			void CreateShopWeaponsMenu(void);
 			void CreateShopAbilitesMenu(void);
+			void CreateLevelCompleteMenu(void);
 			
 			void CreateShopHeaders(ScreenType type);
 			void CreateShopButton(std::string obj_name,std::string text_name,ScreenType type, int x, int y,std::string upgrade_type);
@@ -159,6 +162,8 @@ namespace game {
 			void SetEnemyStats(std::string type, Enemy* en, json data);
 
 			AsteroidNode *CreateAsteroidInstance(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name = std::string(""), std::string normal_name = std::string(""));
+
+			 SatelliteNode* CreateSatelliteInstance(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name = std::string(""), std::string normal_name = std::string(""));
 
 			CometNode *CreateCometNode(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name = std::string(""), std::string normal_name = std::string(""));
 

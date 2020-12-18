@@ -19,7 +19,6 @@ namespace game {
 		ObstacleNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture = NULL, const Resource *normal = NULL);
 		~ObstacleNode();
 
-		void Update(float deltaTime);
 	private:
 	}; // class GameObj
 

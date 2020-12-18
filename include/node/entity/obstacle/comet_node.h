@@ -23,6 +23,7 @@ namespace game {
 		void Update(float deltaTime);
 		std::map<std::string, int> GetDrops(void);
 	private:
+		
 	}; // class GameObj
 
 } // namespace game

@@ -72,6 +72,7 @@ namespace game {
 
 		float detect_distance_;
 		float min_distance_;
+		float max_stationary_distance_;
 		glm::vec3 rotation_axis_;
 		glm::vec3 CalculateAimPosition(float speed);
 		glm::vec3 proj_color_;
