@@ -135,7 +135,7 @@ void Game::SetupResources(void){
     // Create geometry of the objects
     //resman_.CreateTorus("SimpleTorusMesh",0.8,0.35,30,30);
 	resman_.CreateWall("FlatSurface");
-	resman_.CreateCylinder("SimpleCylinderMesh", 2.0, 0.4, 30, 30);
+	resman_.CreateCylinder("SimpleCylinderMesh", 1.0, 0.5, 30, 30);
 	resman_.CreateSphere("SimpleSphereMesh");
 	resman_.CreateTorus("SimpleTorusMesh");
 	resman_.CreateCube("c",3,3,3);
@@ -149,8 +149,11 @@ void Game::SetupResources(void){
 	filename = SAVE_DIRECTORY + std::string("/game_state.json");
 	resman_.LoadResource(Save, "save", filename.c_str());
 
+	filename = SAVE_DIRECTORY + std::string("/game_state_default.json");
+	resman_.LoadResource(Save, "save_default", filename.c_str());
 
 	//load asset data
+
 	filename = SAVE_DIRECTORY + std::string("/asset_data.json");
 	resman_.LoadResource(Save, "assetList", filename.c_str());
 
@@ -210,10 +213,12 @@ void Game::SetupResources(void){
 }
 
 
-void Game::LoadSaveFile(void) {
+void Game::LoadSaveFile(bool restart) {
 
 	//todo David
-	json saveData = resman_.GetResource("save")->GetJSON();
+	json saveData;
+	if(restart)saveData= resman_.GetResource("save_default")->GetJSON();
+	else saveData = resman_.GetResource("save")->GetJSON();
 
 	for (auto& gameData : saveData["inventory"].items()) {
 		loadedPlayerInventory[gameData.key()] = gameData.value();
@@ -276,9 +281,9 @@ void Game::SaveGame(void) {
 	resman_.SaveResource("save");
 }
 
-void Game::LoadLastSave(void) {
+void Game::LoadLastSave(bool restart) {
 	int lastStartTime = startTime;
-	LoadSaveFile();
+	LoadSaveFile(restart);
 	startTime = lastStartTime;
 	Player* player = scene_.GetPlayer();
 	player->SetUpgrades(&loadedPlayerUpgrades);
@@ -330,10 +335,10 @@ void Game::SetUpWorld(bool restart) {
 	LoadLastSave();
 
 	CreateEnemies(numEnemies);
-	numEnemies = scene_.GetEnemies()->size(); //accounts for any rounding errors, should be handled by chosen number (60) but just in case that changes later
+	numEnemies = scene_.GetEnemies()->size(); 
 	CreateAsteroids(numAsteroids);
 	CreateComets();
-	//ame::SceneNode *wall = CreateInstance("Canvas", "FlatSurface", "Procedural", "RockyTexture"); // must supply a texture, even if not used
+	CreateSatellites();
 	//create skybox
 
 	//create particles:
@@ -346,8 +351,6 @@ void Game::SetUpWorld(bool restart) {
 	pn->SetDraw(false);
 	pn->SetBlending(true);
 	pn->SetColor(glm::vec3(0, 0.749, 1));
-	//pn->SetJoint(glm::vec3(0, 0, -1));
-	//scene_.GetPlayer()->SetParticleSystem(pn);
 
 	scene_.GetPlayer()->AddChild(pn);
 	//scene_.GetPlayer()->AddChild(test);
@@ -400,11 +403,16 @@ void Game::MainLoop(void){
 			player = scene_.GetPlayer();
 			scene_.SetResetWorld(false);
 		}
+		else if (scene_.GetLevelComplete()) {
+			animating_ = false;
+			player = scene_.GetPlayer();
+			glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			scene_.SetLevelComplete(false);
+		}
 		else if (scene_.GetCurrentMenu() == DEATH_MENU) {
 			animating_ = false;
 			glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		}
-
 		static double last_time = glfwGetTime();
 		static double last_update = glfwGetTime();
 
@@ -580,12 +588,11 @@ void Game::GetUserInput(float deltaTime) {
 		LoadLastSave();
 	}
 
-	//load last save (will be option on death)
-	if (glfwGetKey(window_, GLFW_KEY_GRAVE_ACCENT) == GLFW_PRESS) {
+	//open up the shop if the player is near a satellite. 
+	if (glfwGetKey(window_, GLFW_KEY_E) == GLFW_PRESS && scene_.GetSatelliteShop()) {
 		animating_ = false;
-		scene_.SetCurrentScreen(SHOP_WEAPONS_1_MENU);
+		scene_.SetCurrentScreen(SHOP_ABILITES_MENU);
 		UpdateShopText("repair", "repair");
-
 		glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	}
 
@@ -615,7 +622,6 @@ void Game::GetUserInput(float deltaTime) {
 	if (btn != "" && (timeOfLastMove < glfwGetTime() - 0.5) && glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
 			timeOfLastMove = glfwGetTime();
 
-
 			if (btn == "resumeButton") {
 				scene_.SetCurrentScreen(HUD_MENU);
 				animating_ = true;
@@ -623,6 +629,13 @@ void Game::GetUserInput(float deltaTime) {
 			}
 			else if (btn == "chooseBountyBtn") {
 				scene_.SetCurrentScreen(BOUNTY_MENU);
+			}
+			else if (btn == "WipeSaveButton") {
+				LoadLastSave(true);
+				SaveGame();
+			}
+			else if (btn == "SaveButton") {
+				SaveGame();
 			}
 			else if (btn == "shopBackButton") {
 				if (prev_menu_ == HUD_MENU) {
@@ -637,6 +650,7 @@ void Game::GetUserInput(float deltaTime) {
 			else if (btn == "shopWeaponsPage2Menu") {
 				std::cout << "page 2 opened" << std::endl;
 				scene_.SetCurrentScreen(SHOP_WEAPONS_2_MENU);
+
 			}
 			else if (btn.compare("shopWeaponsButton")==0 || btn.compare("shopWeaponsPage1Menu")==0) {
 				scene_.SetCurrentScreen(SHOP_WEAPONS_1_MENU);
@@ -658,13 +672,18 @@ void Game::GetUserInput(float deltaTime) {
 
 				if (chosen_bounty_.compare("")) {
 
+					scene_.GetScreen("bossHealthBar")->SetDraw(false);
+					scene_.GetScreen("bossHealthBox")->SetDraw(false);
 					int num;
 					if (chosen_bounty_.compare("destroy_60_asteroids_reward") == 0)num = 60;
 					if (chosen_bounty_.compare("kill_40_enemies_reward") == 0)num = 40;
 					if (chosen_bounty_.compare("kill_boss_reward") == 0) {
 						num = 1;
 						CreateBoss();
+						scene_.GetScreen("bossHealthBar")->SetDraw(true);
+						scene_.GetScreen("bossHealthBox")->SetDraw(true);
 					}
+
 					scene_.SetBounty(chosen_bounty_, num, loadedBountyStats[chosen_bounty_]);
 
 					prev_menu_ = HUD_MENU;
@@ -706,139 +725,6 @@ void Game::GetUserInput(float deltaTime) {
 				std::string type = scene_.GetButton(btn)->GetType();
 				BuySomething(btn, type);
 			}
-			/*
-			else if (btn == "shipHealthButton") {
-				std::cout << "shipHealthButton clicked!" << std::endl;
-				BuySomething("ship_Health_Level", "upgrade");
-			}
-			else if (btn == "RepairBtn") {
-				std::cout << "RepairBtn clicked!" << std::endl;
-				BuySomething("repair", "repair");
-			}
-			else if (btn == "shipShieldButton") {
-				std::cout << "shipShieldButton clicked!" << std::endl;
-				BuySomething("ship_Shield_Level", "upgrade");
-			}
-			else if (btn == "shipSpeedButton") {
-				std::cout << "shipSpeedButton clicked!" << std::endl;
-				BuySomething("ship_Boost_Speed_Level", "upgrade");
-			}
-			else if (btn == "laserRangeBtn") {
-				std::cout << "laserRangeBtn clicked!" << std::endl;
-				BuySomething("laser_Battery_Range_Level", "upgrade");
-			}
-			else if (btn == "laserDmgBtn") {
-				std::cout << "laserDmgBtn clicked!" << std::endl;
-				BuySomething("laser_Battery_Damage_Level", "upgrade");
-			}
-			else if (btn == "laserPierceBtn") {
-				std::cout << "laserPierceBtn clicked!" << std::endl;
-				BuySomething("laser_Battery_Pierce_Level", "upgrade");
-			}
-			else if (btn == "NaniteAmmoBtn") {
-				std::cout << "NaniteAmmoBtn clicked!" << std::endl;
-				BuySomething("nanite_Torpedo", "ammo");
-			}
-			else if (btn == "NaniteDmgBtn") {
-				std::cout << "NaniteDmgBtn clicked!" << std::endl;
-				BuySomething("nanite_Torpedo_Damage_Level", "upgrade");
-			}
-			else if (btn == "NaniteDurBtn") {
-				std::cout << "NaniteDurBtn clicked!" << std::endl;
-				BuySomething("nanite_Torpedo_Duration_Level", "upgrade");
-			}
-			else if (btn == "NaniteStackBtn") {
-				std::cout << "NaniteStackBtn clicked!" << std::endl;
-				BuySomething("nanite_Torpedo_Stack_Level", "upgrade");
-			}
-			else if (btn == "chargeAmmoBtn") {
-				std::cout << "chargeAmmoBtn clicked!" << std::endl;
-				BuySomething("charge_Blast", "ammo");
-			}
-			else if (btn == "chargeDmgBtn") {
-				std::cout << "chargeDmgBtn clicked!" << std::endl;
-				BuySomething("charge_Blast_Damage_Level", "upgrade");
-			}
-			else if (btn == "chargeSizeBtn") {
-				std::cout << "chargeSizeBtn clicked!" << std::endl;
-				BuySomething("charge_Blast_Radius_Level", "upgrade");
-			}
-			else if (btn == "sniperAmmoBtn") {
-				std::cout << "sniperAmmoBtn clicked!" << std::endl;
-				BuySomething("sniper_shot", "ammo");
-			}
-			else if (btn == "sniperDmgBtn") {
-				std::cout << "sniperDmgBtn clicked!" << std::endl;
-				BuySomething("sniper_Shot_Damage_Level", "upgrade");
-			}
-			else if (btn == "sniperRangeBtn") {
-				std::cout << "sniperRangeBtn clicked!" << std::endl;
-				BuySomething("sniper_Shot_Range_Level", "upgrade");
-			}
-			else if (btn == "shotgunAmmoBtn") {
-				std::cout << "shotgunAmmoBtn clicked!" << std::endl;
-				BuySomething("shotgun", "ammo");
-			}
-			else if (btn == "shotgunDmgBtn") {
-				std::cout << "shotgunDmgBtn clicked!" << std::endl;
-				BuySomething("shotgun_Damage_Level", "upgrade");
-			}
-			else if (btn == "shotgunNumBtn") {
-				std::cout << "shotgunNumBtn clicked!" << std::endl;
-				BuySomething("shotgun_NumShots_Level", "upgrade");
-			}
-			else if (btn == "pursuerAmmoBtn") {
-				std::cout << "pursuerAmmoBtn clicked!" << std::endl;
-				BuySomething("pursuer", "ammo");
-			}
-			else if (btn == "pursuerROFBtn") {
-				std::cout << "pursuerROFBtn clicked!" << std::endl;
-				BuySomething("pursuer_ROF_Level", "upgrade");
-			}
-			else if (btn == "naniteSwarmDmgBtn") {
-				std::cout << "naniteSwarmDmgBtn clicked!" << std::endl;
-				BuySomething("nanite_Swarm_Damage_Level", "upgrade");
-			}
-			else if (btn == "naniteSwarmRadiusBtn") {
-				std::cout << "naniteSwarmRadiusBtn clicked!" << std::endl;
-				BuySomething("nanite_Swarm_Radius_Level", "upgrade");
-			}
-			else if (btn == "naniteSwarmDurBtn") {
-				std::cout << "naniteSwarmDurBtn clicked!" << std::endl;
-				BuySomething("nanite_Swarm_Duration_Level", "upgrade");
-			}
-			else if (btn == "emgWarpAmmoBtn") {
-				std::cout << "emgWarpAmmoBtn clicked!" << std::endl;
-				BuySomething("emergency_Warp", "ability-ammo");
-			}
-			else if (btn == "chronoSurgeAmmoBtn") {
-				std::cout << "chronoSurgeAmmoBtn clicked!" << std::endl;
-				BuySomething("chrono_Surge", "ability-ammo");
-			}
-			else if (btn == "barrierDurBtn") {
-				std::cout << "barrierDurBtn clicked!" << std::endl;
-				BuySomething("barrier_Duration_Level", "upgrade");
-			}
-			else if (btn == "barrierSizeBtn") {
-				std::cout << "barrierSizeBtn clicked!" << std::endl;
-				BuySomething("barrier_Size_Level", "upgrade");
-			}
-			else if (btn == "batteryOverChargeBtn") {
-				std::cout << "batteryOverChargeBtn clicked!" << std::endl;
-				BuySomething("battery_Overcharge_Level", "upgrade");
-			}
-			else if (btn == "emergencyWarpBtn") {
-				std::cout << "emergencyWarpBtn clicked!" << std::endl;
-				BuySomething("emergency_Warp_Level", "upgrade");
-			}
-			else if (btn == "emergencyManuBtn") {
-				std::cout << "emergencyManuBtn clicked!" << std::endl;
-				BuySomething("evasive_Maneuvers_Level", "upgrade");
-			}
-			else if (btn == "chronoSurgeBtn") {
-				std::cout << "chronoSurgeBtn clicked!" << std::endl;
-				BuySomething("chrono_Surge_Duration_Level", "upgrade");
-			}*/
 	}
 
 	if (animating_) {
@@ -878,6 +764,7 @@ void Game::GetUserInput(float deltaTime) {
 
 		//emergency warp, levels increase distance travelled.
 		if (twoNotPressedLastFrame && glfwGetKey(window_, GLFW_KEY_2) == GLFW_PRESS) {
+			std::cout << "warp activatdd!" << std::endl;
 			//if ammo use ability
 			if (loadedPlayerInventory["emergency_Warp_Ammo"] > 0) {
 				loadedPlayerInventory["emergency_Warp_Ammo"]--;
@@ -984,7 +871,6 @@ void Game::GetMouseCameraInput(float xpos, float ypos) {
 		ScreenNode* screen = scene_.GetScreen("cockpit");
 		screen->SetPosition(glm::vec3(speed_x*0.5,-0.1+speed_y*0.5, 0));
 	}
-
 }
 
 
@@ -1065,7 +951,7 @@ void Game::CreateBoss(void) {
 	Resource* dataResource = resman_.GetResource("save");
 	json data = dataResource->GetJSON()["enemies"];
 
-	Boss *en = CreateBossInstance("Boss", "bossMesh", "TextureShader", "bossTexture");
+	Boss *en = CreateBossInstance("Boss", "bossMesh", "NormalMaterial", "bossTexture");
 	NodeResources* proj = GetResources("SimpleCylinderMesh", "ColoredMaterial", "", "");
 	en->SetScale(glm::vec3(30));
 	en->SetPosition(glm::vec3(-1000, 0, 0));
@@ -1074,7 +960,7 @@ void Game::CreateBoss(void) {
 	en->SetPlayer(scene_.GetPlayer());
 	en->SetProjectileDmg(data["Boss"]["orbs"]["bullet_damage"]);
 	en->SetProjColor(glm::vec3(1, 1, 0));
-	NodeResources* rsc = GetResources("bossOrbMesh", "TextureShader", "bossOrbTexture", "");
+	NodeResources* rsc = GetResources("bossOrbMesh", "NormalMaterial", "bossOrbTexture", "");
 	// Create asteroid instance
 	int total_orbs = data["Boss"]["orbs"]["count"];
 	en->SetRateOfFire(1);
@@ -1119,7 +1005,7 @@ void Game::CreateEnemies(int num_enemies) {
 		ss << i;
 		std::string index = ss.str();
 		std::string name = "enemy_"+enemy_type + index;
-		Enemy *en = CreateEnemyInstance(name, "EnemyMesh", "TextureShader","enemy"+enemy_type+"Texture");
+		Enemy *en = CreateEnemyInstance(name, "EnemyMesh", "NormalMaterial","enemy"+enemy_type+"Texture");
 		SetEnemyStats(enemy_type, en, data);
 
 		en->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
@@ -1134,7 +1020,7 @@ void Game::CreateEnemies(int num_enemies) {
 		ss << i;
 		std::string index = ss.str();
 		std::string name = "enemy_" + enemy_type + index;
-		Enemy *en = CreateEnemyInstance(name, "EnemyMesh", "TextureShader", "enemy" + enemy_type + "Texture");
+		Enemy *en = CreateEnemyInstance(name, "EnemyMesh", "NormalMaterial", "enemy" + enemy_type + "Texture");
 		SetEnemyStats(enemy_type, en, data);
 
 		en->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
@@ -1149,7 +1035,7 @@ void Game::CreateEnemies(int num_enemies) {
 		ss << i;
 		std::string index = ss.str();
 		std::string name = "enemy_" + enemy_type + index;
-		Enemy *en = CreateEnemyInstance(name, "EnemyMesh", "TextureShader", "enemy" + enemy_type + "Texture");
+		Enemy *en = CreateEnemyInstance(name, "EnemyMesh", "NormalMaterial", "enemy" + enemy_type + "Texture");
 		SetEnemyStats(enemy_type, en, data);
 
 		en->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
@@ -1164,7 +1050,7 @@ void Game::CreateEnemies(int num_enemies) {
 		ss << i;
 		std::string index = ss.str();
 		std::string name = "enemy_" + enemy_type + index;
-		Enemy *en = CreateEnemyInstance(name, "EnemyMesh", "TextureShader", "enemy" + enemy_type + "Texture");
+		Enemy *en = CreateEnemyInstance(name, "EnemyMesh", "NormalMaterial", "enemy" + enemy_type + "Texture");
 		SetEnemyStats(enemy_type, en, data);
 
 		en->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
@@ -1179,7 +1065,7 @@ void Game::CreateEnemies(int num_enemies) {
 		ss << i;
 		std::string index = ss.str();
 		std::string name = "enemy_" + enemy_type + index;
-		Enemy *en = CreateEnemyInstance(name, "EnemyMesh", "TextureShader", "enemy" + enemy_type + "Texture");
+		Enemy *en = CreateEnemyInstance(name, "EnemyMesh", "NormalMaterial", "enemy" + enemy_type + "Texture");
 		SetEnemyStats(enemy_type, en, data);
 
 		en->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
@@ -1195,7 +1081,7 @@ void Game::CreateEnemies(int num_enemies) {
 		ss << i;
 		std::string index = ss.str();
 		std::string name = "enemy_" + enemy_type + index;
-		Enemy *en = CreateEnemyInstance(name, "EnemyMesh", "TextureShader", "enemy" + enemy_type + "Texture");
+		Enemy *en = CreateEnemyInstance(name, "EnemyMesh", "NormalMaterial", "enemy" + enemy_type + "Texture");
 		SetEnemyStats(enemy_type, en, data);
 
 		en->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
@@ -1226,14 +1112,60 @@ void Game::CreateAsteroids(int num_asteroids){
 		ast->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
 		//en->SetScale(glm::vec3(1000));
 		ast->SetScale(glm::vec3((rand() % 30) + 1));
-		/*
-		en->SetAngM(glm::normalize(glm::angleAxis(0.05f*glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
-		*/
+		ast->RotateOrientationInit(glm::pi<float>()*((float)rand() / RAND_MAX)*30, glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX)));
     }
 }
 
+
+void Game::CreateSatellites(int num_satellites) {
+
+	float radius = 2000;
+	// Create a number of asteroid instances
+
+	NodeResources* rsc = GetResources("satelliteMesh", "NormalMaterial", "satelliteTexture", "");
+	float height = 10;
+	float width = 2;
+
+	float panel_size = width * 15;
+	for (int i = 0; i < num_satellites; i++) {
+		// Create instance name
+		std::stringstream ss;
+		ss << i;
+		std::string index = ss.str();
+		std::string name = "Satellite" + index;
+
+		// Create asteroid instance+
+		SatelliteNode *sat = CreateSatelliteInstance(name, "SimpleCylinderMesh", "NormalMaterial","satelliteTubeTexture");//,
+
+		// Set attributes of asteroid: random position, orientation, and
+		// angular momentum
+
+		sat->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
+		sat->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float)rand() / RAND_MAX), glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX)))));
+
+		sat->SetScale(glm::vec3(width, height, width));
+
+		for (int i = 0; i < 2; i++) {
+			SceneNode *pn = new SceneNode("satellite_anntena", rsc->geom, rsc->mat, rsc->tex);
+			
+			glm::vec3 pos = glm::vec3(0,(i*2-1)* height/2,-width);
+			pn->SetPosition(pos);
+			pn->SetJoint(pos);
+			pn->RotateOrientationInit(glm::pi<float>()*((float)rand() / RAND_MAX)*30* (i * 2 - 1), glm::vec3(0, 1, 0));
+			pn->SetScale(glm::vec3(panel_size));
+			pn->AddParent(sat);
+
+			pn->SetNodeResources(rsc);
+			sat->AddChild(pn);
+
+
+		}
+	
+	}
+}
+
 void Game::CreateComets(int num_comets) {
-	float radius = 4000;
+	float radius = 3000;
 	for (int i = 0; i < num_comets; i++) {
 		// Create instance name
 		std::stringstream ss;
@@ -1248,10 +1180,14 @@ void Game::CreateComets(int num_comets) {
 		// angular momentum
 
 		cmt->SetPosition(glm::vec3(-radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX), -radius + radius * ((float)rand() / RAND_MAX)));
-		cmt->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float)rand() / RAND_MAX), glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX)))));
+		
+		glm::vec3 axis = glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX));
+
+		cmt->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float)rand() / RAND_MAX), axis)));
 		float scale = 3;
 		cmt->SetScale(glm::vec3(scale));
 		cmt->SetColor(glm::vec3(1,0.5,0.5));
+		cmt->RotateOrientationInit(10, axis);
 
 
 		ParticleNode* pn = CreateParticleInstance(20000, "cometStream", "cometParticles", "CometParticleMaterial", "jetParticleTexture");
@@ -1279,6 +1215,7 @@ void Game::CreateScreenMenus(void) {
 	CreateShopAbilitesMenu();
 	CreateDeathMenu();
 	CreateBountyMenu();
+	CreateLevelCompleteMenu();
 }
 
 void Game::CreateBountyMenu(void) {
@@ -1312,21 +1249,27 @@ void Game::CreateMainMenu(void) {
 	//button
 	btn = CreateButtonInstance("startButton", "FlatSurface", "ScreenMaterial", MAIN_MENU, "longButton");
 	btn->SetScale(glm::vec3(0.7, 0.1, 1));//multiply by 17.72crosshairDefaultTexture
-	btn->SetPosition(glm::vec3(0, 0.15, 0));
+	btn->SetPosition(glm::vec3(0, 0.45, 0));
 	//btn->SetPosition(glm::vec3(-0.6, 0.7, 0));
 	btn->SetText(new Text("PLAY GAME", glm::vec2(-0.5,-0.3), 0.4, glm::vec3(1.0, 1.0, 1.0)));
 
 	btn = CreateButtonInstance("shopButton", "FlatSurface", "ScreenMaterial", MAIN_MENU, "longButton");
 	btn->SetScale(glm::vec3(0.7, 0.1, 1));//multiply by 17.72crosshairDefaultTexture
-	btn->SetPosition(glm::vec3(0, -0.45, 0));
+	btn->SetPosition(glm::vec3(0, -0.15, 0));
 	//btn->SetPosition(glm::vec3(-0.6, 0.7, 0));
 	btn->SetText(new Text("OPEN SHOP", glm::vec2(-0.5, -0.3), 0.4, glm::vec3(1.0, 1.0, 1.0)));
 
 	btn = CreateButtonInstance("chooseBountyBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "longButton");
 	btn->SetScale(glm::vec3(0.7, 0.1, 1));//multiply by 17.72crosshairDefaultTexture
-	btn->SetPosition(glm::vec3(0, -0.15, 0));
+	btn->SetPosition(glm::vec3(0, 0.15, 0));
 	//btn->SetPosition(glm::vec3(-0.6, 0.7, 0));
 	btn->SetText(new Text("CHOOSE BOUNTY", glm::vec2(-0.6, -0.3), 0.4, glm::vec3(1.0, 1.0, 1.0)));
+
+	btn = CreateButtonInstance("WipeSaveButton", "FlatSurface", "ScreenMaterial", MAIN_MENU, "longButton");
+	btn->SetScale(glm::vec3(0.7, 0.1, 1));//multiply by 17.72crosshairDefaultTexture
+	btn->SetPosition(glm::vec3(0, -0.45, 0));
+	//btn->SetPosition(glm::vec3(-0.6, 0.7, 0));
+	btn->SetText(new Text("Delete Save", glm::vec2(-0.5, -0.3), 0.4, glm::vec3(1.0, 1.0, 1.0)));
 
 	btn = CreateButtonInstance("mainMenuQuitBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "longButton");
 	btn->SetScale(glm::vec3(0.7, 0.1, 1));//multiply by 17.72crosshairDefaultTexture
@@ -1424,9 +1367,14 @@ void Game::CreateShopHeaders(ScreenType type) {
 	node->SetScale(glm::vec3(1.955, 1.1, 1));//multiply by 21
 
 	btn = CreateButtonInstance("shopBackButton", "FlatSurface", "ScreenMaterial", type, "longButton");
-	btn->SetScale(glm::vec3(0.42, 0.06, 1));//multiply by 17.72crosshairDefaultTexture
-	btn->SetPosition(glm::vec3(-0.75, 0.9, 0));
-	btn->SetText(new Text("Back", glm::vec2(-1.0, -0.1), 0.35, glm::vec3(1.0, 1.0, 1.0)));
+	btn->SetScale(glm::vec3(0.15, 0.06, 1));//multiply by 17.72crosshairDefaultTexture
+	btn->SetPosition(glm::vec3(-0.85, 0.9, 0));
+	btn->SetText(new Text("Back", glm::vec2(-0.7, -0.1), 0.35, glm::vec3(1.0, 1.0, 1.0)));
+
+	btn = CreateButtonInstance("SaveButton", "FlatSurface", "ScreenMaterial", type, "longButton");
+	btn->SetScale(glm::vec3(0.15, 0.06, 1));//multiply by 17.72crosshairDefaultTexture
+	btn->SetPosition(glm::vec3(-0.6, 0.9, 0));
+	btn->SetText(new Text("Save", glm::vec2(-0.7, -0.1), 0.35, glm::vec3(1.0, 1.0, 1.0)));
 
 	btn = CreateButtonInstance("shopShipButton", "FlatSurface", "ScreenMaterial", type, "longButton");
 	btn->SetScale(glm::vec3(0.42, 0.06, 1));//multiply by 17.72crosshairDefaultTexture
@@ -1549,16 +1497,44 @@ void Game::CreateDeathMenu(void) {
 	ScreenNode* node;
 	ButtonNode* btn;
 
-	btn = CreateButtonInstance("quitDesktopDeathButton", "FlatSurface", "ScreenMaterial", DEATH_MENU, "pauseButton");
-	btn->SetScale(glm::vec3(0.25, 0.25, 1));//multiply by 17.72crosshairDefaultTexture
-	btn->SetPosition(glm::vec3(-0.45, 0.5, 0));
-	btn->SetText(new Text("Desktop", glm::vec2(-1.0, -1.7), 0.3, glm::vec3(0, 0.6, 0.83)));
+	btn = CreateButtonInstance("quitDesktopDeathButton", "FlatSurface", "ScreenMaterial", DEATH_MENU, "longButton");
+	btn->SetScale(glm::vec3(0.7, 0.1, 1));//multiply by 
+	btn->SetPosition(glm::vec3(0, 0.6, 0));
+	btn->SetText(new Text("Desktop", glm::vec2(-0.4, -0.3), 0.4, glm::vec3
+	(1.0, 1.0, 1.0)));
 
-	btn = CreateButtonInstance("mainMenuRestartDeathButton", "FlatSurface", "ScreenMaterial", DEATH_MENU, "pauseButton");
-	btn->SetScale(glm::vec3(0.25, 0.25, 1));//multiply by 17.72crosshairDefaultTexture
-	btn->SetPosition(glm::vec3(-0.05, 0.5, 0));
-	btn->SetText(new Text("Main Menu", glm::vec2(-1.0, -1.7), 0.3, glm::vec3(0, 0.6, 0.83)));
+	btn = CreateButtonInstance("mainMenuRestartDeathButton", "FlatSurface", "ScreenMaterial", DEATH_MENU, "longButton");
+	btn->SetScale(glm::vec3(0.7, 0.1, 1));//multiply by 
+	btn->SetPosition(glm::vec3(0, 0.3, 0));
+	btn->SetText(new Text("Main Menu", glm::vec2(-0.4, -0.3), 0.4, glm::vec3
+	(1.0, 1.0, 1.0)));
+}
 
+
+void Game::CreateLevelCompleteMenu(void) {
+	ScreenNode* node;
+	ButtonNode* btn;
+	
+	node = CreateScreenInstance("shopBackground", "FlatSurface", "ScreenMaterial", COMPLETE_MENU, "menuBackground");
+	node->SetScale(glm::vec3(1.955, 1.1, 1));//multiply by 21
+
+	btn = CreateButtonInstance("quitDesktopDeathButton", "FlatSurface", "ScreenMaterial", COMPLETE_MENU, "longButton");
+	btn->SetScale(glm::vec3(0.7, 0.1, 1));//multiply by 
+	btn->SetPosition(glm::vec3(0, 0.6, 0));
+	btn->SetText(new Text("Desktop", glm::vec2(-0.4, -0.3), 0.4, glm::vec3
+(1.0, 1.0, 1.0)));
+
+	btn = CreateButtonInstance("mainMenuRestartDeathButton", "FlatSurface", "ScreenMaterial", COMPLETE_MENU, "longButton");
+	btn->SetScale(glm::vec3(0.7, 0.1, 1));//multiply by 
+	btn->SetPosition(glm::vec3(0, 0.3, 0));
+	btn->SetText(new Text("Main Menu", glm::vec2(-0.4, -0.3), 0.4, glm::vec3
+	(1.0, 1.0, 1.0)));
+
+	btn = CreateButtonInstance("SaveButton", "FlatSurface", "ScreenMaterial", COMPLETE_MENU, "longButton");
+	btn->SetScale(glm::vec3(0.7, 0.1, 1));//multiply by 
+	btn->SetPosition(glm::vec3(0, 0, 0));
+	btn->SetText(new Text("Save Game", glm::vec2(-0.4, -0.3), 0.4, glm::vec3
+	(1.0, 1.0, 1.0)));
 }
 
 void Game::CreateHUD(void) {
@@ -1612,10 +1588,11 @@ void Game::CreateHUD(void) {
 	node = CreateScreenInstance("bossHealthBox", "FlatSurface", "ScreenMaterial", HUD_MENU, "bossBoxTexture");
 	node->SetScale(glm::vec3(0.8, 0.04, 1));//multiply by 0.2
 	node->SetPosition(glm::vec3(0, -0.87, 0));
-
+	node->SetDraw(false);
 	node = CreateScreenInstance("bossHealthBar", "FlatSurface", "ScreenMaterial", HUD_MENU, "bossBarTexture");
 	node->SetScale(glm::vec3(0.79, 0.034, 1));//multiply by 0.2
 	node->SetPosition(glm::vec3(0, -0.87, 0));
+	node->SetDraw(false);
 
 	//crosshair
 	node = CreateScreenInstance("crosshair", "FlatSurface", "ScreenMaterial", HUD_MENU, "crosshairDefaultTexture");
@@ -1689,6 +1666,8 @@ Enemy *Game::CreateEnemyInstance(std::string entity_name, std::string object_nam
 	return en;
 }
 
+
+
 ScreenNode *Game::CreateScreenInstance(std::string entity_name, std::string object_name, std::string material_name, ScreenType type, std::string texture_name, std::string normal_name) {
 	NodeResources* rsc = GetResources(object_name, material_name, texture_name, normal_name);
 
@@ -1719,6 +1698,15 @@ AsteroidNode *Game::CreateAsteroidInstance(std::string entity_name, std::string 
 	scene_.AddAsteroid(ast);
 	return ast;
 }
+
+SatelliteNode *Game::CreateSatelliteInstance(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name, std::string normal_name) {
+
+	NodeResources* rsc = GetResources(object_name, material_name, texture_name, normal_name);
+	SatelliteNode *ast = new SatelliteNode(entity_name, rsc->geom, rsc->mat, rsc->tex, rsc->norm);
+	scene_.AddSatellite(ast);
+	return ast;
+}
+
 CometNode *Game::CreateCometNode(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name, std::string normal_name) {
 
 	NodeResources* rsc = GetResources(object_name, material_name, texture_name, normal_name);

@@ -254,9 +254,9 @@
         "shield_recharge_time": 30,
         "ship_base_health": 100,
         "ship_base_shield": 100,
-        "shots_fired": 0
+        "shots_fired": 23
     },
-    "playtime": 0,
+    "playtime": 363,
     "size": "Large",
     "upgrade_costs": {
         "level_1": {
@@ -291,7 +291,7 @@
         "battery_Overcharge_Level": 0,
         "charge_Blast_Damage_Level": 0,
         "charge_Blast_Radius_Level": 0,
-        "chrono_Surge_Level": 0,
+        "chrono_Surge_Duration_Level": 0,
         "emergency_Warp_Level": 0,
         "evasive_Maneuvers_Level": 0,
         "laser_Battery_Damage_Level": 0,
@@ -307,9 +307,9 @@
         "release_Interceptors_Count_Level": 0,
         "release_Interceptors_Damage_Level": 0,
         "release_Interceptors_Duration_Level": 0,
+        "ship_Boost_Speed_Level": 0,
         "ship_Health_Level": 0,
         "ship_Shield_Level": 0,
-        "ship_Boost_Speed_Level": 0,
         "shotgun_Damage_Level": 0,
         "shotgun_NumShots_Level": 0,
         "sniper_Shot_Damage_Level": 0,
@@ -318,7 +318,7 @@
     "weapon_stats": {
         "charge_Blast_Cost": 5,
         "charge_Blast_ROF": 2,
-        "charge_Blast_baseDmg": 60,
+        "charge_Blast_baseDmg": 45,
         "charge_Blast_baseTTL": 7,
         "chrono_Surge_Cost": 70,
         "emergency_Warp_Cost": 30,

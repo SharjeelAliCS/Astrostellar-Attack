@@ -27,6 +27,7 @@ namespace game {
 
 	void CometNode::Update(float deltaTime) {
 		position_ += movement_speed * orientation_->GetForward();
+		Entity::Update(deltaTime);
 	}
 
 	std::map<std::string, int> CometNode::GetDrops(void) {

@@ -23,9 +23,6 @@ namespace game {
 
 	ObstacleNode::~ObstacleNode() {
 	}
-	void ObstacleNode::Update(float deltaTime) {
-		Rotate(deltaTime * 10, glm::vec3(1,0,0));
-	}
 
 
 }

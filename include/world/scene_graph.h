@@ -21,6 +21,7 @@
 #include "asteroid_node.h"
 #include "button_node.h"
 #include "comet_node.h"
+#include "satellite_node.h"
 #include "particle_node.h"
 #include "agent_node.h"
 #include "sound.h"
@@ -45,7 +46,7 @@ namespace game {
 		MAIN_MENU,
 		DEATH_MENU,
 		PAUSE_MENU,
-		CREDITS_MENU,
+		COMPLETE_MENU,
 		SHOP_SHIP_MENU,
 		SHOP_WEAPONS_1_MENU,
 		SHOP_WEAPONS_2_MENU,
@@ -96,6 +97,9 @@ namespace game {
 			void AddButton(ButtonNode *node, ScreenType type);
 			ButtonNode *GetButton(std::string node_name) const;
 
+			void AddSatellite(SatelliteNode *node);
+			SatelliteNode *GetSatellite(std::string node_name) const;
+
 			void AddBoss(Boss* boss) { boss_ = boss; }
 			Boss* GetBoss(void) { return boss_; }
 			void SetCurrentScreen(ScreenType t);
@@ -142,8 +146,13 @@ namespace game {
 
 			void SetResetWorld(bool b) { reset_world_ = b; }
 			bool GetResetWorld(void) { return reset_world_; }
+
+			void SetLevelComplete(bool b) { level_complete_ = b; }
+			bool GetLevelComplete(void) { return level_complete_; }
+
 			void ClearData(void);
 
+			bool GetSatelliteShop() { return satellite_shop_; }
 		private:
 
 			// Frame buffer for drawing to texture
@@ -163,12 +172,14 @@ namespace game {
 			SkyBox* skybox_;
 			RadarNode* radar_;
 			Boss* boss_;
+			bool satellite_shop_;
 
 			TextRenderer* text_renderer_;
 			std::vector<SceneNode*>* node_;
 			std::vector<Enemy *>* enemy_;
 			std::vector<AsteroidNode*>* asteroid_;
 			std::vector<CometNode*>* comet_;
+			std::vector<SatelliteNode*>* satellite_;
 			std::vector<ParticleNode*>* death_animations_;
 
 			std::string currentBounty;
@@ -198,7 +209,7 @@ namespace game {
 			float radar_distance_;
 
 			bool reset_world_;
-
+			bool level_complete_;
 
     }; // class SceneGraph
 
