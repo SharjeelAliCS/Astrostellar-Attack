@@ -1,9 +1,7 @@
 /*
- * COMP 3501 A FALL 2020: ASSIGNMENT 3: A small game
- * MODIFIED BY SHARJEEL ALI #101070889
- *
- * A program that demonstrates the world of space and nice RGB ringed planets.
- *
+COMP 3501 A FALL 2020: Astrostellar Attack Final Project
+OWNERS:                SHARJEEL ALI #101070889, DAVID NEUDORF #101029913
+CONTENTS:              Contains a satellite node class
  */
 
 #ifndef SATELLITE_NODE_

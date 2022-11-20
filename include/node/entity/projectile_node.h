@@ -1,9 +1,7 @@
 /*
- * COMP 3501 A FALL 2020: ASSIGNMENT 3: A small game
- * MODIFIED BY SHARJEEL ALI #101070889
- *
- * A program that demonstrates the world of space and nice RGB ringed planets.
- *
+COMP 3501 A FALL 2020: Astrostellar Attack Final Project
+OWNERS:                SHARJEEL ALI #101070889, DAVID NEUDORF #101029913
+CONTENTS:              Contains a projectile node class
  */
 
 #ifndef PROJECTILE_OBJ_H_
@@ -20,6 +18,7 @@ namespace game {
 	class Player;
 	class Enemy;
 	// Class for a single projectile object 
+	//NOTE: CLASS IS DERIVED FROM SCENENODE. FOR FUNCTIONS THAT DO NOT HAVE COMMENTS OR HEADERS BELOW, LOOK FOR DOCUMENTATION IN SCENENODE.H
 	class Projectile : public Entity {
 
 	public:
@@ -30,26 +29,81 @@ namespace game {
 		// Destructor
 		~Projectile();
 
-		//defines stats for player attack types
+		/*Input:       void
+		  Output:      void
+		  Description: Initalizes the projectile information
+		*/
 		void init();
+
+		/*Input:       ast (asteroid list)
+		  Output:      void
+		  Description: Set the asteroid list of a projectile
+		*/
 		void SetAsteroids(std::vector<AsteroidNode*>* ast) { asteroids = ast; }
+
+		/*Input:       cmt (comet list)
+		  Output:      void
+		  Description: Set the comet list of a projectile
+		*/
 		void SetComets(std::vector<CometNode*>* cmt) { comets = cmt; }
+
+		/*Input:       en (Enemy list)
+		  Output:      void
+		  Description: Set the Enemy list of a projectile
+		*/
 		void SetEnemies(std::vector<Enemy*>* en) { enemies = en; }
+
+		/*Input:       p (player node)
+		  Output:      void
+		  Description: Set the target player of a projectile
+		*/
 		void SetPlayer(Player* p);
 
+		/*Input:       s (speed of projectile)
+		  Output:      void
+		  Description: Set the speed of a projectile
+		*/
 		void SetSpeed(float s) { speed = s; }
+
+		/*Input:       void
+		  Output:      float (Speed of projectile)
+		  Description: Get the speed of a projectile
+		*/
 		float GetSpeed(void) { return speed; }
 		void Update(float deltaTime);
 
+		/*Input:       void
+		  Output:      string (type of projctile)
+		  Description: Get the type of a projectile
+		*/
 		std::string GetType(void) { return type; }
 
-		//Set the max range it can be as a function of time
+
+		/*Input:       t (maximum range in time)
+		  Output:      void
+		  Description: Set the max range in time projectile exists for
+		*/
 		void SetTTL(double t);
+
+		/*Input:       void
+		  Output:      t (maximum range in time)
+		  Description: Get the max range in time projectile exists for
+		*/
 		double GetTTL(void) const { return ttl; }
+
+		/*Input:       void
+		  Output:      void
+		  Description: Debug only. Prints out stats
+		*/
 		void displayStats();
+
+		/*Input:       void
+		  Output:      float (damage of projectile)
+		  Description: Get the damage a projectile does
+		*/
 		float GetDamage(void);
 
-		std::function<double()> disableFor;
+		std::function<double()> disableFor;//time to disable for
 
 	private:
 		float lastTime=0; //just for debugging
@@ -57,13 +111,13 @@ namespace game {
 		std::string type;
 		//time to live, a cheaper way to simulate range
 		double ttl;
-		//
-		int pierce;
-		float speed;
-		bool boosted;
-		SceneNode *target;
-		std::map<std::string, int> upg;
-		std::map<std::string, float> stats;
+		
+		int pierce;//how many objects projectile attacks before it disspaears
+		float speed;//speed of projectile
+		bool boosted;//flag to increase speed if player boosts
+		SceneNode *target;//target of projectile
+		std::map<std::string, int> upg;//upgrade list
+		std::map<std::string, float> stats;//stats list
 
 		//damage is a function because of the sniper existing, and maybe aoe shots will have more damage in the center of the blast, etc
 		std::function<double()> dmg;
@@ -72,6 +126,7 @@ namespace game {
 		//movement is a function because of the pursuer existing
 		std::function<void(float)> move;
 
+		//important nodes for projectile
 		std::vector<AsteroidNode*>* asteroids;
 		std::vector<CometNode*>* comets;
 		std::vector<Enemy*>* enemies;

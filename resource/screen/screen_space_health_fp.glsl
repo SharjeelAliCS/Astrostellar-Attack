@@ -18,8 +18,7 @@ void main()
 	//gets the distance from the center of the screen, -0.1 so the center isn't effected by the redshift
 	float distFromCenter = sqrt(pow(uv0.x-0.5, 2) + pow(uv0.y-0.5, 2));
 	float d = distFromCenter - 0.1;
-	float hazeIntensity = 1.65*(1-healthPercent)*d;
-
+	float hazeIntensity = 0.5*(1-healthPercent)*d;//1.65
 	//required texture look up effect. Honestly I don't think this adds much to the effect but it was a requirement so here we are.
 	vec4 offx = texture(texture_map,uv0+vec2(0.002,0));
 	vec4 offy = texture(texture_map,uv0+vec2(0,0.002));

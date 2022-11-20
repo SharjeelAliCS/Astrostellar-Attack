@@ -1,3 +1,9 @@
+/*
+COMP 3501 A FALL 2020: Astrostellar Attack Final Project
+OWNERS:                SHARJEEL ALI #101070889, DAVID NEUDORF #101029913
+CONTENTS:              Contains a model loader class
+
+ */
 #ifndef MODEL_LOADER_H_
 #define MODEL_LOADER_H_
 

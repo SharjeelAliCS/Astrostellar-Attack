@@ -38,7 +38,7 @@ void main()
     vec3 position = vertex;
     vec4 norm = normal_mat * vec4(normal, 1.0);
 
-    // Move point along normal and down with t*t (acceleration under gravity)
+    // Move the comets particles away in the y direction, and make sure the x and z directions are slowly moving towards 0 to create the thinning effect in the back. 
     position.x -= min(normal.x*t*0.05,position.x);
     position.y -=t*speed*2;
     position.z -=min(normal.z*t*0.05,position.z);

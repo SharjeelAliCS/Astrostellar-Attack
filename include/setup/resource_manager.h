@@ -1,3 +1,9 @@
+/*
+COMP 3501 A FALL 2020: Astrostellar Attack Final Project
+OWNERS:                SHARJEEL ALI #101070889, DAVID NEUDORF #101029913
+CONTENTS:              Contains a resurce manager class
+
+ */
 #ifndef RESOURCE_MANAGER_H_
 #define RESOURCE_MANAGER_H_
 
@@ -49,8 +55,13 @@ namespace game {
 			void CreateCube(std::string object_name, float = 1, float h = 1, float d = 1);
 			// "Wall", a flat object
             void CreateWall(std::string object_name);
+
+			//jet particles used for player
 			void CreateJetParticles(std::string object_name, int num_particles = 1000);
+			//sphere particles used for explosion
 			void CreateSphereParticles(std::string object_name, int num_particles = 1000);
+
+			//comet particles used for comets
 			void CreateCometParticles(std::string object_name, int num_particles = 1000);
 
         private:

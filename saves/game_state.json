@@ -188,7 +188,7 @@
     "inventory": {
         "charge_Blast_Ammo": 10,
         "chrono_Surge_Ammo": 0,
-        "credits": 1000,
+        "credits": 100,
         "emergency_Warp_Ammo": 0,
         "laser_Battery_Ammo": -1,
         "nanite_Swarm_Ammo": 0,
@@ -197,8 +197,8 @@
         "pursuer_Ammo": 10,
         "shotgun_Ammo": 10,
         "sniper_Shot_Ammo": 10,
-        "stellaranite_Fragments": 1000,
-        "stellaranite_Slabs": 1000
+        "stellaranite_Fragments": 0,
+        "stellaranite_Slabs": 0
     },
     "loadout": {
         "barrier": 1,
@@ -256,7 +256,7 @@
         "ship_base_shield": 100,
         "shots_fired": 23
     },
-    "playtime": 435,
+    "playtime": 1913,
     "size": "Large",
     "upgrade_costs": {
         "level_1": {

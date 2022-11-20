@@ -36,8 +36,6 @@ namespace game {
 		upgrades = new std::map<std::string, int>();
 		weaponStats = new std::map<std::string, float>();
 		proj_color_ = glm::vec3(0, 1, 0.18);
-		
-
 	}
 
 	Enemy::~Enemy() {
@@ -86,10 +84,11 @@ namespace game {
 	void Enemy::Fire(float deltaTime) {
 
 		time_since_fire_ += deltaTime;
+
+		//make sure time since fire exceeds rate of fire to attack
 		if (time_since_fire_ < rate_of_fire_ || attackDisabledFor_ > 0) {
 			return;
 		}
-		time_since_fire_ = 0;
 		time_since_fire_ = 0;
 
 		std::string proj_type;
@@ -99,6 +98,8 @@ namespace game {
 		else {
 			proj_type = "enemy";
 		}
+
+		//create the projectile  and assign various attributes
 		Projectile* missile = new Projectile("missile", proj_type, *upgrades, *weaponStats, false, proj_rsc_->geom, proj_rsc_->mat, proj_rsc_->tex);
 		missile->SetPlayer(player_);
 
@@ -126,11 +127,15 @@ namespace game {
 
 		orientation_->FaceTowards(position_, player_->GetPosition(), true);
 		orientation_->RotateTowards(deltaTime * 3);
+
+		//find the player if theyre within detect distance
 		if (glm::distance(position_, player_->GetPosition()) > detect_distance_) {
 			FindNewDirection(deltaTime);
 			active_state_ = &Enemy::FindPlayer;
 			return;
 		}
+
+		//move to a random direction if player is too close
 		if (glm::distance(position_, player_->GetPosition()) < min_distance_*glm::length(scale_)) {
 			time_since_last_move_ = 0;
 			active_state_ = &Enemy::MoveToRandomDirection;
@@ -140,6 +145,7 @@ namespace game {
 
 		Fire(deltaTime);
 
+		//if following for too long, switch to random direction
 		if (time_since_last_move_ > follow_duration_) {
 			time_since_last_move_ = 0;
 			active_state_ = &Enemy::MoveToRandomDirection;
@@ -152,6 +158,8 @@ namespace game {
 		active_state_ = &Enemy::FollowPlayer;
 	}
 	void Enemy::FindPlayer(float deltaTime) {
+
+		//if the player is within dectection, follow or ram it
 		if (glm::distance(position_, player_->GetPosition() )< detect_distance_) {
 			
 			glm::vec3 pos = CalculateAimPosition(getCurSpeed());
@@ -162,12 +170,15 @@ namespace game {
 				active_state_ = &Enemy::FollowPlayer;
 			}
 		}
+
+		//if the player is way too far, get a little closer to it
 		else if (glm::distance(position_, player_->GetPosition()) > max_stationary_distance_) {
 			orientation_->FaceTowards(position_, player_->GetPosition(), true);
 			orientation_->RotateTowards(deltaTime * 3);
 			position_ += orientation_->GetForward()*movement_speed*deltaTime;
 
 		}
+		//if player is far, then simply move in a circle
 		else {
 			Rotate(deltaTime*30, rotation_axis_);
 			position_ += orientation_->GetForward()*(movement_speed+boost_speed_)*deltaTime;
@@ -193,6 +204,7 @@ namespace game {
 	}
 
 	void Enemy::RamPlayer(float deltaTime) {
+		//simply move straight towards the player, and increase speed if player is close to ram
 		orientation_->FaceTowards(position_, player_->GetPosition(), true);
 		orientation_->RotateTowards(deltaTime * 3);
 		if (glm::distance(position_, player_->GetPosition()) > detect_distance_) {
@@ -212,7 +224,7 @@ namespace game {
 		}
 	}
 
-	//https://gamedev.stackexchange.com/questions/35859/algorithm-to-shoot-at-a-target-in-a-3d-game
+	//source for the equations (NOT MY OWN WORK): https://gamedev.stackexchange.com/questions/35859/algorithm-to-shoot-at-a-target-in-a-3d-game
 	glm::vec3 Enemy::CalculateAimPosition(float speed) {
 
 		glm::vec3 player_velocity;

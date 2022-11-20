@@ -49,7 +49,7 @@ namespace game {
 
 		// Draw geometry
 		glDisable(GL_DEPTH_TEST);
-		glDepthMask(GL_FALSE);
+		glDepthMask(GL_FALSE);//disable depth mask for the skybox to render
 		if (mode_ == GL_POINTS) {
 			glDrawArrays(mode_, 0, size_);
 		}

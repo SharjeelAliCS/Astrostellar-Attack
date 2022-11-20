@@ -1,2 +1,5 @@
 Enemy spaceships:
 https://psionicgames.itch.io/low-poly-space-ship-pack
+
+Drone:
+https://sketchfab.com/3d-models/eye-dronenew-version-1560745be01b401f972db40632911b2a

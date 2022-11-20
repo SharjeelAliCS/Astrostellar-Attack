@@ -43,6 +43,7 @@ namespace game {
 	}
 	bool Entity::damage(float dmg, bool health) {
 		health_ -= dmg;
+		//check if health is less than zero. if so, set exists to false. 
 		if (health_ < 0) {
 			health_ = 0;
 			exists_ = false;

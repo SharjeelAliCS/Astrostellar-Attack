@@ -57,13 +57,11 @@ set(HDRS
     ${PROJECT_SOURCE_DIR}/include/node/entity/obstacle/comet_node.h
     ${PROJECT_SOURCE_DIR}/include/node/entity/obstacle/asteroid_node.h
     ${PROJECT_SOURCE_DIR}/include/node/entity/obstacle/satellite_node.h
-    ${PROJECT_SOURCE_DIR}/include/node/entity/obstacle/sun_node.h
 
 
     ${PROJECT_SOURCE_DIR}/include/node/entity/projectile_node.h
 
     ${PROJECT_SOURCE_DIR}/include/node/screen/screen_node.h
-    ${PROJECT_SOURCE_DIR}/include/node/screen/text_node.h
     ${PROJECT_SOURCE_DIR}/include/node/screen/radar_node.h
     ${PROJECT_SOURCE_DIR}/include/node/screen/button_node.h
 
@@ -79,7 +77,6 @@ set(HDRS
     ${PROJECT_SOURCE_DIR}/include/world/camera.h
     ${PROJECT_SOURCE_DIR}/include/world/game.h
     ${PROJECT_SOURCE_DIR}/include/world/scene_graph.h
-    ${PROJECT_SOURCE_DIR}/include/world/scene_menu.h
 )
 set(SRCS
     #SOURCE FILES
@@ -100,12 +97,10 @@ set(SRCS
     ${PROJECT_SOURCE_DIR}/src/node/entity/obstacle/comet_node.cpp
     ${PROJECT_SOURCE_DIR}/src/node/entity/obstacle/asteroid_node.cpp
     ${PROJECT_SOURCE_DIR}/src/node/entity/obstacle/satellite_node.cpp
-    ${PROJECT_SOURCE_DIR}/src/node/entity/obstacle/sun_node.cpp
 
     ${PROJECT_SOURCE_DIR}/src/node/entity/projectile_node.cpp
 
     ${PROJECT_SOURCE_DIR}/src/node/screen/screen_node.cpp
-    ${PROJECT_SOURCE_DIR}/src/node/screen/text_node.cpp
     ${PROJECT_SOURCE_DIR}/src/node/screen/radar_node.cpp
     ${PROJECT_SOURCE_DIR}/src/node/screen/button_node.cpp
 
@@ -119,7 +114,6 @@ set(SRCS
     ${PROJECT_SOURCE_DIR}/src/world/camera.cpp
     ${PROJECT_SOURCE_DIR}/src/world/game.cpp
     ${PROJECT_SOURCE_DIR}/src/world/scene_graph.cpp
-    ${PROJECT_SOURCE_DIR}/src/world/scene_menu.cpp
 
     ${PROJECT_SOURCE_DIR}/src/main.cpp
 )
@@ -160,8 +154,6 @@ set(RCRS
     ${PROJECT_SOURCE_DIR}/resource/screen/screen_space_health_fp.glsl
     ${PROJECT_SOURCE_DIR}/resource/screen/screen_space_boost_vp.glsl
     ${PROJECT_SOURCE_DIR}/resource/screen/screen_space_boost_fp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/screen/screen_space_bloom_vp.glsl
-    ${PROJECT_SOURCE_DIR}/resource/screen/screen_space_bloom_fp.glsl
 )
 #https://stackoverflow.com/questions/31422680/how-to-set-visual-studio-filters-for-nested-sub-directory-using-cmake
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${HDRS})

@@ -122,7 +122,6 @@ void Game::InitEventHandlers(void){
 
 	glfwSetWindowAspectRatio(window_, 1920,1080);
     // Set event callbacks
-    glfwSetKeyCallback(window_, KeyCallback);
     glfwSetFramebufferSizeCallback(window_, ResizeCallback);
 	glfwSetScrollCallback(window_, scroll_callback);
     // Set pointer to game object, so that callbacks can access it
@@ -215,8 +214,10 @@ void Game::SetupResources(void){
 
 void Game::LoadSaveFile(bool restart) {
 
-	//todo David
+	
 	json saveData;
+
+	//if restart is true, then load from the default save file
 	if(restart)saveData= resman_.GetResource("save_default")->GetJSON();
 	else saveData = resman_.GetResource("save")->GetJSON();
 
@@ -260,19 +261,19 @@ void Game::SaveGame(void) {
 	json newData = dataResource->GetJSON();
 
 	for (std::map<std::string, int>::const_iterator it = loadedPlayerInventory.begin(); it != loadedPlayerInventory.end(); ++it){
-		std::cout << it->first << " " << it->second<< "\n";
+		//std::cout << it->first << " " << it->second<< "\n";
 		newData["inventory"][it->first] = it->second;
 	}
 	for (std::map<std::string, int>::const_iterator it = loadedPlayerUpgrades.begin(); it != loadedPlayerUpgrades.end(); ++it){
-		std::cout << it->first << " " << it->second<< "\n";
+		//std::cout << it->first << " " << it->second<< "\n";
 		newData["upgrades"][it->first] = it->second;
 	}
 	for (std::map<std::string, int>::const_iterator it = loadedPlayerLoadout.begin(); it != loadedPlayerLoadout.end(); ++it){
-		std::cout << it->first << " " << it->second<< "\n";
+		//std::cout << it->first << " " << it->second<< "\n";
 		newData["loadout"][it->first] = it->second;
 	}
 	for (std::map<std::string, int>::const_iterator it = loadedPlayerStats.begin(); it != loadedPlayerStats.end(); ++it){
-		std::cout << it->first << " " << it->second<< "\n";
+		//std::cout << it->first << " " << it->second<< "\n";
 		newData["player_stats"][it->first] = it->second;
 	}
 	newData["playtime"] = (int)(startTime+glfwGetTime());
@@ -314,6 +315,7 @@ void Game::SetupScene(void){
 	// Setup drawing to texture
 	scene_.SetupDrawToTexture(window_width, window_height);
 
+	//create the world data
 	SetUpWorld(true);
 
 }
@@ -341,7 +343,7 @@ void Game::SetUpWorld(bool restart) {
 	CreateSatellites();
 	//create skybox
 
-	//create particles:
+	//create particle jet stream for the player in third person
 	ParticleNode* pn = CreateParticleInstance(20000, "jetstream", "particleStream", "ParticleMaterial", "jetParticleTexture");
 	pn->SetOrientation(90, glm::vec3(0, 1, 0));
 	pn->Rotate(-90, glm::vec3(1, 0, 0));
@@ -353,7 +355,6 @@ void Game::SetUpWorld(bool restart) {
 	pn->SetColor(glm::vec3(0, 0.749, 1));
 
 	scene_.GetPlayer()->AddChild(pn);
-	//scene_.GetPlayer()->AddChild(test);
 	scene_.GetScreen("cockpit")->SetDraw(true);
 	scene_.GetPlayer()->SetDraw(false);
 	camera_.SetZoom(0);
@@ -383,7 +384,6 @@ void Game::SetSaveState(void) {
 	dataResource->SetJSON(data);
 	resman_.SaveResource("save");
 
-	std::cout << data << std::endl;
 	//std::string fruit = (*data)["fruit"];
 }
 
@@ -398,11 +398,14 @@ void Game::MainLoop(void){
 
     while (!glfwWindowShouldClose(window_)){
 
+		//if reset world flag is true, reset the world data
 		if (scene_.GetResetWorld()) {
 			ResetWorld();
 			player = scene_.GetPlayer();
 			scene_.SetResetWorld(false);
 		}
+
+		//if level complete is true, then renable mouse 
 		else if (scene_.GetLevelComplete()) {
 			animating_ = false;
 			player = scene_.GetPlayer();
@@ -436,14 +439,12 @@ void Game::MainLoop(void){
 				case PAUSE_MENU:
 				case HUD_MENU:
 
-					// Animate the scene
-					//player->SetHealth(sin(deltaTime*100*t) / 2 + 0.5);
-					//player->SetShields(sin(deltaTime* 100 *t) / 2 + 0.5);
-
+					//update the various HUD bars for the game
 					float s = player->GetShields();
 					scene_.GetScreen("healthBar")->SetProgressX(player->getHealthPercent());
 					scene_.GetScreen("shieldBar")->SetProgressX(player->GetShieldPercent());
 					scene_.GetScreen("bountyBar")->SetProgressX(scene_.GetBountyProgress());
+
 					Boss* boss = scene_.GetBoss();
 					if(boss!=NULL)scene_.GetScreen("bossHealthBar")->SetProgressX(boss->getHealthPercent());
 					std::string currWeapon = player->GetCurrentWeapon() + "Texture";
@@ -452,46 +453,33 @@ void Game::MainLoop(void){
 					last_time = current_time;
 					t += 0.01;
 
-
 					break;
 
 				}
-
-
-
-
 			}
+
+			//get the fps counter
 			if (current_time - second >= 1.0) {
 				second = current_time;
 				fps = frames;
-				//std::cout << "fps: " << frames << std::endl;
 				frames = 0;
 			}
 			frames += 1;
 		}
 
 
-		//gen the screen
-		//bool genScreen = true;//change this value
+		//check if need to apply the nuclear overload. If so,
+		//then draw the screen space effect for health into a texture to be used by the screenboostmaterial shader. 
 		bool genScreen = player->NuclearOverload();
 		scene_.Draw(&camera_, fps, true, window_width, window_height);
 		scene_.DisplayScreenSpace(resman_.GetResource("ScreenHealthMaterial")->GetResource(),"health", genScreen, window_width, window_height);
 
-		//the "nuclear" overload bool is used to check when to apply the screen effect or not.
-		//scene_.Draw(&camera_, genScreen, window_width, window_height);
-
-		//generate the bloom material screen material
-		//scene_.DisplayScreenSpace(resman_.GetResource("ScreenBloomMaterial")->GetResource(),"", genScreen,window_width, window_height);
 		if (genScreen) {
 
 			//generate the boost screen material (main part of the assignment)
 			scene_.DisplayScreenSpace(resman_.GetResource("ScreenBoostMaterial")->GetResource(),"boost");
 
 		}
-
-		//std::cout << loadedPlayerInventory[player->GetCurrentWeapon()+"_Ammo"]<< std::endl;
-		//text.RenderText(new Text(player->GetCurrentWeapon(), glm::vec2(0.6, -0.78), 0.4f, glm::vec3(0.0941, 0.698, 0.921)));
-		//text.RenderText(new Text(std::to_string(fps), glm::vec2(-1, 0.9), 0.5f, glm::vec3(1.0, 1.0, 0)));
 
         glfwSwapBuffers(window_);
 
@@ -503,10 +491,12 @@ void Game::MainLoop(void){
 //type is one of upgrade, ammo, repair
 void Game::BuySomething(std::string thing, std::string type) {
 	
+	//check if item actually  exists
 	if (loadedPlayerUpgrades.count(thing) ||
 		loadedPlayerInventory.count(thing+"_Ammo") || type=="repair") {
-		std::cout << "thing: " << thing << "\ntype: " << type << "\n";
 		Player* player = scene_.GetPlayer();
+
+		//if type is repair, then repair using remainnig hp as cost
 		if (type.compare("repair")==0) {
 			int cost = loadedPlayerStats["repair_cost_per_hp"] * (player->GetMaxHealth() - player->GetHealth());
 			if (cost > loadedPlayerInventory["credits"]) {
@@ -521,18 +511,15 @@ void Game::BuySomething(std::string thing, std::string type) {
 			UpdateShopText("repair", "repair");
 		}
 
+		//if type is upgrade, then simply upgrade item using current level of item defined in save file json. 
 		else if (type.compare("upgrade")==0) {
 			int currentLevel = loadedPlayerUpgrades[thing]+1;
 			if (currentLevel == 6) { return; }
-			std::cout << "level_" + std::to_string(currentLevel) << "\n";
 			std::map<std::string, int> cost = loadedUpgradeCosts["level_" + std::to_string(currentLevel)];
 			if( cost["credits"] <= loadedPlayerInventory["credits"] &&
 				cost["stellaranite_Fragments"] <= loadedPlayerInventory["stellaranite_Fragments"] &&
 				cost["stellaranite_Slabs"] <= loadedPlayerInventory["stellaranite_Slabs"])
 			{
-				std::cout << "credits: " << cost["credits"] << std::endl;
-				std::cout << "stellaranite_Fragments: " << cost["stellaranite_Fragments"] << std::endl;
-				std::cout << "stellaranite_Slabs: " << cost["stellaranite_Slabs"] << std::endl;
 
 				loadedPlayerUpgrades[thing]++;
 				loadedPlayerInventory["credits"] -= cost["credits"];
@@ -555,6 +542,8 @@ void Game::BuySomething(std::string thing, std::string type) {
 
 
 		}
+		
+		//else if type is ammo, then buy ammo
 		else {
 			int purchaseNumber = 0;
 			if (type.compare("ammo") == 0) { //purchased in units of 10
@@ -564,7 +553,6 @@ void Game::BuySomething(std::string thing, std::string type) {
 				purchaseNumber = 1;
 			}
 			int cost = loadedWeaponStats[thing + "_Cost"] * purchaseNumber;
-			std::cout << "cost is: " << cost << " player has: " << loadedPlayerInventory["credits"] << "\n";
 			if (cost <= loadedPlayerInventory["credits"]) {
 				loadedPlayerInventory[thing + "_Ammo"] += purchaseNumber;
 				loadedPlayerInventory["credits"] -= cost;
@@ -618,6 +606,7 @@ void Game::GetUserInput(float deltaTime) {
 	double xpos, ypos;
 	glfwGetCursorPos(window_, &xpos, &ypos);
 
+	//this section checks for all button clicks. The description of what each does should be informed by the button name (btn =="")
 	std::string btn = scene_.ButtonEvents(xpos, ypos);
 	if (btn != "" && (timeOfLastMove < glfwGetTime() - 0.5) && glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
 			timeOfLastMove = glfwGetTime();
@@ -630,7 +619,7 @@ void Game::GetUserInput(float deltaTime) {
 			else if (btn == "chooseBountyBtn") {
 				scene_.SetCurrentScreen(BOUNTY_MENU);
 			}
-			else if (btn == "WipeSaveButton") {
+			else if (btn == "WipeSaveButton") {//erase save and load default save file
 				LoadLastSave(true);
 				SaveGame();
 			}
@@ -648,7 +637,6 @@ void Game::GetUserInput(float deltaTime) {
 				scene_.SetCurrentScreen(SHOP_SHIP_MENU);
 			}
 			else if (btn == "shopWeaponsPage2Menu") {
-				std::cout << "page 2 opened" << std::endl;
 				scene_.SetCurrentScreen(SHOP_WEAPONS_2_MENU);
 
 			}
@@ -670,6 +658,7 @@ void Game::GetUserInput(float deltaTime) {
 			}
 			else if (btn.compare("startButton")==0) {
 
+				//choose the current bounty to apply when starting the game
 				if (chosen_bounty_.compare("")) {
 
 					scene_.GetScreen("bossHealthBar")->SetDraw(false);
@@ -695,29 +684,25 @@ void Game::GetUserInput(float deltaTime) {
 			}
 			else if (btn == "shopButton") {
 				scene_.SetCurrentScreen(SHOP_SHIP_MENU);
-				std::cout << "shop clicked!" << std::endl;
 			}
 			else if (btn == "menuButton") {
 				scene_.SetCurrentScreen(MAIN_MENU);
-				std::cout << "menu clicked!" << std::endl;
 			}
 			else if (btn == "bounty1Button") {
 
-				std::cout << "bounty1Button clicked!" << std::endl;
 				scene_.SetCurrentScreen(MAIN_MENU);
 				chosen_bounty_ = "destroy_60_asteroids_reward";
 			}
 			else if (btn == "bounty2Button") {
-				std::cout << "bounty2Button clicked!" << std::endl;
 				scene_.SetCurrentScreen(MAIN_MENU);
 				chosen_bounty_ = "kill_40_enemies_reward";
 			}
 			else if (btn == "bounty3Button") {
-				std::cout << "bounty3Button clicked!" << std::endl;
 				scene_.SetCurrentScreen(MAIN_MENU);
 				chosen_bounty_ = "kill_boss_reward";
 			}
 
+			//handle the shop item upgrade buttons. If the current menu is a shop menu, then try to buy something
 			ScreenType sT = scene_.GetCurrentMenu();
 			if (sT == SHOP_ABILITES_MENU || sT == SHOP_SHIP_MENU ||
 				sT == SHOP_WEAPONS_1_MENU || sT == SHOP_WEAPONS_2_MENU) {
@@ -739,12 +724,11 @@ void Game::GetUserInput(float deltaTime) {
 		loadedPlayerStats["kills"] = startKills + numEnemies - scene_.GetEnemies()->size();
 		//Fire a missile
 		if (glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-			//std::cout << "\n\nFIRE\n\n";
 			player->Fire();
 			timeOfLastMove = glfwGetTime();
 		}
-
-
+		
+		//tab to swtich weapons
 		if (tabNotPressedLastFrame && glfwGetKey(window_, GLFW_KEY_TAB) == GLFW_PRESS) {
 			player->nextWeapon();
 			timeOfLastMove = glfwGetTime();
@@ -764,7 +748,6 @@ void Game::GetUserInput(float deltaTime) {
 
 		//emergency warp, levels increase distance travelled.
 		if (twoNotPressedLastFrame && glfwGetKey(window_, GLFW_KEY_2) == GLFW_PRESS) {
-			std::cout << "warp activatdd!" << std::endl;
 			//if ammo use ability
 			if (loadedPlayerInventory["emergency_Warp_Ammo"] > 0) {
 				loadedPlayerInventory["emergency_Warp_Ammo"]--;
@@ -783,7 +766,6 @@ void Game::GetUserInput(float deltaTime) {
 			//if ammo use ability
 			if (loadedPlayerInventory["nanite_Swarm_Ammo"] > 0) {
 				loadedPlayerInventory["nanite_Swarm_Ammo"]--;
-				std::cout << "swarm active\n";
 				scene_.DisableAllEnemiesFor(loadedWeaponStats["nanite_Swarm_BaseDisableDuration"] * pow(1.25, loadedPlayerUpgrades["nanite_Swarm_Duration_Level"]));
 			}
 		}
@@ -793,7 +775,6 @@ void Game::GetUserInput(float deltaTime) {
 			//evasive manuvers
 			//if success, 1 sec cooldown and bonus damage next attack, else 5 second cooldown no bonus
 			if (scene_.EvasiveManeuversSuccessCheck()) {
-				std::cout << "success! cooldown 1 second\n";
 				//bonus damage next attack
 				//barrel roll! I wasn't able to get to this, if you got time it would def make the ability cooler. shar todo
 
@@ -804,7 +785,6 @@ void Game::GetUserInput(float deltaTime) {
 				evasiveManeuversCooldown = glfwGetTime() + 1;
 			}
 			else {
-				std::cout << "failure! cooldown 5 seconds\n";
 				evasiveManeuversCooldown = glfwGetTime() + 5;
 			}
 		}
@@ -873,10 +853,6 @@ void Game::GetMouseCameraInput(float xpos, float ypos) {
 	}
 }
 
-
-void Game::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods){
-}
-
 void Game::ResizeCallback(GLFWwindow* window, int width, int height) {
 
 	void* ptr = glfwGetWindowUserPointer(window);
@@ -885,13 +861,15 @@ void Game::ResizeCallback(GLFWwindow* window, int width, int height) {
 	// Set up viewport and camera projection based on new window size
 	glViewport(0, 0, width, height);
 	game->camera_.SetProjection(camera_fov_g, camera_near_clip_distance_g, camera_far_clip_distance_g, width, height);
+
+	//set the updated window sizes to all relevant objects
 	game->window_width = width;
 	game->window_height = height;
 	game->scene_.UpdateScreenSizeNodes(width, height);
 
 	game->scene_.SetupDrawToTexture(width, height);
 }
-//https://www.glfw.org/docs/3.3/input_guide.html#scrolling
+//source for how to detect zoom is from https://www.glfw.org/docs/3.3/input_guide.html#scrolling
 void Game::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	void* ptr = glfwGetWindowUserPointer(window);
 	Game *game = (Game *)ptr;
@@ -900,6 +878,7 @@ void Game::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	float min_zoom = 30;
 	float curr_zoom = game->camera_.GetZoom()+yoffset;
 
+	//if zoom is less than 5, this means it is third person
 	if (curr_zoom < 5) {
 		if (yoffset > 0) {
 			game->first_person_ = false;
@@ -961,12 +940,13 @@ void Game::CreateBoss(void) {
 	en->SetProjectileDmg(data["Boss"]["orbs"]["bullet_damage"]);
 	en->SetProjColor(glm::vec3(1, 1, 0));
 	NodeResources* rsc = GetResources("bossOrbMesh", "NormalMaterial", "bossOrbTexture", "");
-	// Create asteroid instance
+
 	int total_orbs = data["Boss"]["orbs"]["count"];
 	en->SetRateOfFire(1);
 
 	en->SetPlayer(scene_.GetPlayer());
 
+	//create the the boss orbs using hierchial transformations
 	for (int i = 0; i < total_orbs; i++) {
 		Enemy *pn = new Enemy("bossOrb", rsc->geom, rsc->mat, rsc->tex);
 		pn->SetPosition(glm::vec3(100, 0, 0));
@@ -1106,8 +1086,6 @@ void Game::CreateAsteroids(int num_asteroids){
         AsteroidNode *ast = CreateAsteroidInstance(name, asteroid_type+"Mesh", "NormalMaterial", asteroid_type+"Texture", asteroid_type + "Normal");//,
 
         // Set attributes of asteroid: random position, orientation, and
-        // angular momentum
-
 		ast->SetPosition(glm::vec3(-radius + radius *((float) rand() / RAND_MAX), -radius + radius *((float) rand() / RAND_MAX), -radius+radius*((float) rand() / RAND_MAX)));
 		ast->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
 		//en->SetScale(glm::vec3(1000));
@@ -1145,6 +1123,7 @@ void Game::CreateSatellites(int num_satellites) {
 
 		sat->SetScale(glm::vec3(width, height, width));
 
+		//create "attennas" using hierchial transformations
 		for (int i = 0; i < 2; i++) {
 			SceneNode *pn = new SceneNode("satellite_anntena", rsc->geom, rsc->mat, rsc->tex);
 			
@@ -1189,7 +1168,7 @@ void Game::CreateComets(int num_comets) {
 		cmt->SetColor(glm::vec3(1,0.5,0.5));
 		cmt->RotateOrientationInit(10, axis);
 
-
+		//assign a particle system to each comet's tail
 		ParticleNode* pn = CreateParticleInstance(20000, "cometStream", "cometParticles", "CometParticleMaterial", "jetParticleTexture");
 		pn->SetOrientation(90, glm::vec3(0, -1, 0));
 		float pos = scale / 2;
@@ -1269,7 +1248,7 @@ void Game::CreateMainMenu(void) {
 	btn->SetScale(glm::vec3(0.7, 0.1, 1));//multiply by 17.72crosshairDefaultTexture
 	btn->SetPosition(glm::vec3(0, -0.45, 0));
 	//btn->SetPosition(glm::vec3(-0.6, 0.7, 0));
-	btn->SetText(new Text("Delete Save", glm::vec2(-0.5, -0.3), 0.4, glm::vec3(1.0, 1.0, 1.0)));
+	btn->SetText(new Text("DELETE SAVE", glm::vec2(-0.5, -0.3), 0.4, glm::vec3(1.0, 1.0, 1.0)));
 
 	btn = CreateButtonInstance("mainMenuQuitBtn", "FlatSurface", "ScreenMaterial", MAIN_MENU, "longButton");
 	btn->SetScale(glm::vec3(0.7, 0.1, 1));//multiply by 17.72crosshairDefaultTexture
@@ -1317,6 +1296,8 @@ void Game::UpdateShopText(std::string obj_name, std::string upgrade_type) {
 	ButtonNode* btn = scene_.GetButton(obj_name);
 
 	std::string cred, frag, slabs, lv;
+
+	//this function simply updates all the relevent pieces of informaiton for each shop icon
 	if (upgrade_type.compare("ammo")==0) {
 		cred =  std::to_string((int)loadedWeaponStats[obj_name + "_Cost"] * 10);
 		frag = slabs = "0";

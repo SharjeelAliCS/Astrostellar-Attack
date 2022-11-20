@@ -22,6 +22,7 @@ SceneGraph::SceneGraph(void){
 	death_animations_ = new std::vector<ParticleNode*>;
 	satellite_ = new std::vector<SatelliteNode*>;
 
+	//create all the HUD vectors for the map
 	for (int i = HUD_MENU; i != NONE+1; i++){
 		std::vector<ScreenNode*> screen;
 		std::vector<ButtonNode*> button;
@@ -221,6 +222,7 @@ SatelliteNode *SceneGraph::GetSatellite(std::string node_name) const {
 }
 void SceneGraph::DrawAllText(Camera* camera, int fps) {
 
+	//use the switch statement to figure out what text to draw and where. 
 	switch (active_menu_) {
 	case MAIN_MENU:
 		text_renderer_->RenderText(new Text("Astrostellar Attack", glm::vec2(-0.65, 0.77), 1, glm::vec3(1)));
@@ -372,6 +374,8 @@ void SceneGraph::Draw(Camera *camera, int fps,bool to_texture,float frame_width,
 		for (int i = 0; i < enemy_->size(); i++) {
 			(*enemy_)[i]->Draw(camera);
 
+			//check if enemy is close enough to draw its healthbar. if so, then draw the healthbar using a percent of the enemy's total health, and position it right above the enemy in screen space. 
+
 			if (glm::distance((*enemy_)[i]->GetPosition(), player_->GetPosition()) < enemy_healthbar_distance_) {
 				glm::vec3 screen_pos = (*enemy_)[i]->GetScreenSpacePos(true, camera);
 
@@ -440,7 +444,6 @@ void SceneGraph::DrawEnemyHealth(Camera* camera, glm::vec2 pos) {
 			screen_.at(ENEMY_HEALTH)[i]->Draw(camera);
 		}
 		return;
-	
 }
 
 void SceneGraph::ClearData(void) {
@@ -552,6 +555,8 @@ void SceneGraph::CheckBounty() {
 }
 
 void SceneGraph::CreateDeathAnimation(SceneNode* node) {
+
+	//create a particle system right on the node's position and set scale using the node's scale. 
 	std::string name = node->GetName() + "_death";
 	ParticleNode* pn = new ParticleNode(name,death_animation_rsc.geom, death_animation_rsc.mat, death_animation_rsc.tex);
 	glm::vec3 scale = node->GetScale()*(float)0.1;
@@ -565,6 +570,7 @@ void SceneGraph::CreateDeathAnimation(SceneNode* node) {
 bool SceneGraph::ProjectileCollision(AgentNode* node, bool player) {
 	std::vector<Projectile*>* missiles = node->GetMissiles();
 
+	//iterate through each projectile in the agent and check if it has a collision. 
 	for (auto it = missiles->begin(); it != missiles->end(); ) {
 		
 		Collision((*it), player);
@@ -607,8 +613,11 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 	bool collided = false;
 	std::vector<Enemy*> splitter_list;
 	bool newSplitters = false;
+
+	//check if the player or player's projectiles are colliding. 
 	if (player) {
 
+		//collision for boss involves first checking collisions with the rotating orbs, then once they are all destroyed, boss can be damaged. 
 		if (boss_ != NULL) {
 			
 			std::vector<Enemy*>* orbs = boss_->GetOrbs();
@@ -636,7 +645,6 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 						node->damage(node->GetDamage());
 						audio_->playAgain("asteroidExplosion");
 						ast = orbs->erase(ast);
-						std::cout << "orb hit" << std::endl;
 					}
 					else {
 						++ast;
@@ -646,6 +654,8 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 			}
 			
 		}
+
+		//check for asteroid collisions
 		for (auto ast = asteroid_->begin(); ast != asteroid_->end(); ) {
 			if ((*ast)->Hit(node->GetPosition(), node->GetScale().x * 0.9)) {
 				CreateDeathAnimation((*ast));
@@ -661,6 +671,7 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 			}
 		}
 
+		//check for enemy collisions
 		for (auto en = enemy_->begin(); en != enemy_->end(); ) {
 			if ((*en)->Hit(node->GetPosition(), node->GetScale().x * 0.2)) {
 				node->damage((*en)->GetDamage());
@@ -680,9 +691,10 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 				++en;
 			}
 			else {
-				std::cout << "enemy hit" << std::endl;
 				std::string enemy_type = (*en)->GetEnemyType();
 				float phase = (*en)->GetPhase();
+
+				//if the enemy was a splitter and died, then split it up further int 3 more splitters and assign a random orientaiton for them to move towards. 
 				if (enemy_type == "Splitter" && phase>0) {
 					newSplitters = true;
 					NodeResources* rsc = (*en)->GetNodeResources();
@@ -715,16 +727,18 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 			}
 		}
 
+		//check for comet collisions. 
 		for (auto ast = comet_->begin(); ast != comet_->end(); ) {
 			if ((*ast)->Hit(node->GetPosition(), node->GetScale().x * 0.9)) {
 				CreateDeathAnimation((*ast));
-				ast = comet_->erase(ast);
 				node->damage(node->GetDamage());
 				collided = true;
 				player_->CollectLoot((*ast)->GetDrops());
 				if (player){
 					audio_->playAgain("asteroidExplosion");
 				}
+
+				ast = comet_->erase(ast);
 			}
 			else {
 				++ast;
@@ -732,6 +746,7 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 		}
 	}
 	else {
+	//if the enemy is attacking, then simply damage the player
 		if ((player_->Hit(node->GetPosition(), node->GetScale().x * 0.9))) {
 			player_->damage(node->GetDamage());
 			node->damage(player_->GetDamage());
@@ -741,6 +756,7 @@ bool SceneGraph::Collision(Entity* node, bool player) {
 		}
 	}
 
+	//add the new splitters to the enemy vector
 	if (newSplitters) {
 		for (int i = 0; i < splitter_list.size(); i++) {
 			enemy_->push_back(splitter_list[i]);
@@ -853,17 +869,25 @@ void SceneGraph::Update(float dt){
 
 void SceneGraph::UpdateRadar() {
 	glm::vec3 direction = player_->GetOrientationObj()->GetForward();
+
+	//check for neutral scenery obejcts, which appear as yellow on map (asteroids, comets)
 	for (int i = 0; i < asteroid_->size(); i++) {
 		UpdateRadarNode(direction, asteroid_->at(i)->GetPosition(),glm::vec3(1,1,0));
 	}
 	for (int i = 0; i < comet_->size(); i++) {
 		UpdateRadarNode(direction, comet_->at(i)->GetPosition(), glm::vec3(1, 1, 0));
 	}
+
+	//check for hostile enemies on map. appear as red. 
 	for (int i = 0; i < enemy_->size(); i++) {
 		UpdateRadarNode(direction, (*enemy_)[i]->GetPosition(), glm::vec3(1, 0, 0),true);
-	}for (int i = 0; i < satellite_->size(); i++) {
+	}
+	//check for friendly objects on map (satelites), appear as green. 
+	for (int i = 0; i < satellite_->size(); i++) {
 		UpdateRadarNode(direction, (*satellite_)[i]->GetPosition(), glm::vec3(0,1,0), true);
 	}
+
+	//check for boss on map. appears as orange. 
 	if (boss_ != NULL) {
 		UpdateRadarNode(direction, boss_->GetPosition(), glm::vec3(1.0,0.65,0), true);
 	}
@@ -895,6 +919,9 @@ void SceneGraph::UpdateScreenSizeNodes(float x, float y) {
 	}
 }
 void SceneGraph::UpdateRadarNode(glm::vec3 direction, glm::vec3 target_pos,glm::vec3 color,bool edge){
+
+	//this function does a lot. Basically, it converts the 3D distance vector from the player to the node into a 2D vector by "flattening" it. So it uses the foward/side/up directions of the player to calculate this, and from here flattens it out. 
+
 	glm::vec3 pos_entity = CalculateDistanceFromPlayer(target_pos);
 	glm::vec2 pos_2d(pos_entity.x, pos_entity.y);
 	glm::vec3 pos_3d = player_->GetPosition();
@@ -931,7 +958,7 @@ void SceneGraph::UpdateRadarNode(glm::vec3 direction, glm::vec3 target_pos,glm::
 }
 
 glm::vec3 SceneGraph::CalculateDistanceFromPlayer(glm::vec3 pos) {
-	//https://stackoverflow.com/questions/23472048/projecting-3d-points-to-2d-plane
+	//source used is https://stackoverflow.com/questions/23472048/projecting-3d-points-to-2d-plane to calculate the distance using the plane model descirbed above. 
 	glm::vec3 player_pos = player_->GetPosition();
 	glm::vec3 plane_up = player_->GetOrientationObj()->GetUp();
 	glm::vec3 plane_x = player_->GetOrientationObj()->GetForward();
@@ -942,8 +969,6 @@ glm::vec3 SceneGraph::CalculateDistanceFromPlayer(glm::vec3 pos) {
 
 	float y = glm::dot(plane_x, (pos-player_pos));
 	float x = glm::dot(plane_y, (pos - player_pos));
-	//float x = glm::distance(player_pos, plane_x, pos_plane, plane_x);
-	//float y = glm::distance(player_pos, plane_y, pos_plane, plane_y);
 
 	glm::vec3 pos_2d(x,y, abs(dis_plane));
 

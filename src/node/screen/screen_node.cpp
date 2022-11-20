@@ -104,7 +104,7 @@ namespace game {
 		GLint color = glGetUniformLocation(program, "glow");
 		glUniform3f(color, glow_amount_.r*glow_, glow_amount_.g*glow_, glow_amount_.b*glow_);
 
-
+		//for the screen hud and buttons, simply dont set any camera popsitions, etc. 
 		GLint progress_uniform = glGetUniformLocation(program, "progress_size");
 		glUniform2f(progress_uniform, progress_size_.x, progress_size_.y);
 		SceneNode::SetupShader(program, camera);

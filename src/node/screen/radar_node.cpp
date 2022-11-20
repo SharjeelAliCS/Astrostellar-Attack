@@ -13,22 +13,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <time.h>
-
 #include "radar_node.h"
-
- /* TODO:
-
-	 - remove unneeded camera functionality from this demo
-
- */
 
 namespace game {
 
 
 	RadarNode::RadarNode(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : ScreenNode(name, geometry, material, texture,normal) {
 	}
-
-
 
 	RadarNode::~RadarNode() {
 	}
@@ -88,7 +79,7 @@ namespace game {
 		GLint sizeUniform = glGetUniformLocation(program, "arr_size");
 		glUniform1i(sizeUniform, dot_pos_.size());
 
-
+		//if the radar has dots on it, then set the uniform arrays for dot position and dot colors. 
 		if (dot_pos_.size() > 0) {
 
 			GLint arr_dots = glGetUniformLocation(program, "dots_pos");

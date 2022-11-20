@@ -51,6 +51,8 @@ namespace game {
 
 	//sets the stats of the projectile based on the player upgrades and the projectile type.
 	void Projectile::init() {
+		//each if assigns stats per each enemy type. This includes the enemy speed, time for projectile to exist, the pierce amount, the damage and move, both as functions. 
+
 		//damage upgrades are multiplictive 
 		if (type.compare("enemy") == 0) {
 			speed -= 350;
@@ -79,7 +81,9 @@ namespace game {
 			dmg = [this]() {
 				return 10;
 			};
-			move = [this](float deltaTime) { //minor player tracking
+			//minor player tracking by adjusting the rotation slowly to follow the player. not so much such that it immidiatly aims towards the player, but enough to skew its direction for larger accuracy. 
+
+			move = [this](float deltaTime) { 
 				orientation_->FaceTowards(position_, player_->GetPosition(), true);
 				float rot_speed = deltaTime;
 				if (player_->GetBoosted()) {
@@ -88,6 +92,8 @@ namespace game {
 				else {
 					rot_speed *= 0.2;
 				}
+
+				//rotate towards the node
 				orientation_->RotateTowards(rot_speed);
 				position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
 			};
@@ -128,7 +134,7 @@ namespace game {
 				}
 				else {
 
-					//chase target
+					//chase target using the faceetowards function method. 
 					orientation_->FaceTowards(this->GetPosition(), target->GetPosition(), true);
 					orientation_->RotateTowards(deltaTime*5);
 					position_ += speed * orientation_->GetForward()*deltaTime;
@@ -140,6 +146,7 @@ namespace game {
 			pierce = chargePierce;
 			ttl = glfwGetTime() + stats["charge_Blast_baseTTL"];
 			dmg = [this, chargePierce]() {
+				//incresse damage over time
 				if (pierce == chargePierce-1) {
 					this->Scale(glm::vec3(5,6,5)); //kaboom
 					ttl = glfwGetTime() + 0.2;
@@ -150,6 +157,8 @@ namespace game {
 			this->Scale(glm::vec3(5));
 			move = [this](float deltaTime) {
 				position_ -= speed * glm::normalize(-orientation_->GetForward()) * deltaTime;
+
+				//scale is also a function of time
 				if(this->GetScale().x<70+10*upg["charge_Blast_Radius_Level"]){
 					this->Scale(glm::vec3(max(1.025, pow(1.01, 1+upg["charge_Blast_Radius_Level"]))));
 				}
@@ -162,6 +171,8 @@ namespace game {
 			this->Scale(glm::vec3(3));
 			ttl = glfwGetTime() + stats["sniper_Shot_baseTTL"] * pow(1.1, upg["sniper_Shot_Range_Level"]);
 			int damageFactor = stats["sniper_Shot_baseDmg"];
+
+			//increse damage over time
 			dmg = [this, damageFactor]() {
 				return (1 - damageFactor *(ttl - glfwGetTime() - (damageFactor * pow(1.1, upg["sniper_Shot_Range_Level"])))) * pow(1.1, upg["sniper_Shot_Damage_Level"]) * max(1, boosted * pow(1.25, 1+upg["evasive_Maneuvers_Level"]));
 			};

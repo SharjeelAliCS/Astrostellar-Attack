@@ -15,7 +15,7 @@ import shutil
 import copy
 import decimal
 
-SRC= "assets/meshes/asteroids/"
+SRC= "assets/meshes/boss_orb.obj"
 data = {}
 np.set_printoptions(precision=16)
 
@@ -31,8 +31,10 @@ def read_obj(filename):
                  #pos = [float(digit) for digit in line[2:-2].split(' ')]
                  pos = line[2:-1].split(' ')
                  for j in range(3):
-                     if('e' in pos[j]):
+                     if('e' in pos[j] or pos[j]=='' or "E" in pos[j]):
                          pos[j] = 0
+                    
+                 print(line)
                  pos = np.asarray(pos,dtype=np.float16, order='C')
                  vertex.append(pos)
                  i+=1
