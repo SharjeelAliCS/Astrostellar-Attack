@@ -1,3 +1,10 @@
+/*
+COMP 3501 A FALL 2020: Astrostellar Attack Final Project
+OWNERS:                SHARJEEL ALI #101070889, DAVID NEUDORF #101029913
+CONTENTS:              Contains a resource class
+
+ */
+
 #ifndef RESOURCE_H_
 #define RESOURCE_H_
 
@@ -10,7 +17,7 @@
 using json = nlohmann::json;//https://github.com/nlohmann/json
 namespace game {
 
-    // Possible resource types
+    // Possible resource types (save is the JSON type)
     typedef enum Type { Material, PointSet, Mesh, Texture,Save } ResourceType;
 
     // Class that holds one resource

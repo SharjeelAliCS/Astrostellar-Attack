@@ -14,15 +14,6 @@
 
 #include "player_node.h"
 
-
-
-
- /* TODO:
-
-	 - remove unneeded camera functionality from this demo
-
- */
-
 namespace game {
 
 	Player::Player(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, const Resource *normal) : AgentNode(name, geometry, material, texture,normal) {
@@ -50,7 +41,6 @@ namespace game {
 
 
 	}
-
 
 
 	Player::~Player() {
@@ -94,22 +84,20 @@ namespace game {
 
 	//tab to change weapon
 	void Player::nextWeapon() {
-		std::cout << "weapon-change";
+		//change weapon by getting the next weapon in the list
 		projType = (projType + 1) % numWeapons;
-		std::cout << projectileTypes[projType] + "_Ammo";
 		if (!unlockedWeapons[projType] || playerInventory->at(projectileTypes[projType] + "_Ammo") == 0) {
 			nextWeapon();
 		}
 		else {
-			std::cout << "weapon is: " << projectileTypes[projType];
 		}
 	}
 
 
 	void Player::Fire() {
+	
 		std::string weapon = projectileTypes[projType];
 		if (playerInventory->at(weapon+"_Ammo") == 0) {
-			std::cout << "OUT OF AMMO, SWAPPING TO NEXT AVAILABLE WEAPON\n";
 			nextWeapon();
 			weapon = projectileTypes[projType];
 		}
@@ -219,8 +207,11 @@ namespace game {
 	void Player::Update(float deltaTime) {
 		if (invulnFor > 0) { invulnFor -= deltaTime; }
 
+		//if the player has currently boosted, then decrease the amount of boost time left. 
 		if (boosted_) {
 			boost_duration_left_ -= deltaTime;
+
+			//if the player has no boost duration, then decrease the buildup time for the nuclear overload
 			if (boost_duration_left_ <= 0) {
 				boost_duration_left_ = 0;
 				damage(deltaTime * 3, false);
@@ -228,6 +219,7 @@ namespace game {
 			}
 		}
 		else {
+			//increase the boost duration time if player isnt boosting
 			float time = glfwGetTime();
 			if (boost_duration_left_ < boost_duration_) {
 				boost_duration_left_ += deltaTime*boost_duration_*0.3;
@@ -244,15 +236,14 @@ namespace game {
 		}
 
 		time_since_damage_ += deltaTime;
+
+		//restore shields if player hasnt been damaged for x amount of seconds
 		if (time_since_damage_ > shield_recharge_delay_ && shields_ < max_shields_) {
 			shields_ += deltaTime * shield_recharge_speed_*10;
 		}
 		Translate(c_->GetForward() * getCurSpeed() *deltaTime);
 		c_->Translate(c_->GetForward() * getCurSpeed() *deltaTime);
 		Collision();
-
-		//update the missiles and check if they exist or not.
-		//std::cout << "mypos is " << position_.x << " "<< position_.y << " "<< position_.z << std::endl;
 
 		AgentNode::Update(deltaTime);
 

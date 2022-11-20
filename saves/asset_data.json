@@ -14,11 +14,9 @@
       "ExplosionParticleMaterial": "/particle/particle_explosion",
       "CometParticleMaterial": "/particle/particle_comet",
       "ScreenBoostMaterial": "/screen/screen_space_boost",
-      "ScreenHealthMaterial": "/screen/screen_space_health",
-      "ScreenBloomMaterial": "/screen/screen_space_bloom"
+      "ScreenHealthMaterial": "/screen/screen_space_health"
     },
     "Mesh": {
-      "pumpkin": "/Pumkin.obj",
       "ship": "/player.obj",
       "bossMesh": "/boss.obj",
       "bossOrbMesh": "/boss_orb.obj",
@@ -37,8 +35,6 @@
       "Asteroid10Mesh": "/asteroids/Asteroid10.obj"
     },
     "Texture": {
-      "pumpkinTexture": "/Pumpkin_Color.png",
-      "buttonTexture": "/buttonTest.png",
       "jetParticleTexture": "/particle/flame4x4orig.png",
       "shipTexture": "/player.png",
       "bossTexture": "/boss.png",

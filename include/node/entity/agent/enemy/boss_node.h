@@ -1,9 +1,7 @@
 /*
- * COMP 3501 A FALL 2020: ASSIGNMENT 3: A small game
- * MODIFIED BY SHARJEEL ALI #101070889
- *
- * A program that demonstrates the world of space and nice RGB ringed planets.
- *
+COMP 3501 A FALL 2020: Astrostellar Attack Final Project
+OWNERS:                SHARJEEL ALI #101070889, DAVID NEUDORF #101029913
+CONTENTS:              Contains a boss node class
  */
 
 #ifndef BOSS_NODE_H_
@@ -11,8 +9,8 @@
 #include "enemy_node.h"
 namespace game {
 
-	// Stores the enemy object, which for the demo is simply a "planet". It is a child of the GameObj class. 
-
+	
+	//NOTE: CLASS IS DERIVED FROM SCENENODE. FOR FUNCTIONS THAT DO NOT HAVE COMMENTS OR HEADERS BELOW, LOOK FOR DOCUMENTATION IN SCENENODE.H
 	class Boss : public Enemy {
 
 	public:
@@ -22,13 +20,22 @@ namespace game {
 
 		void InitState(void);
 
+		/*Input:       void
+		  Output:      vector (list of enemy orbs)
+		  Description: Get the list of enemy boss orbs that encircle and orbit the boss using hierchial transformations
+		*/
 		std::vector<Enemy*>* GetOrbs(void) { return &orbs_; }
+
+		/*Input:       o (enemy orb to add)
+		  Output:      void
+		  Description: Add an enemy orb to the boss
+		*/
 		void AddOrb(Enemy* o) { orbs_.push_back(o); }
 
 		void Draw(Camera* camera);
 		void Update(float deltaTime);
 	protected:
-		std::vector<Enemy*> orbs_;
+		std::vector<Enemy*> orbs_;//list of orbs that use hierchial tranformations to orbit player
 		glm::mat4 CalculateFinalTransformation(Camera* camera);
 	}; // class GameObj
 

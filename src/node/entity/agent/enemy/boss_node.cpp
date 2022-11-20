@@ -46,12 +46,15 @@ namespace game {
 
 
 	void Boss::Draw(Camera* camera) {
+		//draw each orb
 		for (std::vector<Enemy*>::iterator it = orbs_.begin(); it != orbs_.end(); ++it) {
 			(*it)->Draw(camera);
 		}
 		Enemy::Draw(camera);
 	}
 	void Boss::Update(float deltaTime) {
+
+		//update each orb
 		for (std::vector<Enemy*>::iterator it = orbs_.begin(); it != orbs_.end(); ++it) {
 			(*it)->Update(deltaTime);
 		}
@@ -63,6 +66,7 @@ namespace game {
 		// World transformation
 		glm::mat4 transf = SceneNode::CalculateFinalTransformation(camera);
 
+		//set each orb's hierchial transformatin
 		for (std::vector<Enemy*>::iterator it = orbs_.begin(); it != orbs_.end(); ++it) {
 			(*it)->SetParentTransform(transf);
 		}

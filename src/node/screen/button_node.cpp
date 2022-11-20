@@ -41,6 +41,8 @@ namespace game {
 		TextObj_ = t;
 	}
 	void ButtonNode::SetText(Text* t) {
+		//modify the position of the text such that its relative to the button (y=1 is the top of the button, x=-1 is the left edge of the button)
+
 		glm::vec2 pos = t->pos;
 		pos.x = (pos.x / 2) * scale_.x;
 		pos.y = (pos.y / 2) * scale_.y;
@@ -85,6 +87,8 @@ namespace game {
 	void ButtonNode::Draw(Camera *camera) {
 		ScreenNode::Draw(camera);
 
+
+		//render all texts for the button and set glow values
 		for (int i = 0; i < text_.size(); i++) {
 			text_[i]->glow = glow_amount_ * (float)glow_;
 			TextObj_->RenderText(text_[i]);

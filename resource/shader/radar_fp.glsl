@@ -17,6 +17,8 @@ void main()
     // Retrieve texture value
 	vec4 pixel = texture(texture_map, uv_interp);
 	gl_FragColor = pixel;
+
+	//iterate through each dot. Then check if the uv coordiante is near the dot position, if so set its color. 
 	for(int i =0; i<arr_size; i++){
 		float dis = distance(dots_pos[i], uv_interp);
 		if(dis <0.03){

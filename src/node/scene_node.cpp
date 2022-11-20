@@ -150,11 +150,14 @@ void SceneNode::Translate(glm::vec3 trans){
 glm::vec3 SceneNode::CalculateParentChildPos(void) {
 	glm::vec3 position = this->GetPosition();
 	if (parent_ != NULL) {
+	
 		glm::mat4 Orientation = glm::mat4_cast(orientation_->GetOrientation());
 		glm::mat4 GeomOrientation = glm::mat4_cast(geom_orientation_->GetOrientation());
 		glm::mat4 translation = glm::translate(glm::mat4(1.0), position);
 		glm::mat4 trans_joint = glm::translate(glm::mat4(1.0), joint_);
 		glm::mat4 trans_joint_inv = glm::translate(glm::mat4(1.0), -joint_);
+
+		//the orbit is used for hierchial transformaiton. in particular use the joint to translate it to a position to rotate it by, then translate back using the joint value. 
 
 		glm::mat4 orbit = trans_joint_inv * Orientation * trans_joint*GeomOrientation;
 		glm::mat4 transf = parentTransform_ * translation * orbit;
@@ -183,29 +186,12 @@ bool SceneNode::HitTorus(glm::vec3 pos, float range) {
 
 	glm::vec3 pnc = p_plane - position_;
 	float dist_x = glm::length(pnc) - r;
-	/*
-	glm::vec3 co = r * glm::normalize(pnc);
-
-	glm::vec3 dis_co_p_v = pos - co;
-	float dist = glm::length(dis_co_p_v);
-	*/
 
 	float dist = glm::length(glm::vec2(dist_x, dist_y));
 
 	dist -= t;
 	dist -= R;
-	std::cout << "plane: " << dist_y << ", dist " << dist_x << std::endl;
-	if (dist < 0) {
-		std::cout << "HIT " << std::endl;
-	}
-	/*
-	float dis = glm::distance(pos, position_);
-	//std::cout << dis << std::endl;
-	if (dis <= range) {
-
-		exists_ = false;
-	}
-	*/
+	
 
 	return hit;
 }
@@ -285,6 +271,8 @@ void SceneNode::Draw(Camera *camera){
 	SetupBlending();
 	
 	glm::vec3 view_plane = camera->GetSide();
+
+	//to make the game have much higher frame rates, i calculated trhe screen space coordinates, and from there simply checked if the node was outside the screen. if so, dont draw. this increased fps from 15 to 75+ (75 hz is the current max for my monitor. David says he got 60 fps since his monitor  was running at 60 hz). 
 	glm::vec3 screen_pos = GetScreenSpacePos(false, camera);
 	if ( (abs(screen_pos.x) > 1 || abs(screen_pos.y) > 1 || abs(screen_pos.z) > 1) && name_.compare("Boss")) {
 		return;
@@ -328,7 +316,6 @@ void SceneNode::Update(float deltaTime){
 }
 
 void SceneNode::RotateOrientationInit(float speed, glm::vec3 axis) {
-	std::cout << "rotate initated" << std::endl;
 	orientation_->RotateOverTimeInit(speed, axis);
 }
 glm::mat4 SceneNode::CalculateFinalTransformation(Camera* camera) {

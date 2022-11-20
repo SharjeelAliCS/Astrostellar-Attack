@@ -106,7 +106,7 @@ namespace game {
 		orientation_ = glm::normalize(orientation_);
 	}
 
-	//taken from https://gamedev.net/forums/topic/493428-rotate-an-object-to-face-a-target-in-3d-space/4218536/
+	//equation from https://gamedev.net/forums/topic/493428-rotate-an-object-to-face-a-target-in-3d-space/4218536/
 	void Orientation::FaceTowards(glm::vec3 cur_pos, glm::vec3 target_pos, bool rotate) {
 
 		glm::vec3 forw = GetForward();
@@ -121,7 +121,7 @@ namespace game {
 		float angle = acos(cosa);
 		glm::quat qu = glm::angleAxis(angle, axis);
 		if (angle != angle)return;
-
+		//if rotate is true, then this means dont rotate yet, but slowly rotate over time towards the desire angle and axis
 		if (rotate) {
 			rotate_cur_angle_ = 0;
 			rotate_max_angle_ = angle;
@@ -132,6 +132,8 @@ namespace game {
 		}
 	}
 	void Orientation::RotateTowards(float speed) {
+
+		//as long as the current angle is less than max  angle, rotate if not, stop. 
 		if (rotate_cur_angle_+speed >= rotate_max_angle_) {
 			rotate_cur_angle_ = rotate_max_angle_;
 			speed = rotate_max_angle_ - rotate_cur_angle_;
@@ -157,11 +159,9 @@ namespace game {
 	void Orientation::RotateOverTimeInit(float speed, glm::vec3 axis) {
 		rotate_speed_ = speed;
 		rotate_axis_ = axis;
-		std::cout << "inited orienation" << std::endl;
 	}
 	void Orientation::RotateOverTime(float deltatime) {
 		Rotate(rotate_speed_*deltatime, rotate_axis_);
-		//std::cout << "rotated by" << deltatime << " and " << rotate_speed_ << std::endl;
 	}
 
 } // namespace game

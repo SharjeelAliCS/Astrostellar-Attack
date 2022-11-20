@@ -38,7 +38,7 @@ void main()
     vec4 position =  world_mat *vec4(vertex, 1.0);
     vec4 norm = normal_mat * vec4(normal, 1.0);
 
-    // Move point along normal and down with t*t (acceleration under gravity)
+    // Move point along normal and down with t*t (acceleration under gravity). Similar to the comet and the explosion equations.  
     position.x += norm.x*t*speed;
     position.y += norm.y*t*speed*0.5;
     position.z += norm.z*t*speed;

@@ -1,8 +1,8 @@
 /*
- * COMP 3501 A FALL 2020: ASSIGNMENT 3: A small game
- * MODIFIED BY SHARJEEL ALI #101070889
- *
- * A program that demonstrates the world of space and nice RGB ringed planets.
+COMP 3501 A FALL 2020: Astrostellar Attack Final Project
+OWNERS:                SHARJEEL ALI #101070889, DAVID NEUDORF #101029913,LearnOpenGL 
+CONTENTS:              Contains a text rendering class, and text structure
+
  */
 
 #ifndef TEXT_H_
@@ -21,15 +21,16 @@
 #include <glm/gtc/type_ptr.hpp>
 
 
-//This class and text was taken from the following link. The vast, vast majority (about 90%) of
-//code found in text.h and text.cpp is NOT MINE and belongs to the author of the link. 
-//this means we intend to NOT get any marks for adding in text as this code is not ours
-//for comp3501 and has a different author than us. 
+/*The classes listed here were not created by us, but instead by the website LearnOpenGL. About 90% of the code here was taken from their site, with the rest being created by us. 
 
-//Tutorial found here: https://learnopengl.com/In-Practice/Text-Rendering
-//Source code found here: https://learnopengl.com/code_viewer_gh.php?code=src/7.in_practice/2.text_rendering/text_rendering.cpp
+Sources:
+	https://learnopengl.com/In-Practice/Text-Rendering
+	https://learnopengl.com/code_viewer_gh.php?code=src/7.in_practice/2.text_rendering/text_rendering.cpp
+*/
+
 namespace game {
 
+	//Taken from the LearnOpenGL source above
 	struct Character {
 		unsigned int TextureID;  // ID handle of the glyph texture
 		glm::ivec2   Size;       // Size of glyph
@@ -37,6 +38,7 @@ namespace game {
 		unsigned int Advance;    // Offset to advance to next glyph
 	};
 
+	//This text struct was created by us
 	struct Text {
 		std::string text;
 		glm::vec2 pos;
@@ -46,22 +48,34 @@ namespace game {
 		Text();
 		Text(std::string t, glm::vec2 p, float s, glm::vec3 c);
 	};
+
+	//Main code taken from LearnOpenGL linked above
 	class TextRenderer {
 
 	public:
+
 		TextRenderer(void);
 		TextRenderer(std::string font, const Resource *material);
 		~TextRenderer();
 
+		/*Input:       text (text struct to render)
+		  Output:      void
+		  Description: Renders a text struct
+		*/
 		void RenderText(Text* text);
 
 	private:
-		unsigned int VAO, VBO;
-		std::string font_;
+		unsigned int VAO, VBO;//VAO, VBO to render
+		std::string font_; //font to use
 
+		/*Input:       void
+		  Output:      int (successful init or not)
+		  Description: Initalizes the font
+		*/
 		int InitFont();
 			
-		std::map<char, Character> Characters;
+		std::map<char, Character> Characters; //map of common english language characters
+
 		GLuint material_; // Reference to shader program
 	}; // class Orientation
 
